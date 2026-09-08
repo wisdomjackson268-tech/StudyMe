@@ -1,0 +1,28 @@
+# Environment & Secret Files (Never commit real credentials)
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+
+# Local Database Backups & Dumps
+*.sql
+*.bak
+
+# Application Logs & Cache
+*.log
+storage/logs/*
+!storage/logs/.gitkeep
+storage/cache/*
+!storage/cache/.gitkeep
+
+# User Uploads
+uploads/*
+!uploads/.gitkeep
+
+# IDE, OS, & Temporary Files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+    

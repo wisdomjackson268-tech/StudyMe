@@ -1,0 +1,214 @@
+/* ============================================================
+   RESPONSIVE DESIGN BREAKPOINTS
+   ============================================================ */
+
+/* Mobile Navbar Glass Collapse Menu */
+@media (max-width: 991.98px) {
+    .custom-navbar {
+        width: 94%;
+        left: 3%;
+        padding: 10px 16px;
+        margin-top: 8px;
+    }
+
+    .navbar-collapse {
+        background: var(--bg-surface);
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 20px 18px;
+        margin-top: 12px;
+        box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px var(--border-color);
+        max-height: calc(85vh - 70px);
+        overflow-y: auto;
+    }
+
+    body.dark .navbar-collapse {
+        background: rgba(15, 23, 42, 0.96);
+        border-color: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+    }
+
+    body.light .navbar-collapse {
+        background: rgba(255, 255, 255, 0.97);
+        border-color: rgba(226, 232, 240, 0.9);
+        box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.12);
+    }
+
+    .nav-menu-list {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        padding-bottom: 12px;
+        margin-bottom: 12px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .nav-link {
+        width: 100%;
+        padding: 11px 16px !important;
+        font-size: 0.98rem;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        margin: 0;
+    }
+
+    .nav-link i {
+        font-size: 1.15rem;
+        width: 26px;
+        text-align: center;
+    }
+
+    .nav-link.active {
+        background: var(--primary-subtle);
+        color: var(--primary) !important;
+        font-weight: 700;
+    }
+
+    .navbar-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .navbar-actions .btn-login,
+    .navbar-actions .btn-start,
+    .navbar-actions .nav-cta-btn {
+        width: 100%;
+        padding: 12px 20px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        text-align: center;
+        justify-content: center;
+    }
+
+    .nav-teacher-cta {
+        display: none !important;
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+    }
+
+    .hero-section {
+        padding: 70px 0 90px;
+        text-align: center;
+    }
+
+    .hero-text {
+        margin: 0 auto 30px;
+    }
+
+    .hero-buttons {
+        justify-content: center;
+    }
+
+    .hero-stats-row {
+        justify-content: center;
+    }
+
+    .hero-visual-wrapper {
+        min-height: auto;
+        margin-top: 50px;
+    }
+
+    .floating-card {
+        padding: 10px 14px;
+    }
+
+    .floating-card h6 {
+        font-size: 0.85rem;
+    }
+
+    .card-rating {
+        top: -10px;
+        left: 0;
+    }
+
+    .card-ai {
+        top: 40px;
+        right: 0;
+    }
+
+    .card-lessons {
+        bottom: 40px;
+        left: 0;
+    }
+
+    .card-certificates {
+        bottom: -10px;
+        right: 0;
+    }
+
+    .pricing-card.popular {
+        transform: none;
+        margin: 20px 0;
+    }
+}
+
+@media (max-width: 575.98px) {
+    body {
+        padding-top: 95px;
+    }
+
+    .hero-title {
+        font-size: 2rem;
+    }
+
+    .section-title {
+        font-size: 1.85rem;
+    }
+
+    .section-padding {
+        padding: 60px 0;
+    }
+
+    .trust-banner {
+        padding: 24px 16px;
+        margin-top: -30px;
+    }
+
+    .stat-card h3 {
+        font-size: 1.75rem;
+    }
+
+    .floating-card {
+        display: none; /* Hide floating cards on extra small screens to prevent clutter/overflow */
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn-hero-primary,
+    .btn-hero-secondary {
+        width: 100%;
+        text-align: center;
+    }
+
+    .hero-stats-row {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .ai-section,
+    .cta-section,
+    .newsletter-box {
+        padding: 40px 20px;
+        border-radius: var(--radius-lg);
+    }
+}
+
+/* Reduced Motion Respect */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

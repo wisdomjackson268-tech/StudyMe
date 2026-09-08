@@ -1,0 +1,157 @@
+/* ============================================================
+   STUDYME LMS — REUSABLE SKELETON LOADING SYSTEM
+   Supports Light & Dark Modes with Smooth CSS Shimmer Animations
+   ============================================================ */
+
+:root {
+    --skeleton-bg: #e2e8f0;
+    --skeleton-shimmer: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.65) 50%, rgba(255,255,255,0) 100%);
+}
+
+[data-theme="dark"],
+body.dark {
+    --skeleton-bg: #1e293b;
+    --skeleton-shimmer: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0) 100%);
+}
+
+@keyframes skeleton-shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.skeleton-box,
+.skeleton-block {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    background-color: var(--skeleton-bg);
+    border-radius: 8px;
+}
+
+.skeleton-box::after,
+.skeleton-block::after {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--skeleton-shimmer);
+    animation: skeleton-shimmer 1.8s infinite ease-in-out;
+    content: '';
+    transform: translateX(-100%);
+}
+
+/* Category Card Skeleton */
+.skeleton-category-card {
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 18px;
+    padding: 2.25rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.skeleton-icon-lg {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    margin-bottom: 1.5rem;
+}
+
+/* Course Card Skeleton */
+.skeleton-course-card {
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 16px;
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.skeleton-thumb {
+    width: 100%;
+    height: 190px;
+    border-radius: 0;
+}
+
+.skeleton-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.skeleton-pill {
+    height: 24px;
+    width: 90px;
+    border-radius: 9999px;
+    margin-bottom: 0.75rem;
+}
+
+.skeleton-line {
+    height: 14px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+.skeleton-line.title {
+    height: 22px;
+    width: 85%;
+    margin-bottom: 1rem;
+    border-radius: 6px;
+}
+
+.skeleton-line.full {
+    width: 100%;
+}
+
+.skeleton-line.medium {
+    width: 75%;
+}
+
+.skeleton-line.short {
+    width: 45%;
+}
+
+.skeleton-btn {
+    height: 42px;
+    border-radius: 9999px;
+    width: 100%;
+    margin-top: auto;
+}
+
+/* Table Row Skeleton */
+.skeleton-table-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+}
+
+.skeleton-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Smooth Fade transition for live content */
+.skeleton-loading-wrapper {
+    transition: opacity 0.3s ease;
+}
+
+.skeleton-loaded {
+    animation: fadeIn 0.35s ease forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}

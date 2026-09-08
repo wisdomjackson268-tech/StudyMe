@@ -1,0 +1,80 @@
+/* ============================================================
+   STUDYME LMS — ANIMATION KEYFRAMES & UTILITIES
+   ============================================================ */
+
+@keyframes floatAnim {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes pulseGlow {
+    0%, 100% {
+        box-shadow: 0 0 15px rgba(108, 43, 255, 0.2);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(108, 43, 255, 0.5);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.float-anim {
+    animation: floatAnim 4s ease-in-out infinite;
+}
+
+.pulse-glow {
+    animation: pulseGlow 3s ease-in-out infinite;
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.bg-gradient-stats {
+    background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 50%, #311075 100%);
+}
+
+.tracking-wider {
+    letter-spacing: 0.08em;
+}
+
+.fs-7 {
+    font-size: 0.825rem;
+}
+
+.backdrop-blur {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.grayscale-hover .trust-logo-item {
+    transition: all 0.3s ease;
+    filter: grayscale(80%);
+}
+
+.grayscale-hover .trust-logo-item:hover {
+    filter: grayscale(0%);
+    transform: translateY(-2px);
+}

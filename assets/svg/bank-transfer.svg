@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="study-svg">
+  <!-- Bank building -->
+  <path d="M4 10h16v10H4z"/>
+  <path d="M2 10l10-6 10 6H2z"/>
+  <!-- Pillars -->
+  <path d="M8 10v10M12 10v10M16 10v10"/>
+  <!-- Base -->
+  <path d="M2 20h20"/>
+</svg>

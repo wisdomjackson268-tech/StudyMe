@@ -1,0 +1,198 @@
+/* Dark Theme Styling & Variable Overrides */
+body.dark {
+    --bg-body: #0B1120;
+    --bg-surface: #0F172A;
+    --bg-surface-alt: #1E293B;
+    --bg-card: #1E293B;
+    --text-main: #F8FAFC;
+    --text-muted: #94A3B8;
+    --border-color: rgba(255, 255, 255, 0.08);
+    --glass-bg: rgba(15, 23, 42, 0.70);
+    --glass-bg-scrolled: rgba(15, 23, 42, 0.88);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-shadow: 0 15px 40px rgba(0, 0, 0, 0.45);
+
+    background-color: var(--bg-body) !important;
+    color: var(--text-main) !important;
+    transition: var(--transition);
+}
+
+/* Glass Navbar in Dark Mode */
+body.dark .custom-navbar {
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(25px) !important;
+    -webkit-backdrop-filter: blur(25px) !important;
+    border: 1px solid var(--glass-border) !important;
+    box-shadow: var(--glass-shadow) !important;
+}
+
+body.dark .custom-navbar.scrolled {
+    background: var(--glass-bg-scrolled) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+}
+
+body.dark .logo {
+    color: #FFFFFF !important;
+}
+
+body.dark .nav-link {
+    color: #CBD5E1 !important;
+}
+
+body.dark .nav-link:hover,
+body.dark .nav-link.active {
+    color: #A855F7 !important;
+}
+
+body.dark .btn-login {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #FFFFFF !important;
+}
+
+body.dark .btn-login:hover {
+    background: #6C2BFF !important;
+    border-color: #6C2BFF !important;
+    color: #FFFFFF !important;
+}
+
+body.dark .btn-start {
+    background: linear-gradient(135deg, #6C2BFF, #A855F7) !important;
+    color: #FFFFFF !important;
+}
+
+body.dark .theme-btn {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #FFD54F !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+body.dark .theme-btn:hover {
+    background: #2563EB !important;
+    color: #FFFFFF !important;
+}
+
+/* Dark Mode Hamburger Toggler & Dropdowns */
+body.dark .custom-toggler {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+body.dark .hamburger-bar {
+    background: #F8FAFC !important;
+}
+
+body.dark .custom-toggler.is-active .hamburger-bar {
+    background: #60A5FA !important;
+}
+
+body.dark .topbar-btn {
+    background: #1E293B !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #F8FAFC !important;
+}
+
+body.dark .topbar-btn:hover {
+    background: rgba(59, 130, 246, 0.2) !important;
+    color: #60A5FA !important;
+}
+
+body.dark .dropdown-menu {
+    background: #0F172A !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75) !important;
+}
+
+body.dark .dropdown-item {
+    color: #E2E8F0 !important;
+}
+
+body.dark .dropdown-item:hover,
+body.dark .dropdown-item:focus {
+    background: rgba(59, 130, 246, 0.18) !important;
+    color: #93C5FD !important;
+}
+
+/* Cards & Sections in Dark Mode */
+body.dark .card,
+body.dark .feature-card,
+body.dark .category-card,
+body.dark .course-card,
+body.dark .step-card,
+body.dark .teacher-card,
+body.dark .testimonial-card,
+body.dark .pricing-card,
+body.dark .ai-chat-card,
+body.dark .newsletter-box {
+    background: var(--bg-card) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: var(--text-main) !important;
+}
+
+body.dark .bg-light-subtle {
+    background-color: var(--bg-surface-alt) !important;
+}
+
+body.dark .section-subtitle {
+    color: var(--text-muted) !important;
+}
+
+body.dark .text-muted {
+    color: #94A3B8 !important;
+}
+
+/* Accordion Dark Mode */
+body.dark .accordion-item {
+    background: var(--bg-card) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+body.dark .accordion-button {
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+}
+
+body.dark .accordion-button:not(.collapsed) {
+    background: rgba(108, 43, 255, 0.15) !important;
+    color: #A855F7 !important;
+}
+
+body.dark .accordion-body {
+    color: #CBD5E1 !important;
+}
+
+/* Footer Dark Mode */
+body.dark .footer {
+    background: #070B15 !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: #94A3B8 !important;
+}
+
+body.dark .footer h5 {
+    color: #FFFFFF !important;
+}
+
+body.dark .footer-link {
+    color: #94A3B8 !important;
+}
+
+body.dark .footer-link:hover {
+    color: #A855F7 !important;
+}
+
+/* Trusted Section Dark Mode */
+body.dark #trusted {
+    background-color: #0F172A !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+body.dark .trust-logo-item {
+    color: #94A3B8 !important;
+}
+
+/* Statistics Section Dark Mode */
+body.dark .bg-gradient-stats {
+    background: linear-gradient(135deg, #070B15 0%, #0F172A 50%, #1E1B4B 100%) !important;
+}
+

@@ -1,0 +1,41 @@
+User-agent: *
+Allow: /
+Allow: /courses/
+Allow: /ai-learning.php
+Allow: /about.php
+Allow: /pricing.php
+Allow: /teachers.php
+Allow: /faq.php
+Allow: /help.php
+Allow: /contact.php
+Allow: /careers.php
+Allow: /community.php
+Allow: /certificates/verify.php
+Allow: /privacy.php
+Allow: /terms.php
+Allow: /cookies.php
+Allow: /assets/
+Allow: /uploads/
+
+# Block Private & Account Areas
+Disallow: /admin/
+Disallow: /teacher/
+Disallow: /student/
+Disallow: /dashboard/
+Disallow: /payments/
+Disallow: /auth/
+Disallow: /profile/
+Disallow: /storage/
+Disallow: /includes/
+Disallow: /config/
+Disallow: /database/
+Disallow: /api/
+Disallow: /login.php
+Disallow: /register.php
+Disallow: /logout.php
+Disallow: /certificates/view.php
+Disallow: /certificates/download.php
+
+# XML Sitemap Location
+Sitemap: http://localhost/StudyMe/sitemap.xml
+Sitemap: http://localhost/StudyMe/sitemap.php
