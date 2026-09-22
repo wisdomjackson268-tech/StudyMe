@@ -1,12 +1,6 @@
 <?php
-/**
- * StudyMe AI Platform — Rich Daily Activity Tracking & Telemetry Engine
- */
 require_once dirname(__DIR__, 2) . '/config/database.php';
 
-/**
- * Log a user activity event to MySQL.
- */
 function log_user_activity($userId, $action, $description, $courseId = null, $lessonId = null, $quizId = null, $taskId = null) {
     if (!$userId) return false;
     $pdo = getDBConnection();
@@ -25,9 +19,6 @@ function log_user_activity($userId, $action, $description, $courseId = null, $le
     }
 }
 
-/**
- * Get daily activity history for a user on a given date (defaults to Today).
- */
 function get_user_daily_activity($userId, $date = null) {
     $pdo = getDBConnection();
     if (!$date) $date = date('Y-m-d');
@@ -47,9 +38,6 @@ function get_user_daily_activity($userId, $date = null) {
     }
 }
 
-/**
- * Calculate dynamic learning streak (consecutive days with activity).
- */
 function calculate_user_learning_streak($userId) {
     $pdo = getDBConnection();
     try {
@@ -70,7 +58,7 @@ function calculate_user_learning_streak($userId) {
 
         $mostRecent = new DateTime($dates[0]);
         if ($mostRecent < $yesterday) {
-            return 0; // Streak broken if no activity today or yesterday
+            return 0;
         }
 
         $streak = 0;
@@ -92,9 +80,6 @@ function calculate_user_learning_streak($userId) {
     }
 }
 
-/**
- * Get today's activity telemetry breakdown.
- */
 function get_user_today_stats($userId) {
     $pdo = getDBConnection();
     $today = date('Y-m-d');
@@ -135,9 +120,6 @@ function get_user_today_stats($userId) {
     }
 }
 
-/**
- * Get activity heatmap data for calendar grid (past 28 days).
- */
 function get_user_activity_heatmap($userId, $days = 28) {
     $pdo = getDBConnection();
     $result = [];

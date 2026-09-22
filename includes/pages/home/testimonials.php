@@ -9,7 +9,6 @@
         </div>
 
         <div class="row g-4">
-            <!-- Testimonial 1 -->
             <div class="col-md-6 col-lg-4">
                 <div class="testimonial-card">
                     <div>
@@ -34,7 +33,6 @@
                 </div>
             </div>
 
-            <!-- Testimonial 2 -->
             <div class="col-md-6 col-lg-4">
                 <div class="testimonial-card">
                     <div>
@@ -59,7 +57,6 @@
                 </div>
             </div>
 
-            <!-- Testimonial 3 -->
             <div class="col-md-6 col-lg-4">
                 <div class="testimonial-card">
                     <div>

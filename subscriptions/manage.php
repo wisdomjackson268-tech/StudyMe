@@ -1,2 +1,5 @@
 <?php
-// StudyMe AI-Powered Learning Platform Placeholder
+
+require_once dirname(__DIR__) . '/config/main.php';
+
+redirect('payments/history.php');

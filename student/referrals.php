@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Student Referral & Wallet Dashboard
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/referrals.php';
 
@@ -10,46 +8,20 @@ $user   = current_user();
 $userId = (int)$user['id'];
 $pdo    = getDBConnection();
 
-// Fetch or generate unique referral code
 $refCode = get_user_referral_code($userId);
 $refLink = get_base_url() . '/auth/register.php?ref=' . $refCode;
 
-// Fetch Wallet Metrics
 $wallet = get_user_wallet($userId);
 
-// Fetch User's Category & Role to display exact bonus rule
 $userRole = current_user_role();
-$userCategorySlug = 'technology';
-$bonusRateText = '₦1,500 per Technology course referral';
+$bonusRateText = '₦1,000 per fellow student referred';
 
 if ($userRole === 'teacher') {
-    $bonusRateText = '₦1,000 commission per course referral';
+    $bonusRateText = '₦1,000 – ₦1,500 commission per course referral';
 } else {
-    // Get student active course category
-    $stmtCat = $pdo->prepare("
-        SELECT cat.slug, cat.name
-        FROM students s
-        JOIN enrollments e ON s.id = e.student_id
-        JOIN courses c ON e.course_id = c.id
-        JOIN categories cat ON c.category_id = cat.id
-        WHERE s.user_id = ? AND e.status = 'active'
-        ORDER BY e.enrolled_at DESC LIMIT 1
-    ");
-    $stmtCat->execute([$userId]);
-    $catRow = $stmtCat->fetch(PDO::FETCH_ASSOC);
-    if ($catRow) {
-        $userCategorySlug = $catRow['slug'];
-        if ($userCategorySlug === 'university' || $userCategorySlug === 'uni') {
-            $bonusRateText = '₦1,000 per University course referral';
-        } elseif ($userCategorySlug === 'secondary-waec-neco' || $userCategorySlug === 'secondary') {
-            $bonusRateText = '₦500 per Secondary School course referral';
-        } else {
-            $bonusRateText = '₦1,500 per Technology course referral';
-        }
-    }
+    $bonusRateText = '₦1,000 bonus per fellow student referred';
 }
 
-// Handle Withdrawal Form Submission
 $withdrawalMessage = '';
 $withdrawalSuccess = false;
 if (is_post() && isset($_POST['action']) && $_POST['action'] === 'withdraw') {
@@ -68,9 +40,8 @@ if (is_post() && isset($_POST['action']) && $_POST['action'] === 'withdraw') {
     }
 }
 
-// Fetch Referral Activity History
 $stmtRefs = $pdo->prepare("
-    SELECT r.*, 
+    SELECT r.*,
            CONCAT(u.first_name, ' ', u.last_name) AS referred_name,
            u.email AS referred_email,
            c.title AS course_title
@@ -83,12 +54,10 @@ $stmtRefs = $pdo->prepare("
 $stmtRefs->execute([$userId]);
 $referralsList = $stmtRefs->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch Withdrawal History
 $stmtW = $pdo->prepare("SELECT * FROM withdrawals WHERE user_id = ? ORDER BY created_at DESC");
 $stmtW->execute([$userId]);
 $withdrawalsList = $stmtW->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch Wallet Transactions Ledger
 $stmtTx = $pdo->prepare("SELECT * FROM wallet_transactions WHERE user_id = ? ORDER BY created_at DESC");
 $stmtTx->execute([$userId]);
 $transactionsList = $stmtTx->fetchAll(PDO::FETCH_ASSOC);
@@ -98,8 +67,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 ?>
 
 <div class="container-fluid py-4">
-    
-    <!-- Page Title Header -->
+
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
         <div>
             <h1 class="h3 fw-bold mb-1">Referral Rewards &amp; Wallet</h1>
@@ -116,7 +84,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     <?php endif; ?>
 
-    <!-- Wallet Summary Cards -->
     <div class="row g-4 mb-5">
         <div class="col-sm-6 col-xl-3">
             <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
@@ -172,7 +139,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
 
     <div class="row g-4 mb-5">
-        <!-- Referral Link Share Section -->
+
         <div class="col-lg-7">
             <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
                 <h4 class="fw-bold mb-2 d-flex align-items-center gap-2">
@@ -191,12 +158,11 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 
                 <div class="alert alert-info border-0 rounded-3 mb-0 small">
                     <i class="bi bi-info-circle-fill me-2"></i>
-                    <strong>Bonus Policy:</strong> Referral bonuses become valid only after the referred student completes their course payment. Technology referrals generate ₦1,500, University referrals generate ₦1,000, Secondary referrals generate ₦500, and Teacher referrals generate ₦1,000.
+                    <strong>Bonus Policy:</strong> You earn an instant <strong>₦1,000 cash bonus</strong> directly credited to your wallet whenever a fellow student registers using your referral link and completes their course enrollment. You can withdraw your earnings anytime directly to your bank account!
                 </div>
             </div>
         </div>
 
-        <!-- Withdrawal Form Section -->
         <div class="col-lg-5">
             <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
                 <h4 class="fw-bold mb-2 d-flex align-items-center gap-2">
@@ -208,7 +174,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 
                 <form action="<?= url('student/referrals.php') ?>" method="POST">
                     <input type="hidden" name="action" value="withdraw">
-                    
+
                     <div class="mb-2">
                         <label for="amount" class="form-label fw-semibold small mb-1">Amount (₦)</label>
                         <input type="number" step="0.01" min="500" max="<?= (float)$wallet['available_balance'] ?>" name="amount" id="amount" class="form-control" placeholder="Minimum ₦500.00" required>
@@ -237,7 +203,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     </div>
 
-    <!-- Successful Referrals Activity Table -->
     <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white overflow-hidden">
         <div class="card-header bg-white py-3 px-4 border-0 d-flex align-items-center justify-content-between">
             <h5 class="fw-bold mb-0">Referral Activity History</h5>
@@ -303,7 +268,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     </div>
 
-    <!-- Wallet Transaction Ledger Table -->
     <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden mb-5">
         <div class="card-header bg-white py-3 px-4 border-0">
             <h5 class="fw-bold mb-0"><i class="bi bi-receipt text-primary me-2"></i>Wallet Transaction Ledger</h5>
@@ -348,7 +312,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     </div>
 
-    <!-- Withdrawal Requests History Table -->
     <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
         <div class="card-header bg-white py-3 px-4 border-0">
             <h5 class="fw-bold mb-0">Withdrawal History</h5>

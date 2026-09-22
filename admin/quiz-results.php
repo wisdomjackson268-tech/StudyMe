@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Admin Quiz Results & Performance Analytics
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_ADMIN);
@@ -40,7 +38,6 @@ $stmt = $pdo->prepare("
 $stmt->execute($params);
 $attempts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Aggregate Calculations
 $totalAttempts = count($attempts);
 $totalScores   = array_column($attempts, 'percentage');
 $avgScore      = $totalAttempts > 0 ? array_sum($totalScores) / $totalAttempts : 0.0;
@@ -51,7 +48,6 @@ $failedCount   = $totalAttempts - $passedCount;
 $passRate      = $totalAttempts > 0 ? ($passedCount / $totalAttempts) * 100 : 0.0;
 $failRate      = $totalAttempts > 0 ? ($failedCount / $totalAttempts) * 100 : 0.0;
 
-// Quizzes for filter
 $quizzes = $pdo->query("SELECT id, title FROM quizzes ORDER BY title ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 include BASE_PATH . '/includes/layouts/dashboard-header.php';
@@ -67,7 +63,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </a>
 </div>
 
-<!-- Real Database Aggregate Statistics (Part 28) -->
 <div class="row g-3 mb-4">
     <div class="col-sm-6 col-xl-2">
         <div class="stat-card">
@@ -107,7 +102,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
 </div>
 
-<!-- Search & Filter -->
 <div class="card border-0 shadow-sm rounded-4 p-3 mb-4">
     <form method="GET" class="row g-2 align-items-end">
         <div class="col-md-6">
@@ -127,7 +121,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </form>
 </div>
 
-<!-- Results Table -->
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0 small">

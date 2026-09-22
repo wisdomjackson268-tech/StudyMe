@@ -1,8 +1,5 @@
 <?php
-/**
- * StudyMe — Resources Table Migration
- * Run: php -f database/migrate_resources.php
- */
+
 require_once dirname(__DIR__) . '/config/database.php';
 
 $pdo = getDBConnection();
@@ -35,7 +32,6 @@ try {
     $pdo->exec($sql);
     echo "✓ resources table created or already exists.\n";
 
-    // Create upload directories
     $dirs = [
         dirname(__DIR__) . '/uploads',
         dirname(__DIR__) . '/uploads/documents',
@@ -46,7 +42,7 @@ try {
     foreach ($dirs as $dir) {
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
-            // Create .htaccess to prevent PHP execution
+
             file_put_contents($dir . '/.htaccess', "Options -Indexes\n<FilesMatch \"\\.php$\">\n  Deny from all\n</FilesMatch>\n");
             echo "✓ Created directory: $dir\n";
         } else {

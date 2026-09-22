@@ -1,2 +1,3 @@
 <?php
-// StudyMe AI-Powered Learning Platform Placeholder
+
+require_once __DIR__ . '/dashboard-header.php';

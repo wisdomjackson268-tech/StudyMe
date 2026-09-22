@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Student Assignments Hub
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 secure_page(ROLE_STUDENT);
 
@@ -9,7 +7,6 @@ $user = current_user();
 $pdo = getDBConnection();
 $userId = $user['id'];
 
-// Resolve student ID
 $stmt = $pdo->prepare("SELECT id FROM students WHERE user_id = ? LIMIT 1");
 $stmt->execute([$userId]);
 $student = $stmt->fetch(PDO::FETCH_ASSOC);

@@ -1,22 +1,17 @@
 <?php
-/**
- * StudyMe AI Platform — Logout Confirmation Page
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
-// Send no-cache headers so authenticated pages cannot be seen after logout
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
 
-// If they got here without a proper logout, redirect to homepage
 if (empty($_SESSION['logout_confirmed'])) {
     redirect('index.php');
 }
 
 $userName = $_SESSION['logout_user_name'] ?? '';
 
-// Clear these one-time flags
 unset($_SESSION['logout_confirmed'], $_SESSION['logout_user_name']);
 ?>
 <!DOCTYPE html>
@@ -155,7 +150,6 @@ unset($_SESSION['logout_confirmed'], $_SESSION['logout_user_name']);
         </div>
     </div>
 
-    <!-- Feedback script: play logout sound if sound is enabled -->
     <script src="<?= rtrim(defined('APP_URL') ? APP_URL : 'http://localhost/StudyMe', '/') ?>/assets/js/feedback.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {

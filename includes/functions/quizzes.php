@@ -1,11 +1,4 @@
 <?php
-/**
- * StudyMe AI Platform — Quiz Helper Functions
- */
-
-/**
- * Get all published quizzes for a course.
- */
 function get_course_quizzes($courseId) {
     $pdo = getDBConnection();
     try {
@@ -17,9 +10,6 @@ function get_course_quizzes($courseId) {
     }
 }
 
-/**
- * Get quizzes for a teacher's courses.
- */
 function get_teacher_quizzes($teacherId) {
     $pdo = getDBConnection();
     try {
@@ -39,9 +29,6 @@ function get_teacher_quizzes($teacherId) {
     }
 }
 
-/**
- * Get a quiz by ID.
- */
 function get_quiz_by_id($quizId) {
     $pdo = getDBConnection();
     try {
@@ -53,9 +40,6 @@ function get_quiz_by_id($quizId) {
     }
 }
 
-/**
- * Get questions for a quiz with their options.
- */
 function get_quiz_questions($quizId) {
     $pdo = getDBConnection();
     try {
@@ -74,9 +58,6 @@ function get_quiz_questions($quizId) {
     }
 }
 
-/**
- * Start a quiz attempt.
- */
 function start_quiz_attempt($quizId, $studentId) {
     $pdo = getDBConnection();
     try {
@@ -89,9 +70,6 @@ function start_quiz_attempt($quizId, $studentId) {
     }
 }
 
-/**
- * Submit a quiz attempt with answers.
- */
 function submit_quiz_attempt($attemptId, $quizId, $studentId, array $answers) {
     $pdo = getDBConnection();
     try {
@@ -124,7 +102,6 @@ function submit_quiz_attempt($attemptId, $quizId, $studentId, array $answers) {
 
         $percentage = $totalPoints > 0 ? round(($earnedPoints / $totalPoints) * 100, 2) : 0;
 
-        // Check passing score
         $quizData = get_quiz_by_id($quizId);
         $passed = $percentage >= (float)($quizData['passing_score'] ?? 50);
 
@@ -134,15 +111,14 @@ function submit_quiz_attempt($attemptId, $quizId, $studentId, array $answers) {
         $pdo->commit();
         return ['percentage' => $percentage, 'passed' => $passed, 'earned' => $earnedPoints, 'total' => $totalPoints];
     } catch (Exception $e) {
-        if ($pdo->inTransaction()) $pdo->rollBack();
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         error_log("submit_quiz_attempt error: " . $e->getMessage());
         return false;
     }
 }
 
-/**
- * Get a quiz attempt result.
- */
 function get_quiz_attempt($attemptId) {
     $pdo = getDBConnection();
     try {
@@ -154,9 +130,6 @@ function get_quiz_attempt($attemptId) {
     }
 }
 
-/**
- * Get all quizzes available to a student (from their enrolled courses).
- */
 function get_student_available_quizzes($studentId) {
     $pdo = getDBConnection();
     try {

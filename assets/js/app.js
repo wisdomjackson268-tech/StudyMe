@@ -1,10 +1,6 @@
-/**
- * StudyMe AI Platform — Core Application JavaScript
- * Handles Navbar glassmorphism, responsive hamburger animations, mobile drawers, backdrops, and navigation interactions.
- */
 
 document.addEventListener("DOMContentLoaded", () => {
-    // ── 1. Navbar Glassmorphism Scroll Handler ─────────────────
+
     const navbar = document.querySelector(".custom-navbar");
     function handleScroll() {
         if (!navbar) return;
@@ -17,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
 
-    // ── 2. Public Mobile Navbar Hamburger & Backdrop Handler ────
     const navbarMenu = document.getElementById("navbarMenu");
     const navbarToggler = document.getElementById("navbarTogglerBtn");
     const navbarBackdrop = document.getElementById("navbarMobileBackdrop");
@@ -37,24 +32,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (navbarBackdrop) {
             navbarBackdrop.addEventListener("click", () => {
-                const bsCollapse = bootstrap.Collapse.getInstance(navbarMenu);
+                const bsCollapse = bootstrap.Collapse.getOrCreateInstance(navbarMenu, { toggle: false });
                 if (bsCollapse) bsCollapse.hide();
             });
         }
 
-        // Auto-close mobile menu when clicking any link inside
         const mobileLinks = navbarMenu.querySelectorAll(".nav-link, .btn-login, .btn-start, .nav-cta-btn");
         mobileLinks.forEach(link => {
             link.addEventListener("click", () => {
                 if (window.innerWidth < 992) {
-                    const bsCollapse = bootstrap.Collapse.getInstance(navbarMenu);
+                    const bsCollapse = bootstrap.Collapse.getOrCreateInstance(navbarMenu, { toggle: false });
                     if (bsCollapse) bsCollapse.hide();
                 }
             });
         });
     }
 
-    // ── 3. Dashboard Mobile Sidebar & Backdrop Controller ───────
     const sidebarToggle = document.getElementById("mobileSidebarToggle");
     const sidebar = document.getElementById("dashboardSidebar");
     const sidebarClose = document.getElementById("sidebarCloseBtn");
@@ -63,12 +56,14 @@ document.addEventListener("DOMContentLoaded", () => {
     function openSidebar() {
         if (sidebar) sidebar.classList.add("show");
         if (sidebarBackdrop) sidebarBackdrop.classList.add("show");
+        if (sidebarToggle) sidebarToggle.classList.add("is-active");
         document.body.classList.add("sidebar-open");
     }
 
     function closeSidebar() {
         if (sidebar) sidebar.classList.remove("show");
         if (sidebarBackdrop) sidebarBackdrop.classList.remove("show");
+        if (sidebarToggle) sidebarToggle.classList.remove("is-active");
         document.body.classList.remove("sidebar-open");
     }
 
@@ -94,7 +89,17 @@ document.addEventListener("DOMContentLoaded", () => {
         sidebarBackdrop.addEventListener("click", closeSidebar);
     }
 
-    // Auto-close sidebar on Escape key
+    if (sidebar) {
+        const sidebarLinks = sidebar.querySelectorAll(".sidebar-link, .sidebar-user");
+        sidebarLinks.forEach(link => {
+            link.addEventListener("click", () => {
+                if (window.innerWidth < 992) {
+                    closeSidebar();
+                }
+            });
+        });
+    }
+
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
             closeSidebar();
@@ -105,7 +110,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Handle screen resize
     window.addEventListener("resize", () => {
         if (window.innerWidth >= 992) {
             closeSidebar();
@@ -114,7 +118,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }, { passive: true });
 
-    // ── 4. Smooth Scroll for Anchor Links ───────────────────────
     const anchorLinks = document.querySelectorAll('a[href^="#"]');
     anchorLinks.forEach(link => {
         link.addEventListener("click", function(e) {
@@ -138,7 +141,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // ── 5. Dropdown Smooth Transition Enhancer ──────────────────
     const dropdowns = document.querySelectorAll(".dropdown");
     dropdowns.forEach(dropdown => {
         dropdown.addEventListener("show.bs.dropdown", function() {

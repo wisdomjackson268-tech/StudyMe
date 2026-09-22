@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Teacher Edit Quiz Page
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_TEACHER);
@@ -14,17 +12,15 @@ $pdo  = getDBConnection();
 $uid  = $user['id'];
 $qid  = (int)($_GET['id'] ?? 0);
 
-// Get teacher ID
 $stmt = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ? LIMIT 1");
 $stmt->execute([$uid]);
 $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
 $tid = $teacher ? (int)$teacher['id'] : 0;
 
-// Fetch quiz with ownership check
 $stmt = $pdo->prepare("
-    SELECT q.*, c.teacher_id 
-    FROM quizzes q 
-    JOIN courses c ON q.course_id = c.id 
+    SELECT q.*, c.teacher_id
+    FROM quizzes q
+    JOIN courses c ON q.course_id = c.id
     WHERE q.id = ? LIMIT 1
 ");
 $stmt->execute([$qid]);
@@ -35,7 +31,6 @@ if (!$quiz) {
     redirect('teacher/quizzes.php');
 }
 
-// Ownership validation
 if ($quiz['teacher_id'] != $tid && current_user_role() !== ROLE_ADMIN) {
     set_flash('error', 'ACCESS DENIED: You cannot edit a quiz belonging to another teacher.');
     redirect('teacher/quizzes.php');
@@ -54,7 +49,7 @@ if (is_post()) {
     } else {
         try {
             $stmt = $pdo->prepare("
-                UPDATE quizzes 
+                UPDATE quizzes
                 SET title = ?, description = ?, time_limit_minutes = ?, passing_score = ?, attempts_allowed = ?, status = ?, updated_at = NOW()
                 WHERE id = ?
             ");

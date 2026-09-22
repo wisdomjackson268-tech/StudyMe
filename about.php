@@ -1,14 +1,11 @@
 <?php
-/**
- * StudyMe AI Platform — About StudyMe Page
- */
+
 require_once __DIR__ . '/config/main.php';
 include BASE_PATH . '/includes/layouts/header.php';
 ?>
 
 <div class="py-5 bg-light-subtle" style="min-height: calc(100vh - 120px);">
     <div class="container py-4">
-        <!-- Header -->
         <div class="text-center max-w-700 mx-auto mb-5 animate-fade-in">
             <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex mb-3">
                 <i class="bi bi-mortarboard-fill fs-1"></i>
@@ -17,7 +14,6 @@ include BASE_PATH . '/includes/layouts/header.php';
             <p class="lead text-muted">The premier <strong>AI-Powered Learning Platform</strong> empowering students and teachers with modern digital education.</p>
         </div>
 
-        <!-- Vision and Mission Cards -->
         <div class="row g-4 mb-5">
             <div class="col-md-6">
                 <div class="card h-100 border-0 shadow-sm rounded-4 p-4 p-md-5">
@@ -47,7 +43,6 @@ include BASE_PATH . '/includes/layouts/header.php';
             </div>
         </div>
 
-        <!-- What StudyMe Offers -->
         <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-5">
             <div class="text-center max-w-700 mx-auto mb-5">
                 <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold mb-2">Platform Highlights</span>
@@ -86,7 +81,64 @@ include BASE_PATH . '/includes/layouts/header.php';
             </div>
         </div>
 
-        <!-- Call to Action -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-5">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-6">
+                    <span class="badge bg-warning bg-opacity-20 text-warning px-3 py-2 rounded-pill fw-bold mb-2">Connect With Us</span>
+                    <h3 class="fw-bold mb-2">Follow StudyMe Across the Web</h3>
+                    <p class="text-secondary small mb-3">
+                        Stay updated with our latest course releases, AI study tips, student achievements, and platform announcements across our official social channels.
+                    </p>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <a href="https://x.com/StudyMe910" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary btn-sm rounded-pill d-inline-flex align-items-center gap-2 px-3 py-2" aria-label="X (formerly Twitter)">
+                            <i class="bi bi-twitter-x"></i> <span>X</span>
+                        </a>
+                        <a href="https://youtube.com/@studyme910" target="_blank" rel="noopener noreferrer" class="btn btn-outline-danger btn-sm rounded-pill d-inline-flex align-items-center gap-2 px-3 py-2" aria-label="YouTube">
+                            <i class="bi bi-youtube"></i> <span>YouTube</span>
+                        </a>
+                        <a href="https://www.tiktok.com/@study.me32" target="_blank" rel="noopener noreferrer" class="btn btn-outline-dark btn-sm rounded-pill d-inline-flex align-items-center gap-2 px-3 py-2" aria-label="TikTok">
+                            <i class="bi bi-tiktok"></i> <span>TikTok</span>
+                        </a>
+                        <a href="https://www.linkedin.com/in/wisdom-jackson-b19941345" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm rounded-pill d-inline-flex align-items-center gap-2 px-3 py-2" aria-label="LinkedIn">
+                            <i class="bi bi-linkedin"></i> <span>LinkedIn</span>
+                        </a>
+                        <a href="https://www.facebook.com/share/1BYXM81J2o/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm rounded-pill d-inline-flex align-items-center gap-2 px-3 py-2" aria-label="Facebook">
+                            <i class="bi bi-facebook"></i> <span>Facebook</span>
+                        </a>
+                        <a href="https://github.com/wisdomjackson268-tech" target="_blank" rel="noopener noreferrer" class="btn btn-outline-dark btn-sm rounded-pill d-inline-flex align-items-center gap-2 px-3 py-2" aria-label="GitHub">
+                            <i class="bi bi-github"></i> <span>GitHub</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="p-4 rounded-4 bg-light border">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-headset text-primary me-2"></i> Official Contact Information</h6>
+                        <div class="d-flex flex-column gap-2 small text-secondary mb-3">
+                            <div>
+                                <i class="bi bi-telephone-fill text-success me-2"></i>
+                                <strong>Phone:</strong> <a href="tel:09026849170" class="text-decoration-none text-dark fw-semibold">09026849170</a>
+                            </div>
+                            <div>
+                                <i class="bi bi-envelope-fill text-primary me-2"></i>
+                                <strong>Primary Email:</strong> <a href="mailto:studyme910@gmail.com" class="text-decoration-none text-primary fw-semibold">studyme910@gmail.com</a>
+                            </div>
+                            <div>
+                                <i class="bi bi-envelope-at-fill text-primary me-2"></i>
+                                <strong>Additional Email:</strong> <a href="mailto:wisdomjackson268@gmail.com" class="text-decoration-none text-primary fw-semibold">wisdomjackson268@gmail.com</a>
+                            </div>
+                            <div>
+                                <i class="bi bi-github text-dark me-2"></i>
+                                <strong>GitHub:</strong> <a href="https://github.com/wisdomjackson268-tech" target="_blank" rel="noopener noreferrer" class="text-decoration-none text-primary fw-semibold">wisdomjackson268-tech</a>
+                            </div>
+                        </div>
+                        <a href="<?= url('contact.php') ?>" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold">
+                            <i class="bi bi-envelope-paper-fill me-1"></i> Send a Direct Message
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="card border-0 bg-primary text-white rounded-4 p-4 p-md-5 text-center shadow-lg">
             <h2 class="fw-bold mb-3">Ready to Experience AI-Powered Learning?</h2>
             <p class="lead text-white-50 max-w-700 mx-auto mb-4">

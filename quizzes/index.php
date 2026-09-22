@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Quizzes Index (Routes to student/quizzes or login)
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 if (is_logged_in()) {

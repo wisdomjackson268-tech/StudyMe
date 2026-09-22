@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Flash Alerts Component
- */
+
 if (!function_exists('get_flash')) return;
 $flash = get_flash();
 if (empty($flash)) return;

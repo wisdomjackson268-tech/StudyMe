@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe Comprehensive SEO Suite Verification Script
- */
+
 require_once __DIR__ . '/config/main.php';
 
 echo "========================================================\n";
@@ -59,26 +57,20 @@ foreach ($tests as $testLabel => $test) {
         continue;
     }
 
-    // Check title
     preg_match('/<title>(.*?)<\/title>/is', $html, $titleMatch);
     $title = $titleMatch[1] ?? 'MISSING';
 
-    // Check description
     preg_match('/<meta name="description" content="(.*?)"/is', $html, $descMatch);
     $desc = $descMatch[1] ?? 'MISSING';
 
-    // Check canonical
     preg_match('/<link rel="canonical" href="(.*?)"/is', $html, $canonMatch);
     $canon = $canonMatch[1] ?? 'MISSING';
 
-    // Check robots
     preg_match('/<meta name="robots" content="(.*?)"/is', $html, $robotsMatch);
     $robots = $robotsMatch[1] ?? 'MISSING';
 
-    // Check schema
     $hasSchema = (strpos($html, 'application/ld+json') !== false);
 
-    // Verify index / noindex expectations
     $hasNoindex = (strpos($robots, 'noindex') !== false);
     $isCorrectIndex = ($test['expected_index'] && !$hasNoindex) || (!$test['expected_index'] && $hasNoindex);
 

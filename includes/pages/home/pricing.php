@@ -9,7 +9,6 @@
         </div>
 
         <div class="row g-4 align-items-center">
-            <!-- Free Plan -->
             <div class="col-md-6 col-lg-4">
                 <div class="pricing-card">
                     <h4 class="fw-bold">Free Plan</h4>
@@ -30,7 +29,6 @@
                 </div>
             </div>
 
-            <!-- Monthly Plan (Most Popular) -->
             <div class="col-md-6 col-lg-4">
                 <div class="pricing-card popular">
                     <span class="popular-badge">Most Popular</span>
@@ -52,7 +50,6 @@
                 </div>
             </div>
 
-            <!-- Yearly Plan -->
             <div class="col-md-6 col-lg-4">
                 <div class="pricing-card">
                     <h4 class="fw-bold">Yearly Plan</h4>

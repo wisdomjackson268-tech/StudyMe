@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Guest Only Guard Middleware
- */
+
 require_once dirname(__DIR__, 2) . '/config/main.php';
 
 if (is_logged_in()) {

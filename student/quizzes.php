@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Student Quizzes & Practice Hub
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/quizzes.php';
 
@@ -11,7 +9,6 @@ $user = current_user();
 $pdo = getDBConnection();
 $userId = $user['id'];
 
-// Resolve student ID
 $stmt = $pdo->prepare("SELECT id FROM students WHERE user_id = ? LIMIT 1");
 $stmt->execute([$userId]);
 $student = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -21,7 +18,7 @@ $quizzes = [];
 $pastAttempts = [];
 
 if ($studentId) {
-    // Quizzes in enrolled courses
+
     $stmt = $pdo->prepare("
         SELECT q.*, c.title AS course_title,
                (SELECT COUNT(*) FROM questions WHERE quiz_id = q.id) AS question_count,
@@ -36,7 +33,6 @@ if ($studentId) {
     $stmt->execute([$studentId, $studentId, $studentId]);
     $quizzes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Recent attempts
     $stmt = $pdo->prepare("
         SELECT qa.*, q.title AS quiz_title, c.title AS course_title
         FROM quiz_attempts qa
@@ -61,7 +57,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 </div>
 
 <div class="row g-4">
-    <!-- Available Quizzes Column -->
+
     <div class="col-lg-8">
         <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
             <h4 class="fw-bold mb-3"><i class="bi bi-card-checklist text-primary me-2"></i> Available Course Quizzes</h4>
@@ -106,7 +102,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     </div>
 
-    <!-- Past Attempts Column -->
     <div class="col-lg-4">
         <div class="card border-0 shadow-sm rounded-4 p-4">
             <h5 class="fw-bold mb-3"><i class="bi bi-clock-history me-2 text-primary"></i> Recent Attempts</h5>

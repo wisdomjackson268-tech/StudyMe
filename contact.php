@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Contact Us Page
- */
+
 require_once __DIR__ . '/config/main.php';
 
 $errors = [];
@@ -40,8 +38,7 @@ if (is_post()) {
             $stmt->execute([$name, $email, $subject, $message]);
 
             $successMessage = 'Thank you, ' . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . '! Your message has been received. Our support team will review your inquiry and respond to ' . htmlspecialchars($email, ENT_QUOTES, 'UTF-8') . ' shortly.';
-            
-            // Reset form variables
+
             $name = $email = $subject = $message = '';
             $_SESSION['auth_success_vibrate'] = true;
         } catch (Exception $e) {
@@ -56,7 +53,7 @@ include BASE_PATH . '/includes/layouts/header.php';
 
 <div class="py-5 bg-light-subtle" style="min-height: calc(100vh - 120px);">
     <div class="container py-4">
-        <!-- Header -->
+
         <div class="text-center max-w-700 mx-auto mb-5 animate-fade-in">
             <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex mb-3">
                 <i class="bi bi-envelope-paper-fill fs-1"></i>
@@ -66,35 +63,79 @@ include BASE_PATH . '/includes/layouts/header.php';
         </div>
 
         <div class="row g-5 justify-content-center">
-            <!-- Contact Details Column -->
+
             <div class="col-lg-5">
                 <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 h-100">
                     <h3 class="fw-bold mb-4">Contact Information</h3>
+
                     <div class="d-flex gap-3 mb-4">
-                        <div class="p-3 bg-success bg-opacity-10 text-success rounded-circle fs-4 h-100">
+                        <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-circle fs-4 d-flex align-items-center justify-content-center" style="width: 52px; height: 52px; flex-shrink: 0;">
                             <i class="bi bi-envelope-fill"></i>
                         </div>
                         <div>
-                            <h6 class="fw-bold mb-1">Email Support</h6>
+                            <h6 class="fw-bold mb-1">Official Email Addresses</h6>
+                            <p class="text-muted small mb-1">
+                                Primary: <a href="mailto:studyme910@gmail.com" class="text-decoration-none fw-semibold text-primary">studyme910@gmail.com</a>
+                            </p>
                             <p class="text-muted small mb-0">
-                                <a href="mailto:support@studyme.ng" class="text-decoration-none">studyme910@gmail.com</a><br>
-                                <a href="mailto:instructors@studyme.ng" class="text-decoration-none">instructors@studyme.com</a>
+                                Additional: <a href="mailto:wisdomjackson268@gmail.com" class="text-decoration-none fw-semibold text-primary">wisdomjackson268@gmail.com</a>
                             </p>
                         </div>
                     </div>
 
                     <div class="d-flex gap-3 mb-4">
-                        <div class="p-3 bg-warning bg-opacity-10 text-warning rounded-circle fs-4 h-100">
+                        <div class="p-3 bg-success bg-opacity-10 text-success rounded-circle fs-4 d-flex align-items-center justify-content-center" style="width: 52px; height: 52px; flex-shrink: 0;">
                             <i class="bi bi-telephone-fill"></i>
                         </div>
                         <div>
-                            <h6 class="fw-bold mb-1">Phone &amp; WhatsApp</h6>
-                            <p class="text-muted small mb-0">+234 9026849170<br>Mon &ndash; Fri, 8:00 AM &ndash; 6:00 PM WAT</p>
+                            <h6 class="fw-bold mb-1">Phone &amp; Direct Line</h6>
+                            <p class="text-muted small mb-1">
+                                <a href="tel:09026849170" class="text-decoration-none fw-semibold text-dark fs-6">09026849170</a>
+                            </p>
+                            <p class="text-muted small mb-0">Monday &ndash; Friday, 8:00 AM &ndash; 6:00 PM WAT</p>
                         </div>
                     </div>
 
-                    <div class="mt-auto pt-4 border-top">
-                        <h6 class="fw-bold mb-3">Quick Navigation</h6>
+                    <div class="d-flex gap-3 mb-4">
+                        <div class="p-3 bg-dark bg-opacity-10 text-dark rounded-circle fs-4 d-flex align-items-center justify-content-center" style="width: 52px; height: 52px; flex-shrink: 0;">
+                            <i class="bi bi-github"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Official GitHub</h6>
+                            <p class="text-muted small mb-0">
+                                <a href="https://github.com/wisdomjackson268-tech" target="_blank" rel="noopener noreferrer" class="text-decoration-none fw-semibold text-primary">
+                                    wisdomjackson268-tech <i class="bi bi-box-arrow-up-right small ms-1"></i>
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 pt-3 border-top">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-share text-warning me-1"></i> Official Social Media Channels</h6>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <a href="https://x.com/StudyMe910" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary btn-sm rounded-pill d-inline-flex align-items-center gap-2 px-3 py-2" aria-label="X (formerly Twitter)">
+                                <i class="bi bi-twitter-x"></i> <span>X</span>
+                            </a>
+                            <a href="https://youtube.com/@studyme910" target="_blank" rel="noopener noreferrer" class="btn btn-outline-danger btn-sm rounded-pill d-inline-flex align-items-center gap-2 px-3 py-2" aria-label="YouTube">
+                                <i class="bi bi-youtube"></i> <span>YouTube</span>
+                            </a>
+                            <a href="https://www.tiktok.com/@study.me32" target="_blank" rel="noopener noreferrer" class="btn btn-outline-dark btn-sm rounded-pill d-inline-flex align-items-center gap-2 px-3 py-2" aria-label="TikTok">
+                                <i class="bi bi-tiktok"></i> <span>TikTok</span>
+                            </a>
+                            <a href="https://www.linkedin.com/in/wisdom-jackson-b19941345" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm rounded-pill d-inline-flex align-items-center gap-2 px-3 py-2" aria-label="LinkedIn">
+                                <i class="bi bi-linkedin"></i> <span>LinkedIn</span>
+                            </a>
+                            <a href="https://www.facebook.com/share/1BYXM81J2o/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm rounded-pill d-inline-flex align-items-center gap-2 px-3 py-2" aria-label="Facebook">
+                                <i class="bi bi-facebook"></i> <span>Facebook</span>
+                            </a>
+                            <a href="https://github.com/wisdomjackson268-tech" target="_blank" rel="noopener noreferrer" class="btn btn-outline-dark btn-sm rounded-pill d-inline-flex align-items-center gap-2 px-3 py-2" aria-label="GitHub">
+                                <i class="bi bi-github"></i> <span>GitHub</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="mt-auto pt-3 border-top">
+                        <h6 class="fw-bold mb-3">Quick Resources</h6>
                         <div class="d-flex flex-wrap gap-2">
                             <a href="<?= url('faq.php') ?>" class="btn btn-outline-secondary btn-sm rounded-pill"><i class="bi bi-question-circle me-1"></i> Read FAQ</a>
                             <a href="<?= url('help.php') ?>" class="btn btn-outline-secondary btn-sm rounded-pill"><i class="bi bi-life-preserver me-1"></i> Help Center</a>
@@ -104,7 +145,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                 </div>
             </div>
 
-            <!-- Form Column -->
             <div class="col-lg-7">
                 <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5">
                     <h3 class="fw-bold mb-4">Send Us a Message</h3>

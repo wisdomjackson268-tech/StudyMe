@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Admin Quiz Management & Moderation
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_ADMIN);
@@ -10,7 +8,6 @@ $pdo     = getDBConnection();
 $success = '';
 $errors  = [];
 
-// Handle Quiz Status / Delete / Create
 if (is_post()) {
     $action = trim($_POST['action'] ?? '');
     $quizId = (int)($_POST['quiz_id'] ?? 0);
@@ -58,7 +55,6 @@ $stmt = $pdo->prepare("
 $stmt->execute();
 $quizzes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Courses for create modal
 $courses = $pdo->query("SELECT id, title FROM courses WHERE status = 'published' ORDER BY title ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 include BASE_PATH . '/includes/layouts/dashboard-header.php';
@@ -102,7 +98,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                     <small class="text-muted mb-2"><i class="bi bi-person-badge text-warning me-1"></i>Owner: <?= e($q['teacher_name']) ?></small>
                     <p class="text-muted small mb-3 flex-grow-1"><?= e(substr($q['description'] ?? 'Evaluation quiz for course concepts.', 0, 90)) ?>...</p>
 
-                    <!-- Stats Bar -->
                     <div class="row g-2 text-center p-3 bg-light rounded-3 mb-3 border border-subtle small">
                         <div class="col-4">
                             <div class="fw-bold text-main"><?= (int)$q['question_count'] ?></div>
@@ -155,7 +150,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
 <?php endif; ?>
 
-<!-- Create Quiz Modal -->
 <div class="modal fade" id="createQuizModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">

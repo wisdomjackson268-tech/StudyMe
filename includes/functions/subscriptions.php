@@ -1,12 +1,6 @@
 <?php
-/**
- * StudyMe AI Platform — Subscription Helper Functions
- */
 require_once dirname(__DIR__, 2) . '/config/database.php';
 
-/**
- * Get all subscription plans.
- */
 function get_all_plans($status = 'active') {
     $pdo = getDBConnection();
     try {
@@ -18,9 +12,6 @@ function get_all_plans($status = 'active') {
     }
 }
 
-/**
- * Get a plan by slug.
- */
 function get_plan_by_slug($slug) {
     $pdo = getDBConnection();
     try {
@@ -32,9 +23,6 @@ function get_plan_by_slug($slug) {
     }
 }
 
-/**
- * Get a plan by id.
- */
 function get_plan_by_id($planId) {
     $pdo = getDBConnection();
     try {
@@ -46,9 +34,6 @@ function get_plan_by_id($planId) {
     }
 }
 
-/**
- * Get the current subscription for a student.
- */
 function get_user_subscription($userId) {
     if (!$userId) return null;
     $pdo = getDBConnection();
@@ -69,20 +54,14 @@ function get_user_subscription($userId) {
     }
 }
 
-/**
- * Check if user has an active subscription.
- */
 function has_active_subscription($userId) {
     if ((defined('FREE_TESTING_MODE') && FREE_TESTING_MODE === true) || (defined('DEVELOPMENT_MODE') && DEVELOPMENT_MODE === true)) return true;
     return get_user_subscription($userId) !== null;
 }
 
-/**
- * Require active subscription — redirect if not active (unless dev/testing mode).
- */
 function require_active_subscription() {
     if ((defined('FREE_TESTING_MODE') && FREE_TESTING_MODE === true) || (defined('DEVELOPMENT_MODE') && DEVELOPMENT_MODE === true)) {
-        return; // free access in testing mode
+        return;
     }
     $user = current_user();
     if (!$user) {
@@ -94,9 +73,6 @@ function require_active_subscription() {
     }
 }
 
-/**
- * Create a subscription.
- */
 function create_subscription($studentId, $planId, $months = 1) {
     $pdo = getDBConnection();
     try {
@@ -110,9 +86,6 @@ function create_subscription($studentId, $planId, $months = 1) {
     }
 }
 
-/**
- * Get all subscriptions (admin).
- */
 function get_all_subscriptions($status = null, $limit = 50, $offset = 0) {
     $pdo = getDBConnection();
     try {

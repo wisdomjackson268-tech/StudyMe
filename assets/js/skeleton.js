@@ -1,10 +1,6 @@
-/**
- * StudyMe AI Platform — Skeleton Loader Utility System
- * Provides seamless placeholder generation and content transitions.
- */
 
 const StudyMeSkeleton = {
-    // Generate Category Card Skeletons
+
     renderCategorySkeletons(count = 4) {
         let html = '';
         for (let i = 0; i < count; i++) {
@@ -23,7 +19,6 @@ const StudyMeSkeleton = {
         return html;
     },
 
-    // Generate Course Card Skeletons
     renderCourseSkeletons(count = 6) {
         let html = '';
         for (let i = 0; i < count; i++) {
@@ -55,7 +50,6 @@ const StudyMeSkeleton = {
         return html;
     },
 
-    // Initialize auto-skeleton dismissal when DOM content is loaded
     init() {
         document.addEventListener('DOMContentLoaded', () => {
             const skeletons = document.querySelectorAll('.skeleton-loading-container');

@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Student AI Tutor Assistant Page
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 secure_page(ROLE_STUDENT);
 
@@ -20,7 +18,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 </div>
 
 <div class="row g-4">
-    <!-- Chat Screen Column -->
+
     <div class="col-lg-8">
         <div class="card border-0 shadow-lg rounded-4 overflow-hidden" style="background: #0F172A; color: #F8FAFC;">
             <div class="p-3 border-bottom border-secondary border-opacity-25 bg-dark d-flex align-items-center justify-content-between">
@@ -44,9 +42,9 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
             </div>
 
             <div class="p-3 border-top border-secondary border-opacity-25 bg-dark">
-                <form id="pageAiForm" class="d-flex gap-2">
+                <form id="pageAiForm" data-ajax-form="true" data-no-loader="true" class="d-flex gap-2">
                     <input type="text" id="pageAiInput" class="form-control rounded-pill px-4 bg-dark text-white border-secondary border-opacity-50" placeholder="Type a concept, formula, or code problem..." required autocomplete="off">
-                    <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold" data-feedback="click">
+                    <button type="submit" id="pageAiSubmitBtn" class="btn btn-warning rounded-pill px-4 fw-bold" data-feedback="click">
                         <i class="bi bi-send-fill"></i>
                     </button>
                 </form>
@@ -54,7 +52,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     </div>
 
-    <!-- AI Presets & Prompt Templates Column -->
     <div class="col-lg-4">
         <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
             <h5 class="fw-bold mb-3"><i class="bi bi-lightning-charge-fill text-warning me-2"></i> Quick AI Presets</h5>
@@ -83,12 +80,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const pageForm = document.getElementById("pageAiForm");
     const pageInput = document.getElementById("pageAiInput");
     const pageLog = document.getElementById("pageAiChatLog");
+    const pageSubmitBtn = document.getElementById("pageAiSubmitBtn");
     const clearBtn = document.getElementById("clearChatBtn");
     const presetBtns = document.querySelectorAll(".prompt-preset-btn");
 
     if (pageForm && pageInput && pageLog) {
         pageForm.addEventListener("submit", (e) => {
             e.preventDefault();
+            e.stopPropagation();
+
             const text = pageInput.value.trim();
             if (!text) return;
 
@@ -101,13 +101,28 @@ document.addEventListener("DOMContentLoaded", () => {
             pageInput.value = "";
             pageLog.scrollTop = pageLog.scrollHeight;
 
+            // Set submit button to loading state
+            if (pageSubmitBtn) {
+                pageSubmitBtn.disabled = true;
+                pageSubmitBtn.innerHTML = '<span class="spinner-border spinner-border-sm text-dark" role="status"></span>';
+            }
+
             // Append Branded AI Thinking Indicator
             const loadingBubble = StudyMeLoader.createAiThinkingIndicator();
             pageLog.appendChild(loadingBubble);
             pageLog.scrollTop = pageLog.scrollHeight;
 
             const startTime = Date.now();
-            const minDelay = 650; // Minimum display time to prevent unnatural quick flashing
+            const minDelay = 450;
+
+            function restoreButton() {
+                if (pageSubmitBtn) {
+                    pageSubmitBtn.disabled = false;
+                    pageSubmitBtn.innerHTML = '<i class="bi bi-send-fill"></i>';
+                }
+                pageInput.disabled = false;
+                pageInput.focus();
+            }
 
             function handleResponse(replyText) {
                 const elapsedTime = Date.now() - startTime;
@@ -117,29 +132,38 @@ document.addEventListener("DOMContentLoaded", () => {
                     loadingBubble.remove();
                     const aiBubble = document.createElement("div");
                     aiBubble.className = "chat-bubble p-3 rounded-4 bg-secondary bg-opacity-20 text-white me-auto mb-3 lh-base";
-                    aiBubble.innerHTML = '<div class="fw-bold text-warning mb-1"><i class="bi bi-robot me-1"></i> AI Tutor</div>' + replyText;
+                    const formattedHtml = typeof StudyMeAI !== 'undefined' && typeof StudyMeAI.formatMarkdown === 'function'
+                        ? StudyMeAI.formatMarkdown(replyText)
+                        : replyText.replace(/\n/g, '<br>');
+                    aiBubble.innerHTML = '<div class="fw-bold text-warning mb-2 d-flex align-items-center gap-1"><i class="bi bi-robot"></i> <span>AI Tutor</span></div>' + formattedHtml;
                     pageLog.appendChild(aiBubble);
                     pageLog.scrollTop = pageLog.scrollHeight;
+                    restoreButton();
                 }, remainingTime);
             }
 
-            function handleError() {
+            function handleError(errText) {
                 const elapsedTime = Date.now() - startTime;
                 const remainingTime = Math.max(0, minDelay - elapsedTime);
 
                 setTimeout(() => {
                     loadingBubble.remove();
                     // Append structured AI Error Bubble with Retry Callback
-                    const errBubble = StudyMeLoader.createAiErrorBubble(
-                        "AI Tutor connection temporarily busy. Please try again.",
-                        () => {
-                            // Retry callback: resubmit prompt text
+                    const msg = errText || "AI Tutor connection temporarily busy. Please try again.";
+                    const errBubble = typeof StudyMeLoader !== 'undefined' && typeof StudyMeLoader.createAiErrorBubble === 'function'
+                        ? StudyMeLoader.createAiErrorBubble(msg, () => {
                             pageInput.value = text;
                             pageForm.dispatchEvent(new Event("submit"));
-                        }
-                    );
+                        })
+                        : (() => {
+                            const d = document.createElement("div");
+                            d.className = "alert alert-danger rounded-3 p-2 small my-2";
+                            d.textContent = msg;
+                            return d;
+                        })();
                     pageLog.appendChild(errBubble);
                     pageLog.scrollTop = pageLog.scrollHeight;
+                    restoreButton();
                 }, remainingTime);
             }
 
@@ -150,15 +174,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: JSON.stringify({ prompt: text })
             })
             .then(res => {
-                if (!res.ok) throw new Error("HTTP error");
+                if (!res.ok) throw new Error("HTTP error " + res.status);
                 return res.json();
             })
             .then(data => {
-                const reply = data.reply || "I am processing your query. Could you clarify the specific topic?";
-                handleResponse(reply);
+                if (data.reply) {
+                    handleResponse(data.reply);
+                } else {
+                    handleError(data.error);
+                }
             })
-            .catch(() => {
-                handleError();
+            .catch(err => {
+                handleError(err.message);
             });
         });
 

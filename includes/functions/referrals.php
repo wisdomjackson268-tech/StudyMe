@@ -1,14 +1,6 @@
 <?php
-/**
- * StudyMe AI Platform — Comprehensive Referral, Wallet & Bonus Engine
- * Handles unique referral links, category restriction checks, configurable admin rates,
- * post-payment bonus distribution, student wallet tracking, and withdrawal requests.
- */
 
 if (!function_exists('get_user_referral_code')) {
-    /**
-     * Retrieve or generate unique referral code for a user
-     */
     function get_user_referral_code($userId) {
         $pdo = getDBConnection();
         $stmt = $pdo->prepare("SELECT referral_code, role, first_name FROM users WHERE id = ? LIMIT 1");
@@ -23,13 +15,11 @@ if (!function_exists('get_user_referral_code')) {
             return $user['referral_code'];
         }
 
-        // Generate unique referral code
         $prefix = strtoupper(substr($user['role'], 0, 3));
         $code = $prefix . '-' . strtoupper(substr(md5($userId . $user['first_name'] . time()), 0, 6));
 
         $pdo->prepare("UPDATE users SET referral_code = ? WHERE id = ?")->execute([$code, $userId]);
         
-        // Ensure wallet exists
         $pdo->prepare("INSERT IGNORE INTO wallets (user_id, available_balance, pending_balance, total_earned, total_withdrawn) VALUES (?, 0, 0, 0, 0)")
             ->execute([$userId]);
 
@@ -38,9 +28,6 @@ if (!function_exists('get_user_referral_code')) {
 }
 
 if (!function_exists('get_user_by_referral_code')) {
-    /**
-     * Look up user by referral code
-     */
     function get_user_by_referral_code($code) {
         if (empty($code)) return null;
         $pdo = getDBConnection();
@@ -51,27 +38,22 @@ if (!function_exists('get_user_by_referral_code')) {
 }
 
 if (!function_exists('get_referral_bonus_rates')) {
-    /**
-     * Fetch configurable bonus rates from settings database table
-     */
     function get_referral_bonus_rates() {
         $pdo = getDBConnection();
         $stmt = $pdo->query("SELECT setting_key, setting_value FROM settings WHERE setting_key LIKE 'bonus_rate_%'");
         $rows = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
 
         return [
+            'student'    => (float)($rows['bonus_rate_student']    ?? 1000.00),
             'teacher'    => (float)($rows['bonus_rate_teacher']    ?? 1000.00),
             'university' => (float)($rows['bonus_rate_university'] ?? 1000.00),
-            'secondary'  => (float)($rows['bonus_rate_secondary']  ?? 500.00),
-            'technology' => (float)($rows['bonus_rate_technology'] ?? 1500.00),
+            'secondary'  => (float)($rows['bonus_rate_secondary']  ?? 1000.00),
+            'technology' => (float)($rows['bonus_rate_technology'] ?? 1000.00),
         ];
     }
 }
 
 if (!function_exists('capture_incoming_referral')) {
-    /**
-     * Detect and preserve ?ref=... parameter in session and cookie for localhost / production
-     */
     function capture_incoming_referral() {
         if (!empty($_GET['ref'])) {
             $refCode = trim($_GET['ref']);
@@ -82,18 +64,12 @@ if (!function_exists('capture_incoming_referral')) {
 }
 
 if (!function_exists('get_pending_referral_code')) {
-    /**
-     * Retrieve stored referral code from session or cookie
-     */
     function get_pending_referral_code() {
         return $_SESSION['pending_ref_code'] ?? $_COOKIE['study_ref_code'] ?? null;
     }
 }
 
 if (!function_exists('clear_pending_referral_code')) {
-    /**
-     * Clear referral session & cookie after registration
-     */
     function clear_pending_referral_code() {
         unset($_SESSION['pending_ref_code']);
         @setcookie('study_ref_code', '', time() - 3600, '/');
@@ -101,9 +77,6 @@ if (!function_exists('clear_pending_referral_code')) {
 }
 
 if (!function_exists('record_pending_referral')) {
-    /**
-     * Create pending referral record upon new user registration
-     */
     function record_pending_referral($newUserId) {
         $refCode = get_pending_referral_code();
         if (empty($refCode)) {
@@ -119,7 +92,6 @@ if (!function_exists('record_pending_referral')) {
         $referrerId   = (int)$referrer['id'];
         $referrerRole = $referrer['role'];
 
-        // Determine referrer's primary category
         $referrerCategory = null;
         if ($referrerRole === 'teacher') {
             $stmtTch = $pdo->prepare("
@@ -131,7 +103,6 @@ if (!function_exists('record_pending_referral')) {
             $stmtTch->execute([$referrerId]);
             $referrerCategory = $stmtTch->fetchColumn() ?: 'technology';
         } else {
-            // Student referrer category from their enrolled course
             $stmtSt = $pdo->prepare("
                 SELECT cat.slug
                 FROM students s
@@ -145,7 +116,6 @@ if (!function_exists('record_pending_referral')) {
             $referrerCategory = $stmtSt->fetchColumn() ?: 'technology';
         }
 
-        // Insert pending referral
         $stmtIns = $pdo->prepare("
             INSERT INTO referrals (referrer_id, referrer_role, referrer_category, referred_user_id, referral_code, status, created_at)
             VALUES (?, ?, ?, ?, ?, 'pending', NOW())
@@ -159,14 +129,9 @@ if (!function_exists('record_pending_referral')) {
 }
 
 if (!function_exists('process_verified_payment_referral')) {
-    /**
-     * Evaluate and award referral bonus ONLY AFTER payment is verified.
-     * Enforces strict category matching and server-side bonus calculations.
-     */
     function process_verified_payment_referral($paymentId, $referredUserId, $courseId, $paymentAmount) {
         $pdo = getDBConnection();
 
-        // 1. Fetch pending referral record
         $stmtRef = $pdo->prepare("
             SELECT * FROM referrals 
             WHERE referred_user_id = ? AND status = 'pending'
@@ -176,12 +141,11 @@ if (!function_exists('process_verified_payment_referral')) {
         $referral = $stmtRef->fetch(PDO::FETCH_ASSOC);
 
         if (!$referral) {
-            return false; // No pending referral found
+            return false;
         }
 
         $referrerId = (int)$referral['referrer_id'];
 
-        // Fetch referred course details
         $stmtCourse = $pdo->prepare("
             SELECT c.id, c.title, cat.slug AS category_slug
             FROM courses c
@@ -195,9 +159,8 @@ if (!function_exists('process_verified_payment_referral')) {
             return false;
         }
 
-        $courseCategory = $course['category_slug']; // e.g. 'technology', 'university', 'secondary-waec-neco'
+        $courseCategory = $course['category_slug'];
 
-        // Fetch Referrer user & role details
         $stmtReferrer = $pdo->prepare("SELECT id, role, first_name, last_name FROM users WHERE id = ? LIMIT 1");
         $stmtReferrer->execute([$referrerId]);
         $referrer = $stmtReferrer->fetch(PDO::FETCH_ASSOC);
@@ -206,7 +169,6 @@ if (!function_exists('process_verified_payment_referral')) {
             return false;
         }
 
-        // Determine Referrer's course category
         $referrerCategory = $referral['referrer_category'];
         if ($referrer['role'] === 'teacher') {
             $stmtTch = $pdo->prepare("
@@ -236,8 +198,8 @@ if (!function_exists('process_verified_payment_referral')) {
 
         $rates = get_referral_bonus_rates();
         $bonusAmount = 0.00;
-        $appliedRule = null;        // ── CATEGORY RESTRICTION & BONUS RULE EVALUATION ────────────────
-        // Normalize category slugs
+        $appliedRule = null;
+
         $normRefCat = ($referrerCategory === 'technology' || $referrerCategory === 'tech') ? 'technology' :
                       (($referrerCategory === 'university' || $referrerCategory === 'uni') ? 'university' :
                       (($referrerCategory === 'secondary-waec-neco' || $referrerCategory === 'secondary') ? 'secondary' : ''));
@@ -247,7 +209,6 @@ if (!function_exists('process_verified_payment_referral')) {
                          (($courseCategory === 'secondary-waec-neco' || $courseCategory === 'secondary') ? 'secondary' : ''));
 
         if ($referrer['role'] === 'teacher') {
-            // Rule 1: University Teacher -> University Student = ₦1,500
             if ($normRefCat === 'university' && $normCourseCat === 'university') {
                 $bonusAmount = 1500.00;
                 $appliedRule = 'university_teacher_bonus';
@@ -255,33 +216,14 @@ if (!function_exists('process_verified_payment_referral')) {
                 $bonusAmount = 1500.00;
                 $appliedRule = 'technology_teacher_bonus';
             } else {
-                // Secondary teacher does not exist / invalid combination = ₦0
-                $bonusAmount = 0.00;
-                $appliedRule = null;
+                $bonusAmount = 1000.00;
+                $appliedRule = 'teacher_referral_bonus';
             }
         } elseif ($referrer['role'] === 'student') {
-            // Rule 2: University Student -> University Student = ₦1,000
-            if ($normRefCat === 'university' && $normCourseCat === 'university') {
-                $bonusAmount = 1000.00;
-                $appliedRule = 'university_student_bonus';
-            }
-            // Rule 3: Secondary Student -> Secondary Student = ₦1,000
-            elseif ($normRefCat === 'secondary' && $normCourseCat === 'secondary') {
-                $bonusAmount = 1000.00;
-                $appliedRule = 'secondary_student_bonus';
-            }
-            // Tech Student -> Tech Student = ₦1,500
-            elseif ($normRefCat === 'technology' && $normCourseCat === 'technology') {
-                $bonusAmount = 1500.00;
-                $appliedRule = 'technology_student_bonus';
-            } else {
-                // Unauthorized cross-type (e.g. Sec -> Uni, Uni -> Sec) = ₦0
-                $bonusAmount = 0.00;
-                $appliedRule = null;
-            }
+            $bonusAmount = 1000.00;
+            $appliedRule = 'student_referral_bonus';
         }
 
-        // If no valid bonus rule matched or category restriction failed:
         if ($bonusAmount <= 0 || empty($appliedRule)) {
             $pdo->prepare("
                 UPDATE referrals 
@@ -297,10 +239,8 @@ if (!function_exists('process_verified_payment_referral')) {
             return false;
         }
 
-        // Award Bonus to Referrer
         $pdo->beginTransaction();
         try {
-            // 1. Mark referral completed
             $stmtUpd = $pdo->prepare("
                 UPDATE referrals 
                 SET status = 'completed',
@@ -325,7 +265,6 @@ if (!function_exists('process_verified_payment_referral')) {
                 $referral['id']
             ]);
 
-            // 2. Credit referrer's wallet
             $stmtWallet = $pdo->prepare("
                 INSERT INTO wallets (user_id, available_balance, pending_balance, total_earned, total_withdrawn)
                 VALUES (?, ?, 0, ?, 0)
@@ -336,7 +275,6 @@ if (!function_exists('process_verified_payment_referral')) {
             ");
             $stmtWallet->execute([$referrerId, $bonusAmount, $bonusAmount]);
 
-            // 3. Record transaction in wallet_transactions table
             $curBalStmt = $pdo->prepare("SELECT available_balance FROM wallets WHERE user_id = ?");
             $curBalStmt->execute([$referrerId]);
             $curBal = (float)$curBalStmt->fetchColumn();
@@ -348,7 +286,6 @@ if (!function_exists('process_verified_payment_referral')) {
             $txDesc = "REFERRAL_BONUS +₦" . number_format($bonusAmount, 2) . " (" . ($course['title'] ?? 'Course Enrollment') . ")";
             $stmtTx->execute([$referrerId, $bonusAmount, $txDesc, $curBal, 'REF-' . $referral['id']]);
 
-            // 4. Notify referrer
             $dashUrl = ($referrer['role'] === 'teacher') ? 'teacher/earnings.php' : 'student/referrals.php';
             $stmtNotif = $pdo->prepare("
                 INSERT INTO notifications (user_id, title, message, type, link, created_at)
@@ -368,13 +305,9 @@ if (!function_exists('process_verified_payment_referral')) {
 }
 
 if (!function_exists('get_user_wallet')) {
-    /**
-     * Retrieve wallet metrics for a student or teacher
-     */
     function get_user_wallet($userId) {
         $pdo = getDBConnection();
         
-        // Ensure wallet row exists
         $pdo->prepare("INSERT IGNORE INTO wallets (user_id, available_balance, pending_balance, total_earned, total_withdrawn) VALUES (?, 0, 0, 0, 0)")
             ->execute([$userId]);
 
@@ -382,7 +315,6 @@ if (!function_exists('get_user_wallet')) {
         $stmt->execute([$userId]);
         $wallet = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Compute pending bonus from pending referrals
         $stmtPending = $pdo->prepare("
             SELECT COALESCE(SUM(bonus_amount), 0) 
             FROM referrals 
@@ -396,9 +328,6 @@ if (!function_exists('get_user_wallet')) {
 }
 
 if (!function_exists('request_withdrawal')) {
-    /**
-     * Process student or teacher withdrawal request
-     */
     function request_withdrawal($userId, $amount, $bankName, $accountNumber, $accountName) {
         $pdo = getDBConnection();
         $wallet = get_user_wallet($userId);
@@ -414,7 +343,6 @@ if (!function_exists('request_withdrawal')) {
 
         $pdo->beginTransaction();
         try {
-            // Deduct available balance
             $stmtUpd = $pdo->prepare("
                 UPDATE wallets 
                 SET available_balance = available_balance - ?, 
@@ -428,7 +356,6 @@ if (!function_exists('request_withdrawal')) {
                 return ['success' => false, 'message' => 'Failed to process withdrawal balance deduction.'];
             }
 
-            // Create withdrawal request record
             $stmtIns = $pdo->prepare("
                 INSERT INTO withdrawals (user_id, amount, bank_name, account_number, account_name, status, created_at)
                 VALUES (?, ?, ?, ?, ?, 'pending', NOW())
@@ -436,7 +363,6 @@ if (!function_exists('request_withdrawal')) {
             $stmtIns->execute([$userId, $amount, trim($bankName), trim($accountNumber), trim($accountName)]);
             $withdrawalId = (int)$pdo->lastInsertId();
 
-            // Record transaction ledger
             $remBalStmt = $pdo->prepare("SELECT available_balance FROM wallets WHERE user_id = ?");
             $remBalStmt->execute([$userId]);
             $remBal = (float)$remBalStmt->fetchColumn();
@@ -457,6 +383,4 @@ if (!function_exists('request_withdrawal')) {
     }
 }
 
-// Automatically capture incoming referral parameter on page load
 capture_incoming_referral();
-

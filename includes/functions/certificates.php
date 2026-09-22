@@ -1,18 +1,10 @@
 <?php
-/**
- * StudyMe AI Platform — Certificate Helper Functions
- */
-
-/**
- * Issue a certificate for a student who has completed a course.
- */
 function issue_certificate($studentId, $courseId, $enrollmentId) {
     $pdo = getDBConnection();
     try {
-        // Check if already issued
         $stmt = $pdo->prepare("SELECT id FROM certificates WHERE student_id = ? AND course_id = ?");
         $stmt->execute([$studentId, $courseId]);
-        if ($stmt->fetch()) return true; // Already issued
+        if ($stmt->fetch()) return true;
 
         $certNumber = 'STUDYME-' . strtoupper(substr(md5($studentId . $courseId . time()), 0, 8));
         $stmt = $pdo->prepare("INSERT INTO certificates (student_id, course_id, enrollment_id, certificate_number, issued_at) VALUES (?, ?, ?, ?, NOW())");
@@ -23,9 +15,6 @@ function issue_certificate($studentId, $courseId, $enrollmentId) {
     }
 }
 
-/**
- * Get all certificates for a student.
- */
 function get_student_certificates($studentId) {
     $pdo = getDBConnection();
     try {
@@ -47,9 +36,6 @@ function get_student_certificates($studentId) {
     }
 }
 
-/**
- * Get a certificate by number.
- */
 function get_certificate_by_number($certNumber) {
     $pdo = getDBConnection();
     try {
@@ -73,9 +59,6 @@ function get_certificate_by_number($certNumber) {
     }
 }
 
-/**
- * Check if a student has a certificate for a given course.
- */
 function has_certificate($studentId, $courseId) {
     $pdo = getDBConnection();
     try {
@@ -87,20 +70,15 @@ function has_certificate($studentId, $courseId) {
     }
 }
 
-/**
- * Auto-issue certificate when enrollment hits 100% progress.
- */
 function maybe_issue_certificate($studentId, $courseId, $enrollmentId) {
     $pdo = getDBConnection();
     try {
-        // Check enrollment progress
         $stmt = $pdo->prepare("SELECT progress, status FROM enrollments WHERE id = ?");
         $stmt->execute([$enrollmentId]);
         $enrollment = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$enrollment) return false;
 
         if ((float)$enrollment['progress'] >= 100.00) {
-            // Check if course has certificates enabled
             $stmt = $pdo->prepare("SELECT certificate_enabled FROM courses WHERE id = ?");
             $stmt->execute([$courseId]);
             $course = $stmt->fetch(PDO::FETCH_ASSOC);

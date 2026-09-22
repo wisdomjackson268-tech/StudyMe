@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Admin User Management (Full CRUD)
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_ADMIN);
@@ -12,12 +10,10 @@ $user     = current_user();
 $errors   = [];
 $success  = '';
 
-// ── Handle POST Actions ──────────────────────────────────────
 if (is_post()) {
     $action = trim($_POST['action'] ?? '');
     $targetId = (int)($_POST['user_id'] ?? 0);
 
-    // Protect self
     if ($targetId === $currentAdminId && in_array($action, ['deactivate', 'delete'])) {
         $errors[] = 'You cannot deactivate or delete your currently logged-in administrator account.';
     } elseif ($targetId > 0) {
@@ -28,11 +24,11 @@ if (is_post()) {
             $pdo->prepare("UPDATE users SET status = 'active' WHERE id = ?")->execute([$targetId]);
             $success = 'User account reactivated.';
         } elseif ($action === 'delete') {
-            // Soft-check: don't delete if payments exist
+
             $stmt = $pdo->prepare("SELECT COUNT(*) FROM payments WHERE user_id = ? AND status='successful'");
             $stmt->execute([$targetId]);
             if ((int)$stmt->fetchColumn() > 0) {
-                // Deactivate instead of hard-delete
+
                 $pdo->prepare("UPDATE users SET status = 'inactive' WHERE id = ?")->execute([$targetId]);
                 $success = 'User has payment history — account deactivated (not deleted) to preserve financial records.';
             } else {
@@ -60,12 +56,11 @@ if (is_post()) {
     }
 }
 
-// ── Filters & Search ────────────────────────────────────────
 $search     = trim($_GET['search'] ?? '');
 $filterRole = trim($_GET['role']   ?? '');
 $filterStatus = trim($_GET['status'] ?? '');
 $page       = max(1, (int)($_GET['page'] ?? 1));
-$perPage    = 20;
+$perPage    = 50;
 $offset     = ($page - 1) * $perPage;
 
 $whereClauses = [];
@@ -95,7 +90,7 @@ $totalPages = ceil($totalUsers / $perPage);
 $stmt = $pdo->prepare("
     SELECT u.id, u.first_name, u.last_name, u.username, u.email, u.phone,
            u.role, u.status, u.avatar, u.created_at, u.last_login_at,
-           (SELECT c.title FROM enrollments e JOIN courses c ON e.course_id = c.id 
+           (SELECT c.title FROM enrollments e JOIN courses c ON e.course_id = c.id
             JOIN students s ON e.student_id = s.id WHERE s.user_id = u.id AND e.status='active' LIMIT 1) AS active_course
     FROM users u
     $whereSQL
@@ -105,7 +100,6 @@ $stmt = $pdo->prepare("
 $stmt->execute($params);
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch user for edit modal
 $editUser = null;
 if (!empty($_GET['edit_id'])) {
     $stmt2 = $pdo->prepare("SELECT * FROM users WHERE id = ? LIMIT 1");
@@ -133,7 +127,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 <div class="alert alert-success rounded-3 mb-4"><i class="bi bi-check-circle me-1"></i> <?= e($success) ?></div>
 <?php endif; ?>
 
-<!-- Search & Filter -->
 <div class="card border-0 shadow-sm rounded-4 p-3 mb-4">
     <form method="GET" class="row g-2 align-items-end">
         <div class="col-md-4">
@@ -169,7 +162,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </form>
 </div>
 
-<!-- Users Table -->
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
@@ -226,7 +218,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                     <td class="small text-muted"><?= date('d M Y', strtotime($u['created_at'])) ?></td>
                     <td class="text-end pe-4">
                         <div class="d-flex justify-content-end gap-1">
-                            <!-- Edit -->
+
                             <a href="<?= url('admin/users.php?edit_id='.$u['id']) ?>"
                                class="btn btn-sm btn-outline-primary rounded-pill px-2" title="Edit">
                                 <i class="bi bi-pencil-square"></i>
@@ -277,7 +269,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
 </div>
 
-<!-- Pagination -->
 <?php if ($totalPages > 1): ?>
 <nav>
     <ul class="pagination justify-content-center gap-1">
@@ -292,7 +283,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 </nav>
 <?php endif; ?>
 
-<!-- Edit User Modal -->
 <?php if ($editUser): ?>
 <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);">
     <div class="modal-dialog modal-dialog-centered">

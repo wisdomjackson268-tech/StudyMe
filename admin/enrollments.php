@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Admin Enrollments Management
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_ADMIN);
@@ -39,7 +37,6 @@ $stmt = $pdo->prepare("
 $stmt->execute($params);
 $enrollments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Metrics
 $totalEnrollments   = count($enrollments);
 $activeEnrollments  = count(array_filter($enrollments, fn($e) => $e['status'] === 'active'));
 $completedEnrollments = count(array_filter($enrollments, fn($e) => (float)$e['progress'] >= 100 || $e['status'] === 'completed'));
@@ -55,7 +52,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     <div class="text-muted small">Total: <strong><?= $totalEnrollments ?></strong> enrollments</div>
 </div>
 
-<!-- Stats -->
 <div class="row g-3 mb-4">
     <div class="col-sm-4">
         <div class="stat-card">
@@ -77,7 +73,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
 </div>
 
-<!-- Search & Filter -->
 <div class="card border-0 shadow-sm rounded-4 p-3 mb-4">
     <form method="GET" class="row g-2 align-items-end">
         <div class="col-md-6">
@@ -100,7 +95,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </form>
 </div>
 
-<!-- Enrollments Table -->
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0 small">

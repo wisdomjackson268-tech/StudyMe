@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — 500 Internal Server Error Page
- */
+
 require_once __DIR__ . '/config/main.php';
 
 http_response_code(500);

@@ -1,10 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Public Teacher Profile Page
- * Displays verified instructor credentials, assigned teaching course, biography, and contact modal.
- * 
- * Accessible via /teacher-profile.php?id=[teacher_id] or /teacher-profile.php?user_id=[user_id]
- */
+
 require_once __DIR__ . '/config/main.php';
 
 $pdo = getDBConnection();
@@ -48,10 +43,9 @@ if (!$teacher) {
 }
 
 $fullName = $teacher['first_name'] . ' ' . $teacher['last_name'];
-$avatar = function_exists('get_avatar_url') ? get_avatar_url($teacher['avatar'] ?? null, $fullName) : (!empty($teacher['avatar']) ? $teacher['avatar'] : 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&q=80');
+$avatar = function_exists('get_teacher_avatar_url') ? get_teacher_avatar_url($teacher['avatar'] ?? null, $fullName, $teacher['id'] ?? 0) : (!empty($teacher['avatar']) ? $teacher['avatar'] : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&q=80');
 $teachingSide = !empty($teacher['category_name']) ? $teacher['category_name'] : 'Technology & Computing';
 
-// Contact message processing
 $contactSuccess = false;
 $contactError   = '';
 if (is_post() && isset($_POST['action']) && $_POST['action'] === 'send_message') {
@@ -63,7 +57,7 @@ if (is_post() && isset($_POST['action']) && $_POST['action'] === 'send_message')
         $contactError = 'Please fill out all contact fields.';
     } else {
         try {
-            // Save to contact_messages table
+
             $pdo->prepare("
                 INSERT INTO contact_messages (user_id, name, email, subject, message, created_at)
                 VALUES (?, ?, ?, ?, ?, NOW())
@@ -91,8 +85,7 @@ include BASE_PATH . '/includes/layouts/header.php';
 
 <div class="py-5 bg-light-subtle" style="min-height: calc(100vh - 120px);">
     <div class="container py-4">
-        
-        <!-- Breadcrumb -->
+
         <nav aria-label="breadcrumb" class="mb-4">
             <ol class="breadcrumb small">
                 <li class="breadcrumb-item"><a href="<?= url('index.php') ?>" class="text-decoration-none">Home</a></li>
@@ -114,12 +107,12 @@ include BASE_PATH . '/includes/layouts/header.php';
         <?php endif; ?>
 
         <div class="row g-4">
-            <!-- Left Column: Instructor Profile Card -->
+
             <div class="col-lg-4">
                 <div class="card border-0 shadow-sm rounded-4 text-center p-4 sticky-top" style="top: 2rem;">
                     <div class="position-relative d-inline-block mx-auto mb-3">
-                        <img src="<?= e($avatar) ?>" 
-                             alt="<?= e($fullName) ?>" 
+                        <img src="<?= e($avatar) ?>"
+                             alt="<?= e($fullName) ?>"
                              class="rounded-circle border border-4 border-white shadow-sm"
                              style="width: 140px; height: 140px; object-fit: cover;"
                              onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&q=80';">
@@ -134,7 +127,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                         <?= e($teachingSide) ?>
                     </span>
 
-                    <!-- Quick Stats -->
                     <div class="d-flex justify-content-around py-3 my-2 border-top border-bottom border-light">
                         <div>
                             <div class="fw-bold fs-5 text-main"><?= number_format((float)($teacher['rating'] ?: 4.9), 1) ?></div>
@@ -152,7 +144,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                         </div>
                     </div>
 
-                    <!-- Contact Trigger Button -->
                     <div class="mt-3">
                         <button type="button" class="btn btn-primary rounded-pill w-100 py-2 fw-bold" data-bs-toggle="modal" data-bs-target="#contactTeacherModal">
                             <i class="bi bi-envelope-fill me-1"></i> Message Instructor
@@ -161,9 +152,8 @@ include BASE_PATH . '/includes/layouts/header.php';
                 </div>
             </div>
 
-            <!-- Right Column: Biography, Assigned Course, Qualifications -->
             <div class="col-lg-8">
-                <!-- About / Biography Card -->
+
                 <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                     <h4 class="fw-bold mb-3"><i class="bi bi-person-lines-fill text-primary me-2"></i>Biography &amp; Overview</h4>
                     <p class="text-secondary lh-lg mb-0" style="white-space: pre-line;">
@@ -171,7 +161,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                     </p>
                 </div>
 
-                <!-- Assigned Course Card -->
                 <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h4 class="fw-bold mb-0"><i class="bi bi-journal-bookmark-fill text-success me-2"></i>Assigned Teaching Course</h4>
@@ -181,7 +170,7 @@ include BASE_PATH . '/includes/layouts/header.php';
                     <?php if (!empty($teacher['course_title'])): ?>
                         <div class="p-3 bg-light rounded-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
                             <div class="d-flex align-items-center gap-3">
-                                <?php $cThumb = function_exists('get_course_thumbnail_url') ? get_course_thumbnail_url($teacher['course_thumb'] ?? '', $teacher['category_slug'] ?? 'technology') : ($teacher['course_thumb'] ?? 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=300&q=80'); ?>
+                                <?php $cThumb = function_exists('get_course_thumbnail_url') ? get_course_thumbnail_url($teacher['course_thumb'] ?? '', $teacher['category_slug'] ?? 'technology', $teacher['course_slug'] ?? ($teacher['course_title'] ?? '')) : ($teacher['course_thumb'] ?? 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=300&q=80'); ?>
                                 <img src="<?= e($cThumb) ?>" class="rounded-3" style="width: 80px; height: 60px; object-fit: cover;" alt="<?= e($teacher['course_title']) ?>" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=300&q=80';">
                                 <div>
                                     <h5 class="fw-bold mb-1"><?= e($teacher['course_title']) ?></h5>
@@ -200,7 +189,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                     <?php endif; ?>
                 </div>
 
-                <!-- Qualifications, Skills & Education Grid -->
                 <div class="row g-4 mb-4">
                     <div class="col-md-6">
                         <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
@@ -231,7 +219,6 @@ include BASE_PATH . '/includes/layouts/header.php';
     </div>
 </div>
 
-<!-- Contact Teacher Modal -->
 <div class="modal fade" id="contactTeacherModal" tabindex="-1" aria-labelledby="contactTeacherModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow-lg">

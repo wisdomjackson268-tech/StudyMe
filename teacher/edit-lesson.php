@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Teacher Edit Lesson Page
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_TEACHER);
@@ -14,13 +12,11 @@ $pdo  = getDBConnection();
 $uid  = $user['id'];
 $lid  = (int)($_GET['id'] ?? 0);
 
-// Get teacher ID
 $stmt = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ? LIMIT 1");
 $stmt->execute([$uid]);
 $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
 $tid = $teacher ? (int)$teacher['id'] : 0;
 
-// Fetch lesson with course ownership check
 $stmt = $pdo->prepare("
     SELECT l.*, cs.course_id, c.teacher_id
     FROM lessons l
@@ -36,7 +32,6 @@ if (!$lesson) {
     redirect('teacher/lessons.php');
 }
 
-// Ownership check
 if ($lesson['teacher_id'] != $tid && current_user_role() !== ROLE_ADMIN) {
     set_flash('error', 'ACCESS DENIED: You cannot edit a lesson belonging to another teacher.');
     redirect('teacher/lessons.php');
@@ -56,7 +51,7 @@ if (is_post()) {
     } else {
         try {
             $stmt = $pdo->prepare("
-                UPDATE lessons 
+                UPDATE lessons
                 SET title = ?, description = ?, content = ?, video_url = ?, video_duration = ?, is_free = ?, status = ?, updated_at = NOW()
                 WHERE id = ?
             ");

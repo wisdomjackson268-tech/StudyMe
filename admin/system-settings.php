@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — System Settings & Platform Administration
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/referrals.php';
 
@@ -9,10 +7,9 @@ secure_page(ROLE_ADMIN);
 $pdo = getDBConnection();
 $user = current_user();
 
-// Handle settings update
 if (is_post()) {
     $platformName    = trim($_POST['platform_name'] ?? 'StudyMe AI Platform');
-    $supportEmail    = trim($_POST['support_email'] ?? 'support@studyme.online');
+    $supportEmail    = trim($_POST['support_email'] ?? 'studyme910@gmail.com');
     $currency        = trim($_POST['currency'] ?? 'NGN');
     $rateTechnology  = (float)($_POST['bonus_rate_technology'] ?? 1500);
     $rateUniversity  = (float)($_POST['bonus_rate_university'] ?? 1000);
@@ -34,10 +31,9 @@ if (is_post()) {
     redirect('admin/system-settings.php');
 }
 
-// Load existing settings
 $settingsRows = $pdo->query("SELECT setting_key, setting_value FROM settings")->fetchAll(PDO::FETCH_KEY_PAIR);
 $platformName   = $settingsRows['platform_name'] ?? 'StudyMe AI Platform';
-$supportEmail   = $settingsRows['support_email'] ?? 'support@studyme.online';
+$supportEmail   = $settingsRows['support_email'] ?? 'studyme910@gmail.com';
 $currency       = $settingsRows['currency'] ?? 'NGN';
 $rateTechnology = $settingsRows['bonus_rate_technology'] ?? '1500.00';
 $rateUniversity = $settingsRows['bonus_rate_university'] ?? '1000.00';
@@ -57,8 +53,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 
 <form action="<?= url('admin/system-settings.php') ?>" method="POST">
     <div class="row g-4">
-        
-        <!-- General Platform Configuration -->
+
         <div class="col-lg-6">
             <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
                 <h5 class="fw-bold mb-3 text-dark d-flex align-items-center gap-2">
@@ -96,7 +91,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
             </div>
         </div>
 
-        <!-- Referral & Commissions Engine Config -->
         <div class="col-lg-6">
             <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
                 <h5 class="fw-bold mb-3 text-dark d-flex align-items-center gap-2">
@@ -126,7 +120,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
             </div>
         </div>
 
-        <!-- AI Engine & Infrastructure -->
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
                 <h5 class="fw-bold mb-3 text-dark d-flex align-items-center gap-2">

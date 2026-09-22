@@ -1,30 +1,12 @@
 <?php
-/**
- * StudyMe AI Platform — Master Fix Database Migration & Catalog Synchronization
- * 
- * 1. Synchronizes official pricing:
- *    - Tech: ₦10,000
- *    - Secondary: ₦3,000
- *    - University: ₦5,000
- *    - Teacher Registration: ₦4,000
- * 2. Creates wallet_transactions table for financial audit trails.
- * 3. Adds education and skills columns to teachers table.
- * 4. Ensures standard demo users (admin, teacher, student) exist with Password123!
- * 5. Populates complete University course catalogue across all 11 faculties:
- *    Engineering, Computing, Medical, Business, Social Sciences, Law, Sciences,
- *    Arts & Humanities, Education, Agriculture, Architecture & Built Environment.
- * 6. Sets clean teacher assignments (assigned real teacher or NULL for "Currently unavailable").
- */
 
 require_once dirname(__DIR__) . '/config/main.php';
 
 $pdo = getDBConnection();
 echo "Starting StudyMe Master Fix Migration...\n";
 
-// Disable foreign keys temporarily
 $pdo->exec("SET FOREIGN_KEY_CHECKS = 0;");
 
-// ── 1. SYNC OFFICIAL PRICING IN SUBSCRIPTION_PLANS ─────────────────────────
 $plans = [
     ['slug' => 'secondary-student', 'price' => 3000.00, 'name' => 'Secondary Student'],
     ['slug' => 'university-student', 'price' => 5000.00, 'name' => 'University Student'],
@@ -38,7 +20,6 @@ foreach ($plans as $p) {
 }
 echo "✔ Updated subscription_plans to official rates.\n";
 
-// ── 2. SYNC SETTINGS TABLE PRICING ─────────────────────────────────────────
 $settings = [
     'price_tech'       => '10000.00',
     'price_secondary'  => '3000.00',
@@ -56,7 +37,6 @@ foreach ($settings as $k => $v) {
 }
 echo "✔ Updated settings table pricing and referral bonus rates.\n";
 
-// ── 3. CREATE WALLET_TRANSACTIONS TABLE ────────────────────────────────────
 $pdo->exec("
     CREATE TABLE IF NOT EXISTS wallet_transactions (
         id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -73,24 +53,19 @@ $pdo->exec("
 ");
 echo "✔ Ensured wallet_transactions table exists.\n";
 
-// ── 4. ENSURE EDUCATION & SKILLS COLUMNS ON TEACHERS TABLE ─────────────────
 try {
     $pdo->exec("ALTER TABLE teachers ADD COLUMN education TEXT NULL AFTER qualification");
-} catch (Exception $e) { /* column may already exist */ }
+} catch (Exception $e) {  }
 
 try {
     $pdo->exec("ALTER TABLE teachers ADD COLUMN skills TEXT NULL AFTER experience_years");
-} catch (Exception $e) { /* column may already exist */ }
+} catch (Exception $e) {  }
 
-// Make courses.teacher_id nullable so courses without assigned teachers work naturally
 try {
     $pdo->exec("ALTER TABLE courses MODIFY teacher_id BIGINT UNSIGNED NULL DEFAULT NULL");
-} catch (Exception $e) { /* non-critical */ }
+} catch (Exception $e) {  }
 echo "✔ Ensured teachers table has education and skills columns, and courses.teacher_id is nullable.\n";
 
-
-// ── 5. ENSURE DEFAULT USERS EXIST ──────────────────────────────────────────
-// Password: Password123!
 $passHash = password_hash('Password123!', PASSWORD_DEFAULT);
 
 $defaultUsers = [
@@ -155,7 +130,6 @@ foreach ($defaultUsers as $u) {
 }
 echo "✔ Standard default accounts verified (admin, teacher, alex, student).\n";
 
-// Ensure teachers table has teacher records for users 2 and 3
 $pdo->exec("
     INSERT INTO teachers (id, user_id, teacher_number, qualification, specialization, experience_years, bio, rating, total_students, total_courses, status)
     VALUES
@@ -168,7 +142,6 @@ $pdo->exec("
         status = 'active';
 ");
 
-// Ensure students table has student record for user 4
 $pdo->exec("
     INSERT INTO students (id, user_id, student_number, date_of_birth, gender, bio, city, country)
     VALUES
@@ -176,21 +149,17 @@ $pdo->exec("
     ON DUPLICATE KEY UPDATE student_number = VALUES(student_number);
 ");
 
-// ── 6. ENSURE CATEGORIES TABLE HAS STANDARD SLUGS ──────────────────────────
 $catStmt = $pdo->query("SELECT id, slug FROM categories");
 $catMap = [];
 while ($row = $catStmt->fetch(PDO::FETCH_ASSOC)) {
     $catMap[$row['slug']] = (int)$row['id'];
 }
 
-// 6. Set real teacher assignments and nullify placeholder admin teacher IDs
 $sarahTId = (int)$pdo->query("SELECT id FROM teachers WHERE user_id = 2 LIMIT 1")->fetchColumn();
 $alexTId  = (int)$pdo->query("SELECT id FROM teachers WHERE user_id = 3 LIMIT 1")->fetchColumn();
 
-// Nullify all courses first
 $pdo->query("UPDATE courses SET teacher_id = NULL");
 
-// Assign Dr. Sarah Jenkins (Tech / Computer Science)
 if ($sarahTId) {
     $firstCsId = (int)$pdo->query("SELECT id FROM courses WHERE title LIKE '%Computer Science%' OR slug LIKE '%computer-science%' LIMIT 1")->fetchColumn();
     if (!$firstCsId) {
@@ -203,7 +172,6 @@ if ($sarahTId) {
     }
 }
 
-// Assign Alex Rivera (Technology - Web Dev)
 if ($alexTId) {
     $firstTechId = (int)$pdo->query("SELECT id FROM courses WHERE title LIKE '%Web Development%' OR slug LIKE '%web-development%' LIMIT 1")->fetchColumn();
     if (!$firstTechId) {
@@ -222,24 +190,16 @@ $uniCatId  = $catMap['university'] ?? 8;
 $techCatId = $catMap['technology'] ?? 6;
 $secCatId  = $catMap['secondary-waec-neco'] ?? 7;
 
-// Update all existing Tech courses to ₦10,000
 $pdo->prepare("UPDATE courses SET price = 10000.00 WHERE category_id = ?")->execute([$techCatId]);
 
-// Update all existing Secondary courses to ₦3,000, and remove teacher assignment
 $pdo->prepare("UPDATE courses SET price = 3000.00, teacher_id = NULL WHERE category_id = ?")->execute([$secCatId]);
 
-// Update existing University courses to ₦5,000
 $pdo->prepare("UPDATE courses SET price = 5000.00 WHERE category_id = ?")->execute([$uniCatId]);
 
 echo "✔ Standardized existing course prices (Tech: ₦10k, Sec: ₦3k, Uni: ₦5k).\n";
 
-// ── 7. POPULATE UNIVERSITY CATALOGUE ACROSS REQUIRED FACULTIES ──────────────
-// As specified in Requirement 10:
-// Engineering, Computing, Medical, Business, Social Sciences, Law, Sciences,
-// Arts & Humanities, Education, Agriculture, Architecture & Built Environment, Other.
-
 $uniCatalog = [
-    // ── ENGINEERING ────────────────────────────────────────────────────────
+
     ['Civil Engineering', 'civil-engineering', 'Structural analysis, concrete technology, highway engineering, and sustainable urban infrastructure.', 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&q=80'],
     ['Mechanical Engineering', 'mechanical-engineering', 'Thermodynamics, fluid mechanics, machine design, CAD/CAM, and automotive mechanics.', 'https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?w=600&q=80'],
     ['Electrical Engineering', 'electrical-engineering', 'Circuit analysis, power distribution, transformers, electrical machines, and high-voltage systems.', 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=600&q=80'],
@@ -264,7 +224,6 @@ $uniCatalog = [
     ['Automotive Engineering', 'automotive-engineering', 'Vehicle dynamics, internal combustion engines, EV powertrains, chassis tuning, and crash safety.', 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=80'],
     ['Software Engineering (University Core)', 'software-engineering-uni', 'Software design patterns, microservices, testing methodologies, DevOps, and enterprise systems.', 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&q=80'],
 
-    // ── COMPUTING ──────────────────────────────────────────────────────────
     ['Computer Science', 'computer-science-uni', 'Data structures, algorithms, discrete mathematics, theory of computation, and operating systems.', 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&q=80'],
     ['Information Technology', 'information-technology-uni', 'Enterprise networking, system administration, cloud storage, IT governance, and IT security.', 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=600&q=80'],
     ['Information Systems', 'information-systems', 'Database systems, business process modeling, enterprise resource planning (ERP), and business intelligence.', 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&q=80'],
@@ -276,7 +235,6 @@ $uniCatalog = [
     ['Data Analytics', 'data-analytics-uni', 'SQL querying, Tableau/PowerBI visualization, exploratory data analysis, and metric dashboarding.', 'https://images.unsplash.com/photo-1543286386-713bdd548da4?w=600&q=80'],
     ['Database Management Systems', 'database-management-uni', 'Relational database theory, normalization, indexing, transaction processing, and NoSQL databases.', 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?w=600&q=80'],
 
-    // ── MEDICAL & HEALTH SCIENCES ──────────────────────────────────────────
     ['Medicine & Surgery', 'medicine-and-surgery', 'Clinical pathology, pharmacology, general surgery, internal medicine, and patient diagnostics.', 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&q=80'],
     ['Nursing Science', 'nursing-science', 'Patient care, community nursing, pharmacology for nurses, emergency medicine, and maternal health.', 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=600&q=80'],
     ['Pharmacy', 'pharmacy-uni', 'Pharmaceutics, medicinal chemistry, clinical pharmacokinetics, toxicology, and drug compounding.', 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=600&q=80'],
@@ -294,7 +252,6 @@ $uniCatalog = [
     ['Optometry', 'optometry', 'Ocular anatomy, visual optics, contact lens practice, binocular vision, and ocular pharmacology.', 'https://images.unsplash.com/photo-1591076482161-42ce6da69f67?w=600&q=80'],
     ['Biomedical Science', 'biomedical-science', 'Molecular biology, cellular pathology, medical genetics, and clinical diagnostics.', 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=600&q=80'],
 
-    // ── BUSINESS & MANAGEMENT ──────────────────────────────────────────────
     ['Accounting', 'accounting-uni', 'Financial accounting, managerial accounting, auditing, taxation, and international financial reporting (IFRS).', 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600&q=80'],
     ['Business Administration', 'business-administration-uni', 'Organizational behavior, corporate strategy, operations management, leadership, and entrepreneurship.', 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=600&q=80'],
     ['Banking & Finance', 'banking-and-finance', 'Corporate finance, investment analysis, financial markets, commercial banking, and risk management.', 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600&q=80'],
@@ -309,7 +266,6 @@ $uniCatalog = [
     ['Logistics & Transport Management', 'logistics-transport-management', 'Fleet management, multimodal transport, supply chain logistics, freight forwarding, and warehousing.', 'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=600&q=80'],
     ['International Business', 'international-business', 'Global business environments, international trade policy, cross-border marketing, and FX risk.', 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=600&q=80'],
 
-    // ── SOCIAL SCIENCES ────────────────────────────────────────────────────
     ['Political Science', 'political-science', 'Comparative politics, political theory, public policy analysis, governance, and political economy.', 'https://images.unsplash.com/photo-1541872703-74c5e44368f9?w=600&q=80'],
     ['Sociology', 'sociology-uni', 'Social structure, cultural sociology, research methodology, social stratification, and urban sociology.', 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&q=80'],
     ['Psychology', 'psychology-uni', 'Cognitive psychology, social psychology, developmental psychology, psychopathology, and research ethics.', 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=600&q=80'],
@@ -322,32 +278,26 @@ $uniCatalog = [
     ['Geography & Environmental Management', 'geography-environmental-management', 'Geographic information systems (GIS), climatology, cartography, remote sensing, and land resource planning.', 'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=600&q=80'],
     ['Development Studies', 'development-studies', 'Sustainable development, poverty alleviation, rural economics, NGO management, and development finance.', 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=600&q=80'],
 
-    // ── LAW ────────────────────────────────────────────────────────────────
     ['Commercial & Corporate Law', 'commercial-corporate-law', 'Company law, corporate finance law, consumer rights, intellectual property, and arbitration.', 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&q=80'],
     ['Constitutional & Administrative Law', 'constitutional-administrative-law', 'Rule of law, separation of powers, fundamental human rights, judicial review, and state powers.', 'https://images.unsplash.com/photo-1453733190371-0a9bedd82893?w=600&q=80'],
     ['Criminal Law & Procedure', 'criminal-law-procedure', 'Elements of crime, criminal liability, trial procedure, evidence presentation, and sentencing jurisprudence.', 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&q=80'],
 
-    // ── SCIENCES ───────────────────────────────────────────────────────────
     ['Physics & Classical Mechanics', 'physics-classical-mechanics', 'Newtonian mechanics, electrodynamics, optics, quantum theory, and statistical thermodynamics.', 'https://images.unsplash.com/photo-1636466497217-26a8cbeaf0aa?w=600&q=80'],
     ['General & Organic Chemistry', 'general-organic-chemistry', 'Chemical bonding, stereochemistry, organic synthesis mechanisms, spectroscopy, and kinetics.', 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=600&q=80'],
     ['Calculus & Linear Algebra', 'calculus-linear-algebra', 'Multivariable calculus, differential equations, vector spaces, eigenvalues, and mathematical analysis.', 'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=600&q=80'],
     ['Molecular Biology & Genetics', 'molecular-biology-genetics', 'DNA replication, transcription, gene expression regulation, recombinant DNA, and genomics.', 'https://images.unsplash.com/photo-1530210124550-912dc1381cb8?w=600&q=80'],
 
-    // ── ARTS & HUMANITIES ──────────────────────────────────────────────────
     ['English Language & Literary Studies', 'english-literary-studies', 'English syntax, phonology, African literature, post-colonial discourse, and creative writing.', 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=600&q=80'],
     ['History & International Studies', 'history-international-studies', 'African historical development, world civilizations, diplomatic history, and historiography.', 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?w=600&q=80'],
     ['Philosophy & Critical Logic', 'philosophy-critical-logic', 'Epistemology, formal deductive logic, moral philosophy, metaphysics, and philosophical inquiry.', 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=600&q=80'],
 
-    // ── EDUCATION ──────────────────────────────────────────────────────────
     ['Educational Management & Planning', 'educational-management-planning', 'School administration, curriculum implementation, policy formulation, and institutional leadership.', 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=600&q=80'],
     ['Guidance & Counseling Psychology', 'guidance-counseling-psychology', 'Educational counseling, psychological assessment, behavioral therapy, and career guidance.', 'https://images.unsplash.com/photo-1577495508048-b635879837f1?w=600&q=80'],
 
-    // ── AGRICULTURE ────────────────────────────────────────────────────────
     ['Agronomy & Crop Science', 'agronomy-crop-science', 'Crop production systems, plant breeding, soil fertility management, and weed biology.', 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=600&q=80'],
     ['Animal Science & Livestock Production', 'animal-science-livestock', 'Animal genetics, feeds and nutrition, veterinary health, livestock housing, and dairy management.', 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=600&q=80'],
     ['Agricultural Economics & Agribusiness', 'agricultural-economics-agribusiness', 'Farm financial management, agricultural policy, commodity marketing, and value-chain development.', 'https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=600&q=80'],
 
-    // ── ARCHITECTURE & BUILT ENVIRONMENT ──────────────────────────────────
     ['Architecture & Spatial Design', 'architecture-spatial-design', 'Architectural design studio, building construction technology, environmental systems, and Revit/BIM.', 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&q=80'],
     ['Quantity Surveying & Cost Engineering', 'quantity-surveying-cost-engineering', 'Construction cost estimation, bills of quantities (BOQ), contract administration, and project valuation.', 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=80'],
     ['Estate Management & Valuation', 'estate-management-valuation', 'Property valuation methodology, land economy, real estate development, and property law.', 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&q=80'],
@@ -378,12 +328,9 @@ foreach ($uniCatalog as $item) {
 
 echo "✔ Successfully synced {$insertedCount} University courses under official price ₦5,000.\n";
 
-// Clean invalid teacher references so only genuine teachers are referenced
 $pdo->exec("UPDATE courses SET teacher_id = NULL WHERE teacher_id IS NOT NULL AND teacher_id NOT IN (SELECT id FROM teachers)");
 
-// Assign Dr. Sarah Jenkins (teacher_id = 1) to Computer Science (Undergraduate Core) for testing
 $pdo->exec("UPDATE courses SET teacher_id = 1 WHERE slug = 'computer-science-uni' OR slug = 'computer-science'");
-
 
 echo "✔ Assigned Dr. Sarah Jenkins (Teacher ID: 1) to Computer Science (Undergraduate Core).\n";
 echo "✔ All other University courses have teacher_id = NULL ('Teacher: Currently unavailable').\n";

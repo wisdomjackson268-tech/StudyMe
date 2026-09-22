@@ -1,14 +1,12 @@
 <?php
-/**
- * StudyMe AI Platform — Cookie Policy
- */
+
 require_once __DIR__ . '/config/main.php';
 include BASE_PATH . '/includes/layouts/header.php';
 ?>
 
 <div class="py-5 bg-light-subtle" style="min-height: calc(100vh - 120px);">
     <div class="container py-4">
-        <!-- Header -->
+
         <div class="text-center max-w-700 mx-auto mb-5 animate-fade-in">
             <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex mb-3">
                 <i class="bi bi-cookie fs-1"></i>
@@ -21,7 +19,7 @@ include BASE_PATH . '/includes/layouts/header.php';
         <div class="row justify-content-center">
             <div class="col-lg-9">
                 <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 text-secondary lh-lg">
-                    
+
                     <h4 class="fw-bold text-main mb-3">1. What Are Cookies &amp; Local Storage?</h4>
                     <p>
                         Cookies are small text files placed on your browser or device when you visit websites. Local storage provides similar client-side data persistence with greater storage capacity. StudyMe uses these technologies to maintain secure user sessions, remember your light/dark mode theme preferences, and track audio feedback settings.
@@ -47,7 +45,7 @@ include BASE_PATH . '/includes/layouts/header.php';
 
                     <h4 class="fw-bold text-main mt-4 mb-3">5. Contact Us</h4>
                     <p class="mb-0">
-                        If you have questions regarding our cookie practices, please contact our data privacy team at <a href="mailto:privacy@studyme.ng" class="fw-bold text-primary">privacy@studyme.ng</a> or visit our <a href="<?= url('contact.php') ?>" class="fw-bold text-primary">Contact Page</a>.
+                        If you have questions regarding our cookie practices, please contact our data privacy team at <a href="mailto:studyme910@gmail.com" class="fw-bold text-primary">studyme910@gmail.com</a>, call <a href="tel:09026849170" class="fw-bold text-primary">09026849170</a>, or visit our <a href="<?= url('contact.php') ?>" class="fw-bold text-primary">Contact Page</a>.
                     </p>
                 </div>
             </div>

@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Teacher Interactive Quiz Question Manager
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_TEACHER);
@@ -14,13 +12,11 @@ $pdo  = getDBConnection();
 $uid  = $user['id'];
 $qid  = (int)($_GET['quiz_id'] ?? 0);
 
-// Get teacher ID
 $stmt = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ? LIMIT 1");
 $stmt->execute([$uid]);
 $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
 $tid = $teacher ? (int)$teacher['id'] : 0;
 
-// Fetch quiz record with course ownership validation
 $stmt = $pdo->prepare("
     SELECT q.*, c.title AS course_title, c.teacher_id
     FROM quizzes q
@@ -40,7 +36,6 @@ if ($quiz['teacher_id'] != $tid && current_user_role() !== ROLE_ADMIN) {
     redirect('teacher/quizzes.php');
 }
 
-// Delete question action
 if (isset($_GET['action']) && $_GET['action'] === 'delete' && !empty($_GET['question_id'])) {
     $questionId = (int)$_GET['question_id'];
     $stmtDel = $pdo->prepare("DELETE FROM questions WHERE id = ? AND quiz_id = ?");
@@ -49,7 +44,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete' && !empty($_GET['ques
     redirect('teacher/questions.php?quiz_id=' . $qid);
 }
 
-// Add new question action
 if (is_post() && isset($_POST['add_question'])) {
     $questionText = trim($_POST['question'] ?? '');
     $type         = $_POST['question_type'] ?? 'single_choice';
@@ -71,7 +65,7 @@ if (is_post() && isset($_POST['add_question'])) {
                 $stmtOpt->execute([$questionId, 'True', ($correctVal === 'True' ? 1 : 0), 1]);
                 $stmtOpt->execute([$questionId, 'False', ($correctVal === 'False' ? 1 : 0), 2]);
             } else {
-                // Multiple Choice options
+
                 $options = $_POST['options'] ?? [];
                 $correctIndex = (int)($_POST['correct_option'] ?? 0);
 
@@ -95,7 +89,6 @@ if (is_post() && isset($_POST['add_question'])) {
     }
 }
 
-// Fetch all existing questions with options
 $stmtQuestions = $pdo->prepare("SELECT * FROM questions WHERE quiz_id = ? ORDER BY sort_order ASC, id ASC");
 $stmtQuestions->execute([$qid]);
 $questionsList = $stmtQuestions->fetchAll(PDO::FETCH_ASSOC);
@@ -126,7 +119,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 </div>
 
 <div class="row g-4">
-    <!-- Question Builder Form -->
+
     <div class="col-lg-5">
         <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top: 90px;">
             <h5 class="fw-bold mb-3"><i class="bi bi-plus-circle text-primary me-2"></i>Add Question</h5>
@@ -152,7 +145,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                     </div>
                 </div>
 
-                <!-- True / False Options Box -->
                 <div id="tfBox" class="mb-4 d-none p-3 bg-light rounded-3 border">
                     <label class="form-label fw-bold mb-2">Select Correct Answer:</label>
                     <div class="form-check">
@@ -165,7 +157,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                     </div>
                 </div>
 
-                <!-- Multiple Choice Options Box -->
                 <div id="mcBox" class="mb-4 p-3 bg-light rounded-3 border">
                     <label class="form-label fw-bold mb-2">Options (Mark radio for correct answer):</label>
                     <?php for ($i = 0; $i < 4; $i++): ?>
@@ -185,10 +176,9 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     </div>
 
-    <!-- Existing Questions List -->
     <div class="col-lg-7">
         <h5 class="fw-bold mb-3">Quiz Questions (<?= count($questionsList) ?>)</h5>
-        
+
         <?php if (!empty($questionsList)): ?>
             <div class="d-flex flex-column gap-3">
                 <?php foreach ($questionsList as $qIdx => $qItem): ?>
@@ -199,7 +189,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                                 <span class="badge bg-secondary bg-opacity-10 text-muted rounded-pill px-2"><?= (float)$qItem['points'] ?> pts</span>
                                 <h5 class="fw-bold text-main mt-2 mb-1"><?= e($qItem['question']) ?></h5>
                             </div>
-                            <a href="<?= url('teacher/questions.php?quiz_id=' . $qid . '&action=delete&question_id=' . $qItem['id']) ?>" 
+                            <a href="<?= url('teacher/questions.php?quiz_id=' . $qid . '&action=delete&question_id=' . $qItem['id']) ?>"
                                class="btn btn-sm btn-outline-danger rounded-circle p-2"
                                onclick="return confirm('Delete this question?');"
                                title="Delete Question">
@@ -207,7 +197,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                             </a>
                         </div>
 
-                        <!-- Options Display -->
                         <div class="mt-3 pt-3 border-top">
                             <div class="row g-2">
                                 <?php foreach ($qItem['options'] as $opt): ?>

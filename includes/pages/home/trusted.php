@@ -1,7 +1,4 @@
 <?php
-/**
- * StudyMe AI-Powered Learning Platform — Landing Page: Trusted Brands & Social Proof Section
- */
 ?>
 <section class="py-4 border-bottom border-top bg-surface-subtle overflow-hidden" id="trusted">
     <div class="container">

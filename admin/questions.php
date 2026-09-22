@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Admin Quiz Questions Management
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_ADMIN);
@@ -11,10 +9,9 @@ $quizId  = (int)($_GET['quiz_id'] ?? 0);
 $errors  = [];
 $success = '';
 
-// Handle add / delete question
 if (is_post()) {
     $action = trim($_POST['action'] ?? '');
-    
+
     if ($action === 'create_question') {
         $qQuizId  = (int)($_POST['quiz_id'] ?? 0);
         $question = trim($_POST['question'] ?? '');
@@ -52,20 +49,18 @@ if (is_post()) {
     }
 }
 
-// Fetch Quiz info
 $quiz = null;
 if ($quizId > 0) {
     $stmt = $pdo->prepare("
-        SELECT q.*, c.title AS course_title 
-        FROM quizzes q 
-        JOIN courses c ON q.course_id = c.id 
+        SELECT q.*, c.title AS course_title
+        FROM quizzes q
+        JOIN courses c ON q.course_id = c.id
         WHERE q.id = ? LIMIT 1
     ");
     $stmt->execute([$quizId]);
     $quiz = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-// Fetch all quizzes for switcher
 $quizzes = $pdo->query("SELECT q.id, q.title, c.title AS course_title FROM quizzes q JOIN courses c ON q.course_id = c.id ORDER BY q.created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
 
 if (!$quiz && !empty($quizzes)) {
@@ -73,11 +68,10 @@ if (!$quiz && !empty($quizzes)) {
     $quiz   = $quizzes[0];
 }
 
-// Fetch questions for active quiz
 $questions = [];
 if ($quizId > 0) {
     $stmt = $pdo->prepare("
-        SELECT q.*, 
+        SELECT q.*,
                (SELECT COUNT(*) FROM question_options qo WHERE qo.question_id = q.id) AS option_count
         FROM questions q
         WHERE q.quiz_id = ?
@@ -85,8 +79,7 @@ if ($quizId > 0) {
     ");
     $stmt->execute([$quizId]);
     $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    // Attach options
+
     foreach ($questions as &$qst) {
         $stmtOpt = $pdo->prepare("SELECT * FROM question_options WHERE question_id = ? ORDER BY sort_order ASC");
         $stmtOpt->execute([$qst['id']]);
@@ -122,7 +115,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 <div class="alert alert-success rounded-3 mb-4"><i class="bi bi-check-circle me-1"></i> <?= e($success) ?></div>
 <?php endif; ?>
 
-<!-- Quiz Switcher -->
 <div class="card border-0 shadow-sm rounded-4 p-3 mb-4">
     <form method="GET" class="row g-2 align-items-center">
         <div class="col-auto">
@@ -154,7 +146,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
 </div>
 
-<!-- Questions List -->
 <?php if (!empty($questions)): ?>
 <div class="d-flex flex-column gap-3">
     <?php foreach ($questions as $idx => $qst): ?>
@@ -168,7 +159,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                 </div>
                 <h5 class="fw-bold mb-3"><?= e($qst['question']) ?></h5>
 
-                <!-- Options -->
                 <div class="row g-2">
                     <?php foreach ($qst['options'] as $opt): ?>
                     <div class="col-md-6">
@@ -205,7 +195,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 </div>
 <?php endif; ?>
 
-<!-- Add Question Modal -->
 <div class="modal fade" id="addQuestionModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -237,7 +226,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                         </div>
                     </div>
 
-                    <!-- MCQ Options -->
                     <div id="mcqOptions">
                         <label class="form-label small fw-bold mb-2">Options (Select radio for correct answer):</label>
                         <?php for ($i = 0; $i < 4; $i++): ?>
@@ -250,7 +238,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                         <?php endfor; ?>
                     </div>
 
-                    <!-- True/False Options -->
                     <div id="tfOptions" style="display:none;">
                         <label class="form-label small fw-bold mb-2">Correct Answer:</label>
                         <div class="d-flex gap-4">

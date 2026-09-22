@@ -1,8 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Breadcrumb Component
- * Expects $breadcrumbs array in scope: [['label' => 'Home', 'url' => '...'], ['label' => 'Current']]
- */
+
 if (empty($breadcrumbs)) return;
 ?>
 <nav aria-label="breadcrumb" class="mb-4">

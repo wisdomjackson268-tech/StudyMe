@@ -1,23 +1,27 @@
 <?php
-/**
- * StudyMe AI Platform — Student Dashboard
- * Tailored strictly to the student's active enrolled course.
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/enrollments.php';
 require_once BASE_PATH . '/includes/functions/activity.php';
+require_once BASE_PATH . '/includes/functions/referrals.php';
+require_once BASE_PATH . '/includes/functions/voice_video_notes.php';
 
-// Guard: require login and student/admin role
 secure_page(ROLE_STUDENT);
 
 $user   = current_user();
 $pdo    = getDBConnection();
 $userId = (int)$user['id'];
 
-// Log dashboard visit for tracking
+if (is_secondary_student($userId)) {
+    redirect('student/secondary-dashboard.php');
+}
+
+$studentRefCode = get_user_referral_code($userId);
+$studentRefLink = get_base_url() . '/auth/register.php?ref=' . $studentRefCode;
+$studentWallet  = get_user_wallet($userId);
+
 log_user_activity($userId, 'dashboard_visit', 'Student viewed their dashboard');
 
-// Resolve student record
 $stmt = $pdo->prepare("SELECT id FROM students WHERE user_id = ? LIMIT 1");
 $stmt->execute([$userId]);
 $studentRow = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -25,23 +29,23 @@ $studentId  = $studentRow ? (int)$studentRow['id'] : 0;
 
 if (!$studentId && current_user_role() === ROLE_STUDENT) {
     $studentNum = 'STD-' . date('Y') . '-' . str_pad($userId, 4, '0', STR_PAD_LEFT);
-    $pdo->prepare("INSERT INTO students (user_id, student_number) VALUES (?, ?)")->execute([$userId, $studentNum]);
+    $pdo->prepare("INSERT INTO students (user_id, student_number, student_type, academic_level, target_exam) VALUES (?, ?, 'university', '100 Level / Undergraduate', 'Degree Programme')")->execute([$userId, $studentNum]);
     $studentId = (int)$pdo->lastInsertId();
 }
 
-// Resolve student's single active course
 $activeCourse = null;
 $courseLessons = [];
 $courseQuizzes = [];
 $courseTasks   = [];
+$studentNotes  = [];
 
 if ($studentId) {
     $activeCourse = get_student_active_course($studentId);
+    $studentNotes = function_exists('get_student_voice_video_notes') ? array_slice(get_student_voice_video_notes($studentId), 0, 4) : [];
 
     if ($activeCourse) {
         $cId = (int)$activeCourse['course_id'];
 
-        // Lessons for this active course
         $stmtL = $pdo->prepare("
             SELECT l.*, cs.title AS section_title,
                    (SELECT completed FROM lesson_progress lp WHERE lp.lesson_id = l.id AND lp.enrollment_id = ?) AS is_completed
@@ -54,9 +58,8 @@ if ($studentId) {
         $stmtL->execute([$activeCourse['id'], $cId]);
         $courseLessons = $stmtL->fetchAll(PDO::FETCH_ASSOC);
 
-        // Quizzes for this active course
         $stmtQ = $pdo->prepare("
-            SELECT q.*, 
+            SELECT q.*,
                    (SELECT COUNT(*) FROM questions qst WHERE qst.quiz_id = q.id) AS question_count,
                    (SELECT qa.passed FROM quiz_attempts qa WHERE qa.quiz_id = q.id AND qa.student_id = ? ORDER BY qa.id DESC LIMIT 1) AS last_passed
             FROM quizzes q
@@ -66,9 +69,8 @@ if ($studentId) {
         $stmtQ->execute([$studentId, $cId]);
         $courseQuizzes = $stmtQ->fetchAll(PDO::FETCH_ASSOC);
 
-        // Tasks / Assignments for this active course
         $stmtA = $pdo->prepare("
-            SELECT a.*, 
+            SELECT a.*,
                    (SELECT sub.status FROM assignment_submissions sub WHERE sub.assignment_id = a.id AND sub.student_id = ? LIMIT 1) AS sub_status
             FROM assignments a
             WHERE a.course_id = ? AND a.status = 'published'
@@ -79,7 +81,6 @@ if ($studentId) {
     }
 }
 
-// Global stats
 $certCount = 0;
 if ($studentId) {
     $stmtCert = $pdo->prepare("SELECT COUNT(*) FROM certificates WHERE student_id = ?");
@@ -90,18 +91,17 @@ if ($studentId) {
 include BASE_PATH . '/includes/layouts/dashboard-header.php';
 ?>
 
-<!-- Greeting Header -->
 <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
     <div class="d-flex align-items-center gap-3">
-        <div class="position-relative">
+        <div class="profile-avatar-box position-relative">
             <?php $dashStudentAvatar = function_exists('get_avatar_url') ? get_avatar_url($user['avatar'] ?? null, $user['first_name'] ?? 'Student') : ($user['avatar'] ?? ''); ?>
             <a href="<?= url('student/profile.php') ?>" class="text-decoration-none" title="Click to update profile photo">
-                <img src="<?= e($dashStudentAvatar) ?>" 
-                     alt="<?= e($user['first_name']) ?>" 
+                <img src="<?= e($dashStudentAvatar) ?>"
+                     alt="<?= e($user['first_name']) ?>"
                      class="rounded-circle border border-3 border-primary shadow-sm"
                      style="width: 60px; height: 60px; object-fit: cover;"
                      onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=<?= urlencode($user['first_name'] ?? 'Student') ?>&background=4f46e5&color=ffffff&bold=true';">
-                <span class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 20px; height: 20px; font-size: 10px;">
+                <span class="profile-avatar-badge bg-primary text-white shadow">
                     <i class="bi bi-camera-fill"></i>
                 </span>
             </a>
@@ -135,7 +135,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 </div>
 
 <?php if ($activeCourse): ?>
-<!-- ── Active Course Showcase Banner ────────────────────────── -->
+
 <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5 mb-5 overflow-hidden position-relative" style="background: linear-gradient(135deg, #1e1b4b 0%, #1e3a8a 100%); color:#fff;">
     <div class="row align-items-center g-4 position-relative" style="z-index:2;">
         <div class="col-lg-8">
@@ -143,7 +143,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                 <i class="bi bi-shield-check me-1"></i> Active Enrolled Course
             </span>
             <h2 class="display-6 fw-bold mb-2 text-white"><?= e($activeCourse['course_title']) ?></h2>
-            
+
             <p class="text-white-50 mb-3 small">
                 <?php if (!empty($activeCourse['teacher_id']) && !empty($activeCourse['teacher_name'])): ?>
                     <i class="bi bi-person-badge-fill me-1"></i>Teacher: <a href="<?= url('teacher-profile.php?id=' . (int)$activeCourse['teacher_id']) ?>" class="text-white fw-bold text-decoration-underline" target="_blank"><?= e($activeCourse['teacher_name']) ?></a>
@@ -173,7 +173,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
             </div>
         </div>
         <div class="col-lg-4 text-center">
-            <?php $actThumb = function_exists('get_course_thumbnail_url') ? get_course_thumbnail_url($activeCourse['thumbnail'] ?? '', $activeCourse['category_slug'] ?? 'technology') : ($activeCourse['thumbnail'] ?? 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80'); ?>
+            <?php $actThumb = function_exists('get_course_thumbnail_url') ? get_course_thumbnail_url($activeCourse['thumbnail'] ?? '', $activeCourse['category_slug'] ?? 'technology', $activeCourse['course_slug'] ?? ($activeCourse['course_title'] ?? '')) : ($activeCourse['thumbnail'] ?? 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80'); ?>
             <img src="<?= e($actThumb) ?>"
                  class="rounded-4 shadow-lg border border-white border-opacity-10 w-100 img-fluid" style="max-height:220px; object-fit:cover;" alt="<?= e($activeCourse['course_title']) ?>"
                  onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80';">
@@ -181,9 +181,8 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
 </div>
 
-<!-- Course Content Tabs & Panels -->
 <div class="row g-4 mb-5">
-    <!-- Left: Lessons Breakdown -->
+
     <div class="col-lg-7">
         <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
             <div class="d-flex justify-content-between align-items-center mb-4">
@@ -216,9 +215,8 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     </div>
 
-    <!-- Right: Quizzes & Tasks -->
     <div class="col-lg-5">
-        <!-- Quizzes Card -->
+
         <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="fw-bold mb-0"><i class="bi bi-patch-question-fill text-success me-2"></i>Course Quizzes</h5>
@@ -244,7 +242,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
             <?php endif; ?>
         </div>
 
-        <!-- AI Study Coach Card -->
         <div class="ai-card p-4 rounded-4" style="background: linear-gradient(135deg, #111827 0%, #1e1b4b 100%);">
             <div class="d-flex align-items-center gap-2 mb-2">
                 <i class="bi bi-robot text-warning fs-4"></i>
@@ -259,7 +256,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 </div>
 
 <?php else: ?>
-<!-- ── No Enrolled Course State ──────────────────────────────── -->
+
 <div class="card border-0 shadow-sm rounded-4 p-5 text-center my-4">
     <div class="p-4 bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex mx-auto mb-3 fs-1">
         <i class="bi bi-mortarboard-fill"></i>
@@ -272,8 +269,61 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 </div>
 <?php endif; ?>
 
-<!-- ── Latest Announcements Widget ───────────────────────────── -->
-<?php 
+<?php if (!empty($studentNotes)): ?>
+<div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-body">
+    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-3 flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-3">
+            <div class="d-inline-flex align-items-center justify-content-center p-2 rounded-3 bg-danger bg-opacity-10 text-danger flex-shrink-0" style="width: 44px; height: 44px;">
+                <lord-icon src="https://cdn.lordicon.com/sdhszmjd.json" trigger="hover" colors="primary:#ef4444,secondary:#3b82f6" style="width:32px;height:32px;"></lord-icon>
+            </div>
+            <div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-danger rounded-pill px-3 py-1 fw-bold text-uppercase" style="font-size: 0.72rem;">
+                        <i class="bi bi-soundwave me-1"></i> Quick Audio &amp; Video
+                    </span>
+                </div>
+                <h5 class="fw-bold mb-0 text-main mt-1">Instructor Voice &amp; Video Notes</h5>
+            </div>
+        </div>
+        <a href="<?= url('student/notes.php') ?>" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 fw-semibold">View All Notes &rarr;</a>
+    </div>
+
+    <div class="row g-3">
+        <?php foreach ($studentNotes as $sn): 
+            $isVoice = ($sn['media_type'] === 'voice');
+            $mUrl = url(ltrim($sn['file_path'], '/'));
+        ?>
+            <div class="col-md-6 col-xl-3">
+                <div class="vvn-card p-3 bg-light rounded-4 border h-100 d-flex flex-column justify-content-between shadow-sm">
+                    <div>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="badge <?= $isVoice ? 'bg-danger' : 'bg-primary' ?> rounded-pill" style="font-size: 0.7rem;">
+                                <i class="bi <?= $isVoice ? 'bi-mic-fill' : 'bi-camera-video-fill' ?> me-1"></i><?= $isVoice ? 'VOICE' : 'VIDEO' ?>
+                            </span>
+                            <span class="small font-monospace text-muted"><?= format_note_duration($sn['duration_seconds']) ?></span>
+                        </div>
+                        <h6 class="fw-bold text-main mb-1 text-truncate" title="<?= e($sn['title']) ?>"><?= e($sn['title']) ?></h6>
+                        <small class="text-muted d-block text-truncate mb-2"><i class="bi bi-person-fill text-primary me-1"></i><?= e($sn['teacher_name'] ?? 'Instructor') ?></small>
+                    </div>
+                    <div class="mt-2 pt-2 border-top">
+                        <?php if ($isVoice): ?>
+                            <audio controls preload="none" class="w-100 rounded-pill" style="height: 36px;">
+                                <source src="<?= e($mUrl) ?>" type="<?= e($sn['mime_type']) ?>">
+                            </audio>
+                        <?php else: ?>
+                            <a href="<?= url('student/notes.php') ?>" class="btn btn-sm btn-outline-primary w-100 rounded-pill py-1 fw-semibold">
+                                <i class="bi bi-play-circle me-1"></i> Watch Video Note
+                            </a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+<?php endif; ?>
+
+<?php
 $recentStudentAnns = function_exists('get_user_announcements') ? get_user_announcements($userId, ROLE_STUDENT, 3) : [];
 ?>
 <?php if (!empty($recentStudentAnns)): ?>
@@ -301,7 +351,57 @@ $recentStudentAnns = function_exists('get_user_announcements') ? get_user_announ
 </div>
 <?php endif; ?>
 
-<!-- Quick Actions -->
+<div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+    <div class="row align-items-center g-3">
+        <div class="col-lg-7">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-success rounded-pill px-3 py-1 fw-bold">
+                    <i class="bi bi-gift-fill me-1"></i> Refer &amp; Earn ₦1,000
+                </span>
+                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-1 small">
+                    Wallet: ₦<?= number_format((float)($studentWallet['available_balance'] ?? 0), 2) ?>
+                </span>
+            </div>
+            <h4 class="fw-bold text-dark mb-1">Invite Fellow Students &amp; Earn ₦1,000 Cash</h4>
+            <p class="text-muted small mb-3">Share your personal referral link with your classmates. Receive an instant ₦1,000 bonus credited to your wallet for each friend who registers and enrolls!</p>
+            <div class="input-group">
+                <input type="text" id="dashRefLink" class="form-control bg-light fw-semibold fs-6" value="<?= e($studentRefLink) ?>" readonly>
+                <button type="button" class="btn btn-primary px-4 fw-bold" onclick="copyDashRefLink()">
+                    <i class="bi bi-clipboard-check me-1" id="dashCopyIcon"></i> Copy Link
+                </button>
+            </div>
+        </div>
+        <div class="col-lg-5 text-lg-end text-start">
+            <div class="p-3 bg-light-subtle rounded-4 d-inline-block text-start w-100" style="max-width:320px;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted small">Total Earned:</span>
+                    <strong class="text-success">₦<?= number_format((float)($studentWallet['total_earned'] ?? 0), 2) ?></strong>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted small">Pending:</span>
+                    <strong class="text-warning">₦<?= number_format((float)($studentWallet['pending_balance'] ?? 0), 2) ?></strong>
+                </div>
+                <a href="<?= url('student/referrals.php') ?>" class="btn btn-outline-primary btn-sm w-100 rounded-pill fw-bold">
+                    <i class="bi bi-wallet2 me-1"></i> View Referral Wallet &amp; Withdraw
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyDashRefLink() {
+    const linkInput = document.getElementById('dashRefLink');
+    linkInput.select();
+    linkInput.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(linkInput.value);
+
+    const icon = document.getElementById('dashCopyIcon');
+    icon.className = 'bi bi-check2-all text-white me-1';
+    alert('Your referral link has been copied to your clipboard!');
+}
+</script>
+
 <h5 class="fw-bold mb-3">Quick Navigation</h5>
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
@@ -311,15 +411,15 @@ $recentStudentAnns = function_exists('get_user_announcements') ? get_user_announ
         </a>
     </div>
     <div class="col-6 col-md-3">
-        <a href="<?= url('student/quizzes.php') ?>" class="card border-0 shadow-sm rounded-4 p-4 text-center text-decoration-none hover-lift d-flex flex-column align-items-center gap-2">
-            <i class="bi bi-patch-question-fill text-primary fs-2"></i>
-            <span class="fw-semibold small text-main">Quizzes</span>
+        <a href="<?= url('student/referrals.php') ?>" class="card border-0 shadow-sm rounded-4 p-4 text-center text-decoration-none hover-lift d-flex flex-column align-items-center gap-2">
+            <i class="bi bi-gift-fill text-success fs-2"></i>
+            <span class="fw-semibold small text-main">Refer &amp; Earn (₦1k)</span>
         </a>
     </div>
     <div class="col-6 col-md-3">
-        <a href="<?= url('student/certificates.php') ?>" class="card border-0 shadow-sm rounded-4 p-4 text-center text-decoration-none hover-lift d-flex flex-column align-items-center gap-2">
-            <i class="bi bi-award-fill text-success fs-2"></i>
-            <span class="fw-semibold small text-main">Certificates (<?= $certCount ?>)</span>
+        <a href="<?= url('student/quizzes.php') ?>" class="card border-0 shadow-sm rounded-4 p-4 text-center text-decoration-none hover-lift d-flex flex-column align-items-center gap-2">
+            <i class="bi bi-patch-question-fill text-primary fs-2"></i>
+            <span class="fw-semibold small text-main">Quizzes</span>
         </a>
     </div>
     <div class="col-6 col-md-3">

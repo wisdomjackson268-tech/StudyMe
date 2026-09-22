@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Admin Course Details View
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_ADMIN);
@@ -9,7 +7,6 @@ secure_page(ROLE_ADMIN);
 $pdo = getDBConnection();
 $cid = (int)($_GET['id'] ?? 0);
 
-// Fetch course with owner details
 $stmt = $pdo->prepare("
     SELECT c.*, cat.name AS category_name,
            CONCAT(u.first_name, ' ', u.last_name) AS teacher_name,
@@ -34,7 +31,6 @@ if (!$course) {
     redirect('admin/courses.php');
 }
 
-// Fetch enrolled students
 $stmtStudents = $pdo->prepare("
     SELECT e.*, u.first_name, u.last_name, u.email, u.avatar
     FROM enrollments e
@@ -65,7 +61,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 </div>
 
 <div class="row g-4 mb-4">
-    <!-- Course Info Card -->
+
     <div class="col-lg-8">
         <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
             <div class="d-flex align-items-center gap-3 mb-4">
@@ -88,7 +84,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
             <p class="text-secondary lh-lg mb-0" style="white-space: pre-line;"><?= e($course['description']) ?></p>
         </div>
 
-        <!-- Enrolled Students List -->
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
             <div class="card-header bg-white p-4 border-0">
                 <h5 class="fw-bold mb-0"><i class="bi bi-people-fill text-primary me-2"></i>Enrolled Students (<?= count($enrolledStudents) ?>)</h5>
@@ -141,9 +136,8 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     </div>
 
-    <!-- Course Sidebar Stats & Owner Info -->
     <div class="col-lg-4">
-        <!-- Owner Card -->
+
         <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
             <h5 class="fw-bold mb-3"><i class="bi bi-person-badge-fill text-warning me-2"></i>Course Owner</h5>
             <div class="d-flex align-items-center gap-3 mb-3">
@@ -160,7 +154,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
             </div>
         </div>
 
-        <!-- Calculated Metrics Card -->
         <div class="card border-0 shadow-sm rounded-4 p-4">
             <h5 class="fw-bold mb-3"><i class="bi bi-bar-chart-fill text-info me-2"></i>Course Metrics</h5>
             <div class="d-flex flex-column gap-3">

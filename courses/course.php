@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Course Details Direct Route Handler
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 $id   = (int)($_GET['id'] ?? 0);

@@ -1,14 +1,11 @@
 <?php
-/**
- * StudyMe — Footer & System Migration Script
- * Ensures contact_messages, blog posts, and categories exist with rich initial data.
- */
+
 require_once dirname(__DIR__) . '/config/database.php';
 
 $pdo = getDBConnection();
 
 try {
-    // 1. Contact Messages Table
+
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS contact_messages (
             id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -22,7 +19,6 @@ try {
     ");
     echo "✓ contact_messages table ready.\n";
 
-    // 2. Ensure blog_categories exists
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS blog_categories (
             id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -33,7 +29,6 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
 
-    // 3. Ensure blog_posts exists
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS blog_posts (
             id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -54,7 +49,6 @@ try {
     ");
     echo "✓ blog tables ready.\n";
 
-    // Seed blog categories if empty
     $catCount = (int)$pdo->query("SELECT COUNT(*) FROM blog_categories")->fetchColumn();
     if ($catCount === 0) {
         $pdo->exec("
@@ -67,7 +61,6 @@ try {
         echo "✓ blog categories seeded.\n";
     }
 
-    // Seed sample blog posts if empty
     $postCount = (int)$pdo->query("SELECT COUNT(*) FROM blog_posts")->fetchColumn();
     if ($postCount === 0) {
         $adminId = (int)$pdo->query("SELECT id FROM users WHERE role = 'admin' LIMIT 1")->fetchColumn();

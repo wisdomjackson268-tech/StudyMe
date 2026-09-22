@@ -1,8 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Teacher Referral & Commission Dashboard
- * Comprehensive affiliate & referral program for educators to earn bonuses.
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/referrals.php';
 
@@ -11,17 +8,13 @@ $user   = current_user();
 $userId = (int)$user['id'];
 $pdo    = getDBConnection();
 
-// Fetch or generate unique referral code
 $refCode = get_user_referral_code($userId);
 $refLink = get_base_url() . '/auth/register.php?ref=' . $refCode;
 
-// Fetch Wallet Metrics
 $wallet = get_user_wallet($userId);
 
-// Referral bonus commission rule
 $bonusPerStudent = 1500.00;
 
-// Handle Withdrawal Form Submission
 $withdrawalMessage = '';
 $withdrawalSuccess = false;
 if (is_post() && isset($_POST['action']) && $_POST['action'] === 'withdraw') {
@@ -42,9 +35,8 @@ if (is_post() && isset($_POST['action']) && $_POST['action'] === 'withdraw') {
     }
 }
 
-// Fetch Referral Activity History
 $stmtRefs = $pdo->prepare("
-    SELECT r.*, 
+    SELECT r.*,
            CONCAT(u.first_name, ' ', u.last_name) AS referred_name,
            u.email AS referred_email,
            c.title AS course_title
@@ -68,12 +60,10 @@ foreach ($referralsList as $ref) {
     }
 }
 
-// Fetch Withdrawal History
 $stmtW = $pdo->prepare("SELECT * FROM withdrawals WHERE user_id = ? ORDER BY created_at DESC");
 $stmtW->execute([$userId]);
 $withdrawalsList = $stmtW->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch Wallet Transactions
 $stmtTx = $pdo->prepare("SELECT * FROM wallet_transactions WHERE user_id = ? ORDER BY created_at DESC");
 $stmtTx->execute([$userId]);
 $transactionsList = $stmtTx->fetchAll(PDO::FETCH_ASSOC);
@@ -96,7 +86,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
 </div>
 
-<!-- Referral Link Banner -->
 <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-5" style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%); color:#fff; border: 1px solid rgba(255,255,255,0.1);">
     <div class="row align-items-center g-4">
         <div class="col-lg-8">
@@ -142,7 +131,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
 </div>
 
-<!-- 4 Stats Cards -->
 <div class="row g-4 mb-5">
     <div class="col-sm-6 col-xl-3">
         <div class="stat-card">
@@ -185,13 +173,12 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
 </div>
 
-<!-- How It Works & Referral History -->
 <div class="row g-4 mb-5">
-    <!-- How it works -->
+
     <div class="col-lg-4">
         <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-card">
             <h5 class="fw-bold mb-3 text-main"><i class="bi bi-info-circle-fill text-primary me-2"></i>How It Works</h5>
-            
+
             <div class="d-flex gap-3 mb-3">
                 <div class="rounded-circle bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center flex-shrink-0" style="width:36px; height:36px;">1</div>
                 <div>
@@ -218,11 +205,10 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     </div>
 
-    <!-- Referral History Table -->
     <div class="col-lg-8">
         <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-card">
             <h5 class="fw-bold mb-3 text-main"><i class="bi bi-clock-history text-success me-2"></i>Referral Activity</h5>
-            
+
             <?php if (!empty($referralsList)): ?>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0 small">
@@ -269,7 +255,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
 </div>
 
-<!-- Withdrawal Modal -->
 <div class="modal fade" id="withdrawalModal" tabindex="-1" aria-labelledby="withdrawalModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow-lg">

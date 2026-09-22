@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Teacher Verification Notice
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 require_login();

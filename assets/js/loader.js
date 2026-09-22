@@ -1,10 +1,6 @@
-/**
- * StudyMe AI-Powered Learning Platform — Global Preloader & Page Utilities
- * Provides smooth page load masking and programmatic access to show/hide loaders.
- */
 
 const StudyMeLoader = {
-    // Hide the main page preloader smoothly
+
     hide() {
         const preloader = document.getElementById("app-preloader");
         if (preloader) {
@@ -17,20 +13,18 @@ const StudyMeLoader = {
         }
     },
 
-    // Show the preloader programmatically (e.g. during form submission or heavy calculations)
     show() {
         const preloader = document.getElementById("app-preloader");
         if (preloader) {
             preloader.style.display = "flex";
             preloader.style.visibility = "visible";
             preloader.style.pointerEvents = "all";
-            // Force reflow
+
             preloader.offsetHeight;
             preloader.style.opacity = "1";
         }
     },
 
-    // Create a beautiful AI Thinking bubble element
     createAiThinkingIndicator() {
         const bubble = document.createElement("div");
         bubble.className = "ai-thinking-bubble mb-3";
@@ -50,11 +44,10 @@ const StudyMeLoader = {
         return bubble;
     },
 
-    // Create a professional AI Error bubble element with a [Try Again] action button
     createAiErrorBubble(errorMessage, retryCallback) {
         const bubble = document.createElement("div");
         bubble.className = "ai-error-bubble mb-3";
-        
+
         const messageText = document.createElement("div");
         messageText.className = "small fw-semibold";
         messageText.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-1"></i> ${errorMessage || "Connection temporarily busy. Please try again."}`;
@@ -75,7 +68,6 @@ const StudyMeLoader = {
         return bubble;
     },
 
-    // Toggle button loading overlay
     setButtonLoadingState(btn, isLoading) {
         if (!btn) return;
         if (isLoading) {
@@ -90,13 +82,12 @@ const StudyMeLoader = {
         }
     },
 
-    // Display a loader inside a specific panel container
     showElementLoader(container, message = "Loading content...") {
         if (!container) return;
-        // Check if loader already exists
+
         let loader = container.querySelector(".panel-loader-overlay");
         if (!loader) {
-            // Ensure container has relative positioning
+
             if (window.getComputedStyle(container).position === "static") {
                 container.style.position = "relative";
             }
@@ -110,12 +101,11 @@ const StudyMeLoader = {
             `;
             container.appendChild(loader);
         }
-        // Force reflow
+
         loader.offsetHeight;
         loader.classList.add("show");
     },
 
-    // Dismiss the loader inside a specific container
     hideElementLoader(container) {
         if (!container) return;
         const loader = container.querySelector(".panel-loader-overlay");
@@ -128,21 +118,24 @@ const StudyMeLoader = {
     }
 };
 
-// Auto-dismiss preloader when DOM content is loaded
 document.addEventListener("DOMContentLoaded", () => {
-    // Trigger fadeout immediately
+
     StudyMeLoader.hide();
 
-    // Safety timeout in case load event was missed or delayed
     setTimeout(() => {
         StudyMeLoader.hide();
     }, 400);
 
-    // Attach button spinner loading state on form submissions (without locking full screen)
     const forms = document.querySelectorAll("form");
     forms.forEach(form => {
         form.addEventListener("submit", (e) => {
-            if (form.dataset.ajaxForm) return;
+
+            if (form.dataset.ajaxForm || form.dataset.noLoader || form.id === 'aiQueryForm' || form.id === 'pageAiForm' || form.classList.contains('ajax-form')) {
+                return;
+            }
+
+            if (e.defaultPrevented) return;
+
             const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
             if (submitBtn && !submitBtn.disabled) {
                 const origHtml = submitBtn.innerHTML || submitBtn.value;
@@ -154,7 +147,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // Handle image fallback smoothly if remote image fails
     const images = document.querySelectorAll("img");
     images.forEach(img => {
         img.addEventListener("error", function() {
@@ -165,15 +157,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-// Fallback in case DOMContentLoaded did not trigger
 window.addEventListener("load", () => {
     StudyMeLoader.hide();
 });
 
-// Quick failsafe check
 if (document.readyState === "complete" || document.readyState === "interactive") {
     setTimeout(() => { StudyMeLoader.hide(); }, 100);
 }
 
-// Expose to global scope
 window.StudyMeLoader = StudyMeLoader;

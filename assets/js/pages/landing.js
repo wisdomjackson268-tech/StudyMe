@@ -1,15 +1,9 @@
-/**
- * STUDYME — LANDING PAGE INTERACTIVE JAVASCRIPT
- * Handles scroll progress, glassmorphic navbar scroll state,
- * bidirectional reveal animations, number counters, typewriter, and back-to-top.
- */
 
 document.addEventListener("DOMContentLoaded", () => {
     'use strict';
 
-    /* ─── 1. SCROLL PROGRESS BAR ───────────────────────────────── */
     const progressBar = document.getElementById('lp-progress');
-    
+
     function updateProgressBar() {
         if (!progressBar) return;
         const scrollTop = window.scrollY || document.documentElement.scrollTop;
@@ -18,9 +12,8 @@ document.addEventListener("DOMContentLoaded", () => {
         progressBar.style.width = Math.min(progress, 100) + '%';
     }
 
-    /* ─── 2. GLASSMORPHIC NAVBAR SCROLL HANDLER ───────────────── */
     const navbar = document.getElementById('lpNavbar');
-    
+
     function updateNavbarState() {
         if (!navbar) return;
         if (window.scrollY > 30) {
@@ -30,9 +23,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    /* ─── 3. BACK TO TOP BUTTON ────────────────────────────────── */
     const backToTopBtn = document.getElementById('lp-back-top');
-    
+
     function updateBackToTopState() {
         if (!backToTopBtn) return;
         if (window.scrollY > 400) {
@@ -52,7 +44,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    /* ─── 4. GLOBAL SCROLL DISPATCHER ──────────────────────────── */
     function onWindowScroll() {
         updateProgressBar();
         updateNavbarState();
@@ -60,20 +51,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     window.addEventListener('scroll', onWindowScroll, { passive: true });
-    onWindowScroll(); // Initial execution
+    onWindowScroll();
 
-    /* ─── 5. REVEAL ANIMATIONS (IntersectionObserver) ───────────── */
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     if (!prefersReducedMotion) {
         const revealElements = document.querySelectorAll('.lp-reveal, .lp-reveal-left, .lp-reveal-right, .lp-reveal-scale');
-        
+
         const revealObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('is-visible');
                 } else {
-                    // Bidirectional: reset when element scrolls significantly out of view
+
                     const rect = entry.boundingClientRect;
                     if (rect.top > window.innerHeight || rect.bottom < 0) {
                         entry.target.classList.remove('is-visible');
@@ -87,28 +77,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
         revealElements.forEach(el => revealObserver.observe(el));
     } else {
-        // Show everything immediately if reduced motion is requested
+
         document.querySelectorAll('.lp-reveal, .lp-reveal-left, .lp-reveal-right, .lp-reveal-scale').forEach(el => {
             el.classList.add('is-visible');
         });
     }
 
-    /* ─── 6. NUMBER COUNTER ANIMATION ───────────────────────────── */
     const counterElements = document.querySelectorAll('[data-target]');
-    
+
     function animateCounter(counterEl) {
         const targetValue = parseInt(counterEl.getAttribute('data-target'), 10) || 0;
         const suffix = counterEl.getAttribute('data-suffix') || '';
-        const duration = 1800; // ms
+        const duration = 1800;
         const startTime = performance.now();
 
         function step(now) {
             const elapsed = now - startTime;
             const progress = Math.min(elapsed / duration, 1);
-            // Ease-out cubic formula
+
             const easedProgress = 1 - Math.pow(1 - progress, 3);
             const currentValue = Math.floor(easedProgress * targetValue);
-            
+
             counterEl.textContent = currentValue.toLocaleString() + suffix;
 
             if (progress < 1) {
@@ -132,7 +121,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     counterElements.forEach(counter => counterObserver.observe(counter));
 
-    /* ─── 7. INTERACTIVE AI CHAT DEMO CHIPS ─────────────────────── */
     const chatInputMock = document.getElementById('lpChatInputMock');
     const aiActionChips = document.querySelectorAll('.lp-ai-chip');
 

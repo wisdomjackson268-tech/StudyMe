@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Quiz Attempt Results View
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 require_login();
@@ -10,7 +8,6 @@ $userId    = $user['id'];
 $pdo       = getDBConnection();
 $attemptId = (int)($_GET['attempt_id'] ?? 0);
 
-// Fetch attempt details
 $stmt = $pdo->prepare("
     SELECT qa.*, q.title AS quiz_title, q.passing_score, q.course_id,
            c.title AS course_title, c.slug AS course_slug
@@ -29,7 +26,6 @@ if (!$attempt) {
     redirect('student/quizzes.php');
 }
 
-// Fetch answers with questions
 $stmtAns = $pdo->prepare("
     SELECT ans.*, q.question, q.points,
            qo.option_text AS selected_option,
@@ -50,7 +46,7 @@ include BASE_PATH . '/includes/layouts/header.php';
     <div class="container py-4">
         <div class="row justify-content-center">
             <div class="col-lg-8">
-                <!-- Result Hero Card -->
+
                 <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5 text-center mb-4">
                     <div class="mb-3">
                         <?php if ($attempt['passed']): ?>
@@ -68,7 +64,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                         <?php endif; ?>
                     </div>
 
-                    <!-- Score Pill -->
                     <div class="d-inline-flex align-items-center justify-content-center gap-3 p-3 bg-light rounded-4 border mx-auto mb-4" style="min-width:280px;">
                         <div>
                             <div class="fs-2 fw-bold <?= $attempt['passed'] ? 'text-success' : 'text-danger' ?>">
@@ -95,7 +90,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                     </div>
                 </div>
 
-                <!-- Answer Review Breakdown -->
                 <h4 class="fw-bold mb-3"><i class="bi bi-list-check text-primary me-2"></i>Detailed Question Review</h4>
                 <div class="d-flex flex-column gap-3 mb-4">
                     <?php foreach ($answers as $idx => $ans): ?>
@@ -107,7 +101,7 @@ include BASE_PATH . '/includes/layouts/header.php';
                             </span>
                         </div>
                         <h6 class="fw-bold mb-3"><?= e($ans['question']) ?></h6>
-                        
+
                         <div class="p-3 rounded-3 bg-light small mb-2">
                             <div class="text-muted mb-1">Your Answer:</div>
                             <div class="fw-bold <?= $ans['is_correct'] ? 'text-success' : 'text-danger' ?>">

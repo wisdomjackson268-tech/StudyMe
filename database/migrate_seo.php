@@ -1,14 +1,10 @@
 <?php
-/**
- * StudyMe AI Platform — SEO Schema Database Migration
- * Adds SEO fields (seo_title, seo_description, seo_keywords) and seeds tailored metadata.
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 $pdo = getDBConnection();
 echo "Starting SEO Schema Migration...\n";
 
-// 1. Add SEO columns to courses table if they don't exist
 $cols = $pdo->query("SHOW COLUMNS FROM courses")->fetchAll(PDO::FETCH_COLUMN);
 if (!in_array('seo_title', $cols)) {
     $pdo->exec("ALTER TABLE courses ADD COLUMN seo_title VARCHAR(255) NULL AFTER title");
@@ -23,7 +19,6 @@ if (!in_array('seo_keywords', $cols)) {
     echo "✔ Added seo_keywords to courses\n";
 }
 
-// 2. Add SEO columns to categories table if they don't exist
 $catCols = $pdo->query("SHOW COLUMNS FROM categories")->fetchAll(PDO::FETCH_COLUMN);
 if (!in_array('seo_title', $catCols)) {
     $pdo->exec("ALTER TABLE categories ADD COLUMN seo_title VARCHAR(255) NULL AFTER name");
@@ -34,7 +29,6 @@ if (!in_array('seo_description', $catCols)) {
     echo "✔ Added seo_description to categories\n";
 }
 
-// 3. Update Category SEO Metadata
 $categorySeo = [
     'technology' => [
         'title' => 'Technology Courses & Bootcamps | StudyMe',
@@ -60,14 +54,13 @@ foreach ($categorySeo as $slug => $data) {
 }
 echo "✔ Updated category SEO metadata\n";
 
-// 4. Update Course SEO Metadata
 $courses = $pdo->query("SELECT id, title, slug, short_description, level, price FROM courses")->fetchAll(PDO::FETCH_ASSOC);
 $stmtCourseSeo = $pdo->prepare("UPDATE courses SET seo_title = ?, seo_description = ?, seo_keywords = ? WHERE id = ?");
 
 foreach ($courses as $c) {
     $seoTitle = $c['title'] . ' Course | StudyMe';
-    $seoDesc = !empty($c['short_description']) 
-        ? substr($c['short_description'], 0, 155) . ' Learn with StudyMe AI Tutor.' 
+    $seoDesc = !empty($c['short_description'])
+        ? substr($c['short_description'], 0, 155) . ' Learn with StudyMe AI Tutor.'
         : 'Enroll in ' . $c['title'] . ' on StudyMe. Master practical skills with 24/7 AI tutoring, quizzes, and certificates.';
     $seoKeywords = strtolower(str_replace([' - ', ' (', ')', '/', '&'], ', ', $c['title'])) . ', online learning, StudyMe AI course';
 

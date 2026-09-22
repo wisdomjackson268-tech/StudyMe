@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Admin Teachers Management & Applications
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_ADMIN);
@@ -10,7 +8,6 @@ $pdo     = getDBConnection();
 $search  = trim($_GET['search'] ?? '');
 $success = '';
 
-// Handle Application Approval/Rejection
 if (is_post()) {
     $action = trim($_POST['action'] ?? '');
     $appId  = (int)($_POST['application_id'] ?? 0);
@@ -22,7 +19,7 @@ if (is_post()) {
         if ($app) {
             $pdo->prepare("UPDATE users SET role = 'teacher' WHERE id = ?")->execute([$app['user_id']]);
             $pdo->prepare("UPDATE teacher_applications SET status = 'approved', reviewed_by = ?, reviewed_at = NOW() WHERE id = ?")->execute([current_user('id'), $appId]);
-            // Ensure teacher record exists
+
             $tNum = 'TCH-' . str_pad($app['user_id'], 3, '0', STR_PAD_LEFT);
             $pdo->prepare("INSERT IGNORE INTO teachers (user_id, teacher_number, status) VALUES (?, ?, 'active')")->execute([$app['user_id'], $tNum]);
             $success = 'Teacher application approved and role upgraded.';
@@ -33,7 +30,6 @@ if (is_post()) {
     }
 }
 
-// Fetch all teachers
 $teachers = $pdo->query("
     SELECT t.*, u.first_name, u.last_name, u.email, u.phone, u.status AS user_status, u.created_at AS user_created_at,
            (SELECT COUNT(*) FROM courses c WHERE c.teacher_id = t.id) AS course_count,
@@ -43,7 +39,6 @@ $teachers = $pdo->query("
     ORDER BY t.created_at DESC
 ")->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch Pending Applications
 $pendingApps = $pdo->query("
     SELECT ta.*, u.first_name, u.last_name, u.email
     FROM teacher_applications ta
@@ -67,7 +62,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 <div class="alert alert-success rounded-3 mb-4"><i class="bi bi-check-circle me-1"></i> <?= e($success) ?></div>
 <?php endif; ?>
 
-<!-- Pending Applications -->
 <?php if (!empty($pendingApps)): ?>
 <div class="card border-0 shadow-sm rounded-4 mb-4 bg-warning bg-opacity-10 border border-warning border-opacity-25">
     <div class="card-header bg-transparent border-0 p-4 pb-0">
@@ -106,7 +100,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 </div>
 <?php endif; ?>
 
-<!-- Teachers Table -->
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0 small">

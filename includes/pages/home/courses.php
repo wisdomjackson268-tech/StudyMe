@@ -11,7 +11,6 @@
         </div>
 
         <div class="row g-4">
-            <!-- Course 1 -->
             <div class="col-md-6 col-lg-4">
                 <div class="course-card">
                     <div class="course-thumb-wrapper">
@@ -40,7 +39,6 @@
                 </div>
             </div>
 
-            <!-- Course 2 -->
             <div class="col-md-6 col-lg-4">
                 <div class="course-card">
                     <div class="course-thumb-wrapper">
@@ -69,7 +67,6 @@
                 </div>
             </div>
 
-            <!-- Course 3 -->
             <div class="col-md-6 col-lg-4">
                 <div class="course-card">
                     <div class="course-thumb-wrapper">
@@ -98,7 +95,6 @@
                 </div>
             </div>
 
-            <!-- Course 4 -->
             <div class="col-md-6 col-lg-4">
                 <div class="course-card">
                     <div class="course-thumb-wrapper">
@@ -127,7 +123,6 @@
                 </div>
             </div>
 
-            <!-- Course 5 -->
             <div class="col-md-6 col-lg-4">
                 <div class="course-card">
                     <div class="course-thumb-wrapper">
@@ -156,7 +151,6 @@
                 </div>
             </div>
 
-            <!-- Course 6 -->
             <div class="col-md-6 col-lg-4">
                 <div class="course-card">
                     <div class="course-thumb-wrapper">

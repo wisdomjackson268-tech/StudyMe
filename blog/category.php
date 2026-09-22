@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Blog Category Viewer
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 $slug = trim($_GET['slug'] ?? '');
@@ -51,7 +49,7 @@ include BASE_PATH . '/includes/layouts/header.php';
 
 <div class="py-5 bg-light-subtle" style="min-height: calc(100vh - 120px);">
     <div class="container py-4">
-        <!-- Breadcrumb -->
+
         <nav aria-label="breadcrumb" class="mb-4">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="<?= url('index.php') ?>" class="text-decoration-none">Home</a></li>
@@ -60,14 +58,12 @@ include BASE_PATH . '/includes/layouts/header.php';
             </ol>
         </nav>
 
-        <!-- Header -->
         <div class="text-center max-w-700 mx-auto mb-5">
             <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold mb-2">Topic Category</span>
             <h1 class="display-5 fw-bold mb-2"><?= e($category['name']) ?></h1>
             <p class="lead text-muted"><?= e($category['description'] ?: 'Articles and research on ' . $category['name']) ?></p>
         </div>
 
-        <!-- Categories Filter -->
         <div class="d-flex flex-wrap justify-content-center gap-2 mb-5">
             <a href="<?= url('blog/index.php') ?>" class="btn btn-outline-secondary btn-sm rounded-pill px-3">All Articles</a>
             <?php foreach ($allCategories as $cat): ?>
@@ -77,15 +73,14 @@ include BASE_PATH . '/includes/layouts/header.php';
             <?php endforeach; ?>
         </div>
 
-        <!-- Posts Grid -->
         <?php if (!empty($posts)): ?>
             <div class="row g-4 mb-5">
                 <?php foreach ($posts as $post): ?>
                     <div class="col-md-6 col-lg-4">
                         <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden hover-lift d-flex flex-column">
-                            <img src="<?= e($post['featured_image'] ?: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&q=80') ?>" 
-                                 alt="<?= e($post['title']) ?>" 
-                                 class="card-img-top object-fit-cover" 
+                            <img src="<?= e($post['featured_image'] ?: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&q=80') ?>"
+                                 alt="<?= e($post['title']) ?>"
+                                 class="card-img-top object-fit-cover"
                                  style="height: 200px;">
                             <div class="card-body p-4 d-flex flex-column">
                                 <h5 class="fw-bold mb-2">

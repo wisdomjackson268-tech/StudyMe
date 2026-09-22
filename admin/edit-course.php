@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Admin Course Editor
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_ADMIN);
@@ -9,7 +7,6 @@ secure_page(ROLE_ADMIN);
 $pdo = getDBConnection();
 $cid = (int)($_GET['id'] ?? 0);
 
-// Fetch course
 $stmt = $pdo->prepare("SELECT * FROM courses WHERE id = ? LIMIT 1");
 $stmt->execute([$cid]);
 $course = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -21,9 +18,9 @@ if (!$course) {
 
 $categories = $pdo->query("SELECT id, name, slug FROM categories WHERE status='active' ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 $teachers   = $pdo->query("
-    SELECT t.id, CONCAT(u.first_name, ' ', u.last_name) AS teacher_name, u.email 
-    FROM teachers t 
-    JOIN users u ON t.user_id = u.id 
+    SELECT t.id, CONCAT(u.first_name, ' ', u.last_name) AS teacher_name, u.email
+    FROM teachers t
+    JOIN users u ON t.user_id = u.id
     WHERE t.status = 'active'
     ORDER BY u.first_name ASC
 ")->fetchAll(PDO::FETCH_ASSOC);
@@ -57,7 +54,7 @@ if (is_post()) {
 
         try {
             $stmt = $pdo->prepare("
-                UPDATE courses 
+                UPDATE courses
                 SET category_id = ?, teacher_id = ?, title = ?, price = ?, duration_minutes = ?,
                     short_description = ?, description = ?, thumbnail = ?, level = ?, status = ?, updated_at = NOW()
                 WHERE id = ?

@@ -1,8 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Universal Announcement Feed
- * Displays announcements delivered to the current logged-in user.
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/announcements.php';
 
@@ -11,7 +8,6 @@ $user     = current_user();
 $userId   = (int)$user['id'];
 $userRole = current_user_role();
 
-// Handle Mark All Read action
 if (is_post() && isset($_POST['mark_all_read'])) {
     mark_all_announcements_as_read($userId, $userRole);
     set_flash('success', 'All announcements marked as read.');
@@ -30,7 +26,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 ?>
 
 <div class="container-fluid py-4">
-    <!-- Header -->
+
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
         <div>
             <h1 class="h3 fw-bold mb-1"><i class="bi bi-megaphone-fill text-primary me-2"></i> Announcements &amp; Updates</h1>
@@ -58,7 +54,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     </div>
 
-    <!-- Announcement Feed -->
     <div class="row justify-content-center">
         <div class="col-lg-9">
             <?php if (!empty($announcements)): ?>

@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Official Course Confirmation & Payment Checkout
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/enrollments.php';
 require_once BASE_PATH . '/includes/functions/pricing.php';
@@ -23,7 +21,14 @@ $itemName      = 'StudyMe Course Enrollment';
 $itemDesc      = '';
 
 if ($courseId > 0) {
-    // 1. Resolve student record & check active course limit
+
+    require_once BASE_PATH . '/includes/functions/courses.php';
+    $courseCheck = course_has_active_teacher($courseId);
+    if (!$courseCheck['can_enroll']) {
+        set_flash('error', 'Enrollment Restricted: ' . $courseCheck['reason'] . ' University policy requires an active verified teacher for every enrolled student.');
+        redirect('courses/university.php');
+    }
+
     $stmtSt = $pdo->prepare("SELECT id FROM students WHERE user_id = ? LIMIT 1");
     $stmtSt->execute([$userId]);
     $stRow = $stmtSt->fetch(PDO::FETCH_ASSOC);
@@ -37,31 +42,15 @@ if ($courseId > 0) {
         }
     }
 
-    // 2. Fetch course from database
-    $stmtC = $pdo->prepare("
-        SELECT c.*, cat.name AS category_name, cat.slug AS category_slug,
-               CONCAT(u.first_name, ' ', u.last_name) AS teacher_name
-        FROM courses c
-        LEFT JOIN categories cat ON c.category_id = cat.id
-        JOIN teachers t ON c.teacher_id = t.id
-        JOIN users u ON t.user_id = u.id
-        WHERE c.id = ? AND c.status = 'published' LIMIT 1
-    ");
-    $stmtC->execute([$courseId]);
-    $course = $stmtC->fetch(PDO::FETCH_ASSOC);
+    $course = $courseCheck['course'];
+    $teacherName = $courseCheck['teacher']['name'] ?? 'StudyMe Faculty';
 
-    if (!$course) {
-        set_flash('error', 'Course not found or currently unavailable.');
-        redirect('courses/index.php');
-    }
-
-    // 3. Server-side price calculation strictly from database
     $expectedPrice = get_course_official_price($courseId);
     $categoryName  = $course['category_name'] ?: 'Technology';
     $itemName      = $course['title'];
-    $itemDesc      = 'Instructor: ' . $course['teacher_name'] . ' | Category: ' . $categoryName;
+    $itemDesc      = 'Instructor: ' . $teacherName . ' | Category: ' . $categoryName;
 } else {
-    // Teacher Access Suite
+
     $rates = get_official_pricing_rates();
     if ($planSlug === 'teacher' || $role === ROLE_TEACHER) {
         $expectedPrice = $rates['teacher'];
@@ -76,7 +65,6 @@ if ($courseId > 0) {
     }
 }
 
-// Generate unique transaction reference
 $txRef = 'SM_TX_' . time() . '_' . rand(1000, 9999);
 
 $pageTitle = 'Confirm Enrollment & Payment — StudyMe';
@@ -85,7 +73,7 @@ include BASE_PATH . '/includes/layouts/header.php';
 
 <div class="py-5 bg-light-subtle" style="min-height: calc(100vh - 120px);">
     <div class="container py-4">
-        <!-- Progress Steps -->
+
         <div class="row justify-content-center mb-5">
             <div class="col-lg-8">
                 <div class="d-flex justify-content-between position-relative">
@@ -106,7 +94,7 @@ include BASE_PATH . '/includes/layouts/header.php';
         </div>
 
         <div class="row g-4 justify-content-center">
-            <!-- Left: Confirmation Summary Card (Part 17 & 20) -->
+
             <div class="col-lg-5">
                 <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5 h-100 d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -118,8 +106,7 @@ include BASE_PATH . '/includes/layouts/header.php';
 
                     <h3 class="fw-bold mb-2 text-main"><?= e($itemName) ?></h3>
                     <p class="text-muted small mb-4"><?= e($itemDesc) ?></p>
-                    
-                    <!-- Details Breakdown Box -->
+
                     <div class="p-4 bg-light rounded-4 mb-4 border border-subtle">
                         <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
                             <span class="text-muted small">Student Name:</span>
@@ -159,7 +146,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                 </div>
             </div>
 
-            <!-- Right: Payment Method & Verification Form -->
             <div class="col-lg-6">
                 <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5">
                     <h4 class="fw-bold mb-2">Complete Payment</h4>
@@ -193,7 +179,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                         <input type="hidden" name="tx_ref" value="<?= $txRef ?>">
                         <input type="hidden" name="plan_slug" value="<?= e($planSlug) ?>">
 
-                        <!-- Option 1: Card / Instant -->
                         <div class="p-3 rounded-3 border mb-3 bg-light d-flex align-items-center gap-3">
                             <input class="form-check-input mt-0 flex-shrink-0" type="radio" name="payment_method" id="payMethodCard" value="card" checked>
                             <label class="form-check-label flex-grow-1 cursor-pointer" for="payMethodCard">
@@ -202,7 +187,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                             </label>
                         </div>
 
-                        <!-- Option 2: Bank Transfer -->
                         <div class="p-3 rounded-3 border mb-4 bg-light d-flex align-items-center gap-3">
                             <input class="form-check-input mt-0 flex-shrink-0" type="radio" name="payment_method" id="payMethodBank" value="bank_transfer">
                             <label class="form-check-label flex-grow-1 cursor-pointer" for="payMethodBank">

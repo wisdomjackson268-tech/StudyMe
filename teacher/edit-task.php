@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Teacher Edit Task Form
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_TEACHER);
@@ -14,17 +12,15 @@ $pdo  = getDBConnection();
 $uid  = $user['id'];
 $tid_task = (int)($_GET['id'] ?? 0);
 
-// Resolve teacher ID
 $stmt = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ? LIMIT 1");
 $stmt->execute([$uid]);
 $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
 $tid = $teacher ? (int)$teacher['id'] : 0;
 
-// Fetch task
 $stmt = $pdo->prepare("
-    SELECT a.*, c.teacher_id 
-    FROM assignments a 
-    JOIN courses c ON a.course_id = c.id 
+    SELECT a.*, c.teacher_id
+    FROM assignments a
+    JOIN courses c ON a.course_id = c.id
     WHERE a.id = ? LIMIT 1
 ");
 $stmt->execute([$tid_task]);
@@ -35,7 +31,6 @@ if (!$task) {
     redirect('teacher/tasks.php');
 }
 
-// Ownership check
 if ($task['teacher_id'] != $tid && current_user_role() !== ROLE_ADMIN) {
     set_flash('error', 'ACCESS DENIED: You cannot edit a task belonging to another instructor.');
     redirect('teacher/tasks.php');
@@ -53,7 +48,7 @@ if (is_post()) {
     } else {
         try {
             $stmt = $pdo->prepare("
-                UPDATE assignments 
+                UPDATE assignments
                 SET title = ?, description = ?, due_date = ?, max_score = ?, status = ?, updated_at = NOW()
                 WHERE id = ?
             ");

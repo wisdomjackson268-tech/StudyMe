@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Quiz Review Router
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 $attemptId = (int)($_GET['attempt_id'] ?? 0);

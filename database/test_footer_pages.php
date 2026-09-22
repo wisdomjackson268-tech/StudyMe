@@ -35,7 +35,6 @@ foreach ($pages as $p) {
         continue;
     }
 
-    // Run isolated process for clean headers/constants
     $cmd = '"C:\xampp\php\php.exe" -f "' . $fullPath . '" 2>&1';
     $output = shell_exec($cmd);
 

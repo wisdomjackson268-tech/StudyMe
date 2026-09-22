@@ -1,15 +1,6 @@
 <?php
-/**
- * StudyMe AI Platform - Subscription & Payment-First Middleware Functions
- */
-
 require_once dirname(__DIR__, 2) . '/config/database.php';
 
-/**
- * Retrieve all active subscription plans.
- *
- * @return array
- */
 function get_subscription_plans() {
     $pdo = getDBConnection();
     try {
@@ -21,163 +12,128 @@ function get_subscription_plans() {
     }
 }
 
-/**
- * Retrieve a subscription plan by slug.
- *
- * @param string $slug
- * @return array|null
- */
-function get_plan_by_slug($slug) {
-    $pdo = getDBConnection();
-    try {
-        $stmt = $pdo->prepare("SELECT * FROM subscription_plans WHERE slug = ? AND status = 'active' LIMIT 1");
-        $stmt->execute([$slug]);
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
-    } catch (Exception $e) {
-        error_log("Error fetching plan by slug: " . $e->getMessage());
-        return null;
+if (!function_exists('get_plan_by_slug')) {
+    function get_plan_by_slug($slug) {
+        $pdo = getDBConnection();
+        try {
+            $stmt = $pdo->prepare("SELECT * FROM subscription_plans WHERE slug = ? AND status = 'active' LIMIT 1");
+            $stmt->execute([$slug]);
+            return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        } catch (Exception $e) {
+            error_log("Error fetching plan by slug: " . $e->getMessage());
+            return null;
+        }
     }
 }
 
-/**
- * Retrieve a subscription plan by ID.
- *
- * @param int $id
- * @return array|null
- */
-function get_plan_by_id($id) {
-    $pdo = getDBConnection();
-    try {
-        $stmt = $pdo->prepare("SELECT * FROM subscription_plans WHERE id = ? LIMIT 1");
-        $stmt->execute([$id]);
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
-    } catch (Exception $e) {
-        error_log("Error fetching plan by ID: " . $e->getMessage());
-        return null;
+if (!function_exists('get_plan_by_id')) {
+    function get_plan_by_id($id) {
+        $pdo = getDBConnection();
+        try {
+            $stmt = $pdo->prepare("SELECT * FROM subscription_plans WHERE id = ? LIMIT 1");
+            $stmt->execute([$id]);
+            return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        } catch (Exception $e) {
+            error_log("Error fetching plan by ID: " . $e->getMessage());
+            return null;
+        }
     }
 }
 
-/**
- * Get active subscription for a specific user.
- *
- * @param int $userId
- * @return array|null
- */
-function get_user_subscription($userId) {
-    $pdo = getDBConnection();
-    try {
-        // Query through student record or direct user match
-        $stmt = $pdo->prepare("
-            SELECT s.*, p.name AS plan_name, p.slug AS plan_slug, p.price AS plan_price, p.billing_cycle
-            FROM subscriptions s
-            JOIN subscription_plans p ON s.plan_id = p.id
-            JOIN students st ON s.student_id = st.id
-            WHERE st.user_id = ?
-            ORDER BY s.id DESC
-            LIMIT 1
-        ");
-        $stmt->execute([$userId]);
-        $sub = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if (!$sub) {
-            // Check if user is a teacher with subscription
+if (!function_exists('get_user_subscription')) {
+    function get_user_subscription($userId) {
+        $pdo = getDBConnection();
+        try {
             $stmt = $pdo->prepare("
                 SELECT s.*, p.name AS plan_name, p.slug AS plan_slug, p.price AS plan_price, p.billing_cycle
                 FROM subscriptions s
                 JOIN subscription_plans p ON s.plan_id = p.id
-                WHERE s.student_id = ?
+                JOIN students st ON s.student_id = st.id
+                WHERE st.user_id = ?
                 ORDER BY s.id DESC
                 LIMIT 1
             ");
             $stmt->execute([$userId]);
             $sub = $stmt->fetch(PDO::FETCH_ASSOC);
-        }
+            
+            if (!$sub) {
+                $stmt = $pdo->prepare("
+                    SELECT s.*, p.name AS plan_name, p.slug AS plan_slug, p.price AS plan_price, p.billing_cycle
+                    FROM subscriptions s
+                    JOIN subscription_plans p ON s.plan_id = p.id
+                    WHERE s.student_id = ?
+                    ORDER BY s.id DESC
+                    LIMIT 1
+                ");
+                $stmt->execute([$userId]);
+                $sub = $stmt->fetch(PDO::FETCH_ASSOC);
+            }
 
-        return $sub ?: null;
-    } catch (Exception $e) {
-        error_log("Error fetching user subscription: " . $e->getMessage());
-        return null;
+            return $sub ?: null;
+        } catch (Exception $e) {
+            error_log("Error fetching user subscription: " . $e->getMessage());
+            return null;
+        }
     }
 }
 
-/**
- * Determine if a user has an active, valid subscription.
- *
- * @param int|null $userId
- * @return bool
- */
-function has_active_subscription($userId = null) {
-    // In Free Testing / Development Mode, all authenticated users have full access
-    if ((defined('FREE_TESTING_MODE') && FREE_TESTING_MODE === true) || (defined('DEVELOPMENT_MODE') && DEVELOPMENT_MODE === true)) {
-        return true;
-    }
+if (!function_exists('has_active_subscription')) {
+    function has_active_subscription($userId = null) {
+        if ((defined('FREE_TESTING_MODE') && FREE_TESTING_MODE === true) || (defined('DEVELOPMENT_MODE') && DEVELOPMENT_MODE === true)) {
+            return true;
+        }
 
-    if ($userId === null) {
-        $userId = current_user('id');
-    }
+        if ($userId === null) {
+            $userId = current_user('id');
+        }
 
-    if (!$userId) {
-        return false;
-    }
-
-    // Admins always have complete access
-    if (has_role(ROLE_ADMIN)) {
-        return true;
-    }
-
-    $sub = get_user_subscription($userId);
-    if (!$sub) {
-        return false;
-    }
-
-    if ($sub['status'] !== 'active') {
-        return false;
-    }
-
-    // Check if subscription has expired
-    if (!empty($sub['ends_at'])) {
-        $expires = strtotime($sub['ends_at']);
-        if ($expires < time()) {
+        if (!$userId) {
             return false;
         }
-    }
 
-    return true;
-}
+        if (has_role(ROLE_ADMIN)) {
+            return true;
+        }
 
-/**
- * Server-Side Middleware: Enforces active paid subscription.
- * If user is not active, redirects directly to the activation page.
- *
- * @return void
- */
-function require_active_subscription() {
-    require_login();
+        $sub = get_user_subscription($userId);
+        if (!$sub) {
+            return false;
+        }
 
-    // In Free Testing / Development Mode, bypass subscription enforcement
-    if ((defined('FREE_TESTING_MODE') && FREE_TESTING_MODE === true) || (defined('DEVELOPMENT_MODE') && DEVELOPMENT_MODE === true)) {
-        return;
-    }
+        if ($sub['status'] !== 'active') {
+            return false;
+        }
 
-    // Admins bypass subscription gate
-    if (has_role(ROLE_ADMIN)) {
-        return;
-    }
+        if (!empty($sub['ends_at'])) {
+            $expires = strtotime($sub['ends_at']);
+            if ($expires < time()) {
+                return false;
+            }
+        }
 
-    if (!has_active_subscription()) {
-        set_flash('warning', 'Please activate your subscription plan to unlock full dashboard access.');
-        redirect('payments/activate.php');
+        return true;
     }
 }
 
-/**
- * Create a new payment intent and pending subscription order.
- *
- * @param int $userId
- * @param int $planId
- * @param string $paymentMethod
- * @return array
- */
+if (!function_exists('require_active_subscription')) {
+    function require_active_subscription() {
+        require_login();
+
+        if ((defined('FREE_TESTING_MODE') && FREE_TESTING_MODE === true) || (defined('DEVELOPMENT_MODE') && DEVELOPMENT_MODE === true)) {
+            return;
+        }
+
+        if (has_role(ROLE_ADMIN)) {
+            return;
+        }
+
+        if (!has_active_subscription()) {
+            set_flash('warning', 'Please activate your subscription plan to unlock full dashboard access.');
+            redirect('payments/activate.php');
+        }
+    }
+}
+
 function create_subscription_order($userId, $planId, $paymentMethod = 'card') {
     $pdo = getDBConnection();
     $plan = get_plan_by_id($planId);
@@ -186,16 +142,13 @@ function create_subscription_order($userId, $planId, $paymentMethod = 'card') {
         throw new Exception("Invalid subscription plan selected.");
     }
 
-    // Generate unique reference
     $reference = 'SM-' . strtoupper(bin2hex(random_bytes(6))) . '-' . time();
 
-    // Ensure student record exists
     $stmt = $pdo->prepare("SELECT id FROM students WHERE user_id = ? LIMIT 1");
     $stmt->execute([$userId]);
     $student = $stmt->fetch(PDO::FETCH_ASSOC);
     $studentId = $student ? $student['id'] : $userId;
 
-    // Create Subscription record (status: pending)
     $stmt = $pdo->prepare("
         INSERT INTO subscriptions (student_id, plan_id, status, created_at)
         VALUES (?, ?, 'pending', NOW())
@@ -203,7 +156,6 @@ function create_subscription_order($userId, $planId, $paymentMethod = 'card') {
     $stmt->execute([$studentId, $planId]);
     $subscriptionId = $pdo->lastInsertId();
 
-    // Create Payment record (status: pending)
     $stmt = $pdo->prepare("
         INSERT INTO payments (user_id, subscription_id, amount, currency, payment_method, transaction_reference, status, created_at)
         VALUES (?, ?, ?, 'NGN', ?, ?, 'pending', NOW())
@@ -220,12 +172,6 @@ function create_subscription_order($userId, $planId, $paymentMethod = 'card') {
     ];
 }
 
-/**
- * Complete and activate a subscription upon verified payment.
- *
- * @param string $transactionRef
- * @return bool
- */
 function complete_subscription_activation($transactionRef) {
     $pdo = getDBConnection();
     try {
@@ -240,7 +186,6 @@ function complete_subscription_activation($transactionRef) {
             return true;
         }
 
-        // 1. Mark payment as successful
         $stmt = $pdo->prepare("
             UPDATE payments 
             SET status = 'successful', paid_at = NOW() 
@@ -248,7 +193,6 @@ function complete_subscription_activation($transactionRef) {
         ");
         $stmt->execute([$payment['id']]);
 
-        // 2. Activate Subscription with 30-day duration
         if (!empty($payment['subscription_id'])) {
             $stmt = $pdo->prepare("
                 UPDATE subscriptions 
@@ -258,7 +202,6 @@ function complete_subscription_activation($transactionRef) {
             $stmt->execute([$payment['subscription_id']]);
         }
 
-        // 3. Mark user status as active
         $stmt = $pdo->prepare("UPDATE users SET status = 'active' WHERE id = ?");
         $stmt->execute([$payment['user_id']]);
 

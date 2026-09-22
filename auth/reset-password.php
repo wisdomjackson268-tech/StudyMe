@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Reset Password Form
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 $token  = trim($_GET['token'] ?? '');

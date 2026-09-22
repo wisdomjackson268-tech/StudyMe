@@ -1,14 +1,11 @@
 <?php
-/**
- * StudyMe AI Platform — Admin Reports & Platform Analytics
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_ADMIN);
 
 $pdo = getDBConnection();
 
-// Comprehensive Platform Statistics
 $totalUsers       = (int)$pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
 $totalStudents    = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE role = 'student'")->fetchColumn();
 $totalTeachers    = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE role = 'teacher'")->fetchColumn();
@@ -31,7 +28,6 @@ $totalAnnouncements=(int)$pdo->query("SELECT COUNT(*) FROM announcements")->fetc
 $totalRevenue     = (float)$pdo->query("SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status = 'successful'")->fetchColumn();
 $totalTransactions= (int)$pdo->query("SELECT COUNT(*) FROM payments WHERE status = 'successful'")->fetchColumn();
 
-// Category distribution
 $categoryStats = $pdo->query("
     SELECT cat.name AS category_name, COUNT(c.id) AS course_count,
            (SELECT COUNT(e.id) FROM enrollments e JOIN courses c2 ON e.course_id = c2.id WHERE c2.category_id = cat.id) AS student_count
@@ -51,7 +47,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
 </div>
 
-<!-- Primary Financial & User Metrics -->
 <div class="row g-4 mb-4">
     <div class="col-sm-6 col-xl-3">
         <div class="stat-card">
@@ -91,9 +86,8 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
 </div>
 
-<!-- Detailed Metrics Grids -->
 <div class="row g-4 mb-4">
-    <!-- User Breakdown -->
+
     <div class="col-lg-6">
         <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
             <h5 class="fw-bold mb-3"><i class="bi bi-people text-primary me-2"></i>User Demographics & Status</h5>
@@ -122,7 +116,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     </div>
 
-    <!-- Course Content Stats -->
     <div class="col-lg-6">
         <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
             <h5 class="fw-bold mb-3"><i class="bi bi-journal-bookmark text-success me-2"></i>Curriculum & Materials Breakdown</h5>
@@ -156,7 +149,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
 </div>
 
-<!-- Category Performance Table -->
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
     <div class="card-header bg-transparent border-0 p-4 pb-0">
         <h5 class="fw-bold mb-0"><i class="bi bi-tag-fill text-warning me-2"></i>Category Performance</h5>

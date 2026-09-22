@@ -1,11 +1,4 @@
 <?php
-/**
- * StudyMe AI Platform — Notifications Helper Functions
- */
-
-/**
- * Create a notification for a user.
- */
 function create_notification($userId, $title, $message, $type = 'general', $link = null) {
     $pdo = getDBConnection();
     try {
@@ -17,9 +10,6 @@ function create_notification($userId, $title, $message, $type = 'general', $link
     }
 }
 
-/**
- * Get notifications for a user.
- */
 function get_user_notifications($userId, $limit = 50, $offset = 0) {
     $pdo = getDBConnection();
     try {
@@ -31,9 +21,6 @@ function get_user_notifications($userId, $limit = 50, $offset = 0) {
     }
 }
 
-/**
- * Count unread notifications for a user.
- */
 function count_unread_notifications($userId) {
     $pdo = getDBConnection();
     try {
@@ -45,9 +32,6 @@ function count_unread_notifications($userId) {
     }
 }
 
-/**
- * Mark a notification as read.
- */
 function mark_notification_read($notificationId, $userId) {
     $pdo = getDBConnection();
     try {
@@ -58,9 +42,6 @@ function mark_notification_read($notificationId, $userId) {
     }
 }
 
-/**
- * Mark all notifications as read for a user.
- */
 function mark_all_notifications_read($userId) {
     $pdo = getDBConnection();
     try {
@@ -71,9 +52,6 @@ function mark_all_notifications_read($userId) {
     }
 }
 
-/**
- * Delete a notification.
- */
 function delete_notification($notificationId, $userId) {
     $pdo = getDBConnection();
     try {
@@ -83,3 +61,25 @@ function delete_notification($notificationId, $userId) {
         return false;
     }
 }
+
+function delete_all_read_notifications($userId) {
+    $pdo = getDBConnection();
+    try {
+        $stmt = $pdo->prepare("DELETE FROM notifications WHERE user_id = ? AND is_read = 1");
+        return $stmt->execute([$userId]);
+    } catch (Exception $e) {
+        return false;
+    }
+}
+
+function get_notification_by_id($notificationId, $userId) {
+    $pdo = getDBConnection();
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM notifications WHERE id = ? AND user_id = ? LIMIT 1");
+        $stmt->execute([$notificationId, $userId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        return null;
+    }
+}
+

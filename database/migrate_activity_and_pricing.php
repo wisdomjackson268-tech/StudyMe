@@ -1,13 +1,11 @@
 <?php
-/**
- * StudyMe — Migration for Rich Activity Logs & Official Pricing Settings
- */
+
 require_once dirname(__DIR__) . '/config/database.php';
 
 $pdo = getDBConnection();
 
 try {
-    // 1. Create or update activity_logs table with detailed fields
+
     $sqlActivity = "
     CREATE TABLE IF NOT EXISTS activity_logs (
         id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -29,7 +27,6 @@ try {
     $pdo->exec($sqlActivity);
     echo "✓ activity_logs table initialized.\n";
 
-    // 2. Ensure settings table exists and seed default official prices
     $sqlSettings = "
     CREATE TABLE IF NOT EXISTS settings (
         id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -43,7 +40,6 @@ try {
     $pdo->exec($sqlSettings);
     echo "✓ settings table initialized.\n";
 
-    // Default prices
     $defaultPrices = [
         'price_tech'       => '10000.00',
         'price_university' => '4000.00',

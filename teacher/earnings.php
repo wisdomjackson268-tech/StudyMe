@@ -1,9 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Teacher Earnings & Referral Wallet Dashboard
- * Comprehensive financial dashboard for educators: referral link, wallet balances,
- * withdrawal requests, and transaction ledger.
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/referrals.php';
 
@@ -12,14 +8,11 @@ $user   = current_user();
 $userId = (int)$user['id'];
 $pdo    = getDBConnection();
 
-// Fetch or generate unique referral code
 $refCode = get_user_referral_code($userId);
 $refLink = get_base_url() . '/auth/register.php?ref=' . $refCode;
 
-// Fetch Wallet Metrics
 $wallet = get_user_wallet($userId);
 
-// Handle Withdrawal Form Submission
 $withdrawalMessage = '';
 $withdrawalSuccess = false;
 if (is_post() && isset($_POST['action']) && $_POST['action'] === 'withdraw') {
@@ -40,9 +33,8 @@ if (is_post() && isset($_POST['action']) && $_POST['action'] === 'withdraw') {
     }
 }
 
-// Fetch Referral Activity History
 $stmtRefs = $pdo->prepare("
-    SELECT r.*, 
+    SELECT r.*,
            CONCAT(u.first_name, ' ', u.last_name) AS referred_name,
            u.email AS referred_email,
            c.title AS course_title
@@ -55,12 +47,10 @@ $stmtRefs = $pdo->prepare("
 $stmtRefs->execute([$userId]);
 $referralsList = $stmtRefs->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch Withdrawal History
 $stmtW = $pdo->prepare("SELECT * FROM withdrawals WHERE user_id = ? ORDER BY created_at DESC");
 $stmtW->execute([$userId]);
 $withdrawalsList = $stmtW->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch Wallet Transactions
 $stmtTx = $pdo->prepare("SELECT * FROM wallet_transactions WHERE user_id = ? ORDER BY created_at DESC");
 $stmtTx->execute([$userId]);
 $transactionsList = $stmtTx->fetchAll(PDO::FETCH_ASSOC);
@@ -83,7 +73,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
 </div>
 
-<!-- Referral Link Card -->
 <div class="card border-0 shadow-sm rounded-4 p-4 mb-4" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); color:#fff;">
     <div class="row align-items-center g-3">
         <div class="col-lg-8">
@@ -105,7 +94,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
 </div>
 
-<!-- Wallet Stats Grid -->
 <div class="row g-4 mb-4">
     <div class="col-sm-6 col-xl-3">
         <div class="stat-card">
@@ -145,7 +133,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
 </div>
 
-<!-- Transactions & Withdrawals Tabs -->
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
     <div class="card-header bg-white border-bottom p-3">
         <ul class="nav nav-pills card-header-pills gap-2" id="walletTabs" role="tablist">
@@ -168,8 +155,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
     <div class="card-body p-0">
         <div class="tab-content" id="walletTabsContent">
-            
-            <!-- Tab 1: Transaction Ledger -->
+
             <div class="tab-pane fade show active p-4" id="tab-transactions" role="tabpanel">
                 <?php if (!empty($transactionsList)): ?>
                     <div class="table-responsive">
@@ -212,7 +198,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                 <?php endif; ?>
             </div>
 
-            <!-- Tab 2: Payout History -->
             <div class="tab-pane fade p-4" id="tab-withdrawals" role="tabpanel">
                 <?php if (!empty($withdrawalsList)): ?>
                     <div class="table-responsive">
@@ -255,7 +240,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                 <?php endif; ?>
             </div>
 
-            <!-- Tab 3: Referred Students -->
             <div class="tab-pane fade p-4" id="tab-referrals" role="tabpanel">
                 <?php if (!empty($referralsList)): ?>
                     <div class="table-responsive">
@@ -300,7 +284,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
 </div>
 
-<!-- Withdrawal Request Modal -->
 <div class="modal fade" id="withdrawalModal" tabindex="-1" aria-labelledby="withdrawalModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow-lg">

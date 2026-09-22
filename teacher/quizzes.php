@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Teacher Quiz Manager
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_TEACHER);
@@ -14,7 +12,6 @@ $pdo  = getDBConnection();
 $uid  = $user['id'];
 $courseFilter = (int)($_GET['course_id'] ?? 0);
 
-// Get teacher ID
 $stmt = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ? LIMIT 1");
 $stmt->execute([$uid]);
 $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -72,7 +69,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                     <h5 class="fw-bold mb-2 mt-1"><?= e($q['title']) ?></h5>
                     <p class="text-muted small mb-3 flex-grow-1"><?= e(substr($q['description'] ?? '', 0, 90)) ?>...</p>
 
-                    <!-- Stats Bar -->
                     <div class="row g-2 text-center p-3 bg-light rounded-3 mb-3 border border-subtle small">
                         <div class="col-4">
                             <div class="fw-bold text-main"><?= (int)$q['question_count'] ?></div>
@@ -88,7 +84,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                         </div>
                     </div>
 
-                    <!-- Actions -->
                     <div class="d-flex flex-wrap gap-2 pt-2 border-top mt-auto">
                         <a href="<?= url('teacher/questions.php?quiz_id=' . $q['id']) ?>" class="btn btn-sm btn-primary rounded-pill flex-grow-1 fw-bold">
                             <i class="bi bi-list-check me-1"></i> Questions (<?= (int)$q['question_count'] ?>)

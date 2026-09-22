@@ -1,15 +1,4 @@
 <?php
-/**
- * StudyMe AI Platform — Official Referral, Wallet & Teacher System Test Suite
- * 
- * Verifies the exact required rules:
- * 1. University Teacher -> University Student = ₦1,500 Teacher Bonus
- * 2. University Student -> University Student = ₦1,000 Bonus
- * 3. Secondary Student -> Secondary Student = ₦1,000 Bonus
- * 4. Invalid combinations (Secondary Teacher -> Anyone, Sec -> Uni, Uni -> Sec, Self-referrals) = ₦0 / Rejected
- * 5. Wallet transaction ledger auditing
- * 6. Safe withdrawal processing
- */
 
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/payments.php';
@@ -23,7 +12,6 @@ echo "========================================================\n\n";
 $passCount = 0;
 $totalTests = 6;
 
-// Helper to create test user
 function create_test_user($firstName, $lastName, $email, $role = 'student', $categorySlug = 'university') {
     $pdo = getDBConnection();
     $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
@@ -52,12 +40,10 @@ function create_test_user($firstName, $lastName, $email, $role = 'student', $cat
     return $uid;
 }
 
-// Ensure categories
 $uniCatId = (int)$pdo->query("SELECT id FROM categories WHERE slug = 'university' LIMIT 1")->fetchColumn() ?: 8;
 $secCatId = (int)$pdo->query("SELECT id FROM categories WHERE slug = 'secondary-waec-neco' LIMIT 1")->fetchColumn() ?: 7;
 $techCatId = (int)$pdo->query("SELECT id FROM categories WHERE slug = 'technology' LIMIT 1")->fetchColumn() ?: 6;
 
-// Get test courses
 $uniCourseId = (int)$pdo->query("SELECT id FROM courses WHERE category_id = $uniCatId AND status = 'published' LIMIT 1")->fetchColumn();
 $secCourseId = (int)$pdo->query("SELECT id FROM courses WHERE category_id = $secCatId AND status = 'published' LIMIT 1")->fetchColumn();
 $techCourseId = (int)$pdo->query("SELECT id FROM courses WHERE category_id = $techCatId AND status = 'published' LIMIT 1")->fetchColumn();
@@ -73,7 +59,6 @@ function enroll_student($userId, $courseId) {
         ->execute([$stId, $courseId]);
 }
 
-// ── TEST 1: UNIVERSITY TEACHER -> UNIVERSITY STUDENT (₦1,500 Bonus) ─────────
 echo "--------------------------------------------------------\n";
 echo "TEST 1: University Teacher -> University Student (Bonus: ₦1,500)\n";
 $uniTeacherId = create_test_user('DrJohn', 'UniProf', 'uni.teacher.' . time() . '@studyme.test', 'teacher', 'university');
@@ -95,7 +80,6 @@ if ($res1 && (float)$w1['available_balance'] == 1500.00) {
     echo "❌ FAIL: Expected ₦1,500, got ₦" . $w1['available_balance'] . "\n";
 }
 
-// ── TEST 2: UNIVERSITY STUDENT -> UNIVERSITY STUDENT (₦1,000 Bonus) ─────────
 echo "--------------------------------------------------------\n";
 echo "TEST 2: University Student -> University Student (Bonus: ₦1,000)\n";
 $uniStudentReferrerId = create_test_user('UniStudent', 'Referrer', 'uni.ref.' . time() . '@studyme.test', 'student', 'university');
@@ -118,7 +102,6 @@ if ($res2 && (float)$w2['available_balance'] == 1000.00) {
     echo "❌ FAIL: Expected ₦1,000, got ₦" . $w2['available_balance'] . "\n";
 }
 
-// ── TEST 3: SECONDARY STUDENT -> SECONDARY STUDENT (₦1,000 Bonus) ───────────
 echo "--------------------------------------------------------\n";
 echo "TEST 3: Secondary Student -> Secondary Student (Bonus: ₦1,000)\n";
 $secStudentReferrerId = create_test_user('SecStudent', 'Referrer', 'sec.ref.' . time() . '@studyme.test', 'student', 'secondary');
@@ -141,7 +124,6 @@ if ($res3 && (float)$w3['available_balance'] == 1000.00) {
     echo "❌ FAIL: Expected ₦1,000, got ₦" . $w3['available_balance'] . "\n";
 }
 
-// ── TEST 4: INVALID CROSS-CATEGORY REFERRAL (Sec -> Uni) -> ₦0 ──────────────
 echo "--------------------------------------------------------\n";
 echo "TEST 4: Invalid Referral (Secondary Student -> University Student -> ₦0 / Void)\n";
 $secCrossReferrerId = create_test_user('SecCross', 'Referrer', 'sec.cross.' . time() . '@studyme.test', 'student', 'secondary');
@@ -152,7 +134,6 @@ $_SESSION['pending_ref_code'] = $secCrossRefCode;
 $crossUniStudentId = create_test_user('UniCross', 'Referred', 'unicross.' . rand(100,999) . '@studyme.test', 'student', 'university');
 record_pending_referral($crossUniStudentId);
 
-// Referred student buys University course instead of Secondary
 $txRef4 = 'TX_CROSS_' . time();
 $payId4 = create_payment_record($crossUniStudentId, 5000.00, 'card', $txRef4, $uniCourseId);
 $res4 = process_verified_payment_referral($payId4, $crossUniStudentId, $uniCourseId, 5000.00);
@@ -165,7 +146,6 @@ if ($res4 === false && (float)$w4['available_balance'] == 0.00) {
     echo "❌ FAIL: Cross-category referral should have been rejected.\n";
 }
 
-// ── TEST 5: WALLET TRANSACTION AUDIT LEDGER ────────────────────────────────
 echo "--------------------------------------------------------\n";
 echo "TEST 5: Wallet Transaction Audit Ledger Verification\n";
 $txCount = (int)$pdo->query("SELECT COUNT(*) FROM wallet_transactions WHERE type = 'referral_bonus'")->fetchColumn();
@@ -176,7 +156,6 @@ if ($txCount >= 3) {
     echo "❌ FAIL: Expected at least 3 transactions in wallet_transactions, found {$txCount}.\n";
 }
 
-// ── TEST 6: WITHDRAWAL REQUEST PROCESSING ──────────────────────────────────
 echo "--------------------------------------------------------\n";
 echo "TEST 6: Withdrawal Request Processing\n";
 $wReq = request_withdrawal($uniTeacherId, 1000.00, 'GTBank', '0123456789', 'Dr. John UniProf');

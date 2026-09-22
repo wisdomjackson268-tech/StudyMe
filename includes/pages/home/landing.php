@@ -1,6 +1,4 @@
-<!-- Unified Landing Page -->
 <main class="landing-page bg-body">
-    <!-- Hero Section -->
     <section class="hero-section text-center py-5" style="background: var(--gradient-primary); color: var(--text-inverse);">
         <div class="container">
             <h1 class="display-4 fw-bold mb-3">Learn Smarter. Build Your Future.</h1>
@@ -9,7 +7,6 @@
         </div>
     </section>
 
-    <!-- Trusted By Section -->
     <section class="trusted-section py-5">
         <div class="container">
             <h2 class="h4 text-center fw-semibold mb-4">Trusted By Schools &amp; Companies</h2>
@@ -23,7 +20,6 @@
         </div>
     </section>
 
-    <!-- Features Section -->
     <section class="features-section py-5 bg-light-subtle">
         <div class="container">
             <div class="row g-4 text-center">
@@ -52,7 +48,6 @@
         </div>
     </section>
 
-    <!-- Call to Action Section -->
     <section class="cta-section py-5 text-center" style="background: var(--gradient-gold); color: var(--text-inverse);">
         <div class="container">
             <h2 class="display-5 fw-bold mb-3">Ready to Transform Your Learning?</h2>

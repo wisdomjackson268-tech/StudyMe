@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Notification Center Router
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 require_login();

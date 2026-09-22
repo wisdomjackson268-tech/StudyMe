@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Teacher Create Lesson Page
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_TEACHER);
@@ -14,13 +12,11 @@ $pdo  = getDBConnection();
 $uid  = $user['id'];
 $preSelectedCourse = (int)($_GET['course_id'] ?? 0);
 
-// Get teacher ID
 $stmt = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ? LIMIT 1");
 $stmt->execute([$uid]);
 $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
 $tid = $teacher ? (int)$teacher['id'] : 0;
 
-// Fetch teacher's courses
 $stmt = $pdo->prepare("SELECT id, title FROM courses WHERE teacher_id = ? OR id = (SELECT assigned_course_id FROM teachers WHERE id = ?) ORDER BY title ASC");
 $stmt->execute([$tid, $tid]);
 $myCourses = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -37,11 +33,10 @@ if (is_post()) {
     $description   = trim($_POST['description'] ?? '');
     $content       = trim($_POST['content'] ?? '');
     $videoUrl      = trim($_POST['video_url'] ?? '');
-    $videoDuration = (int)($_POST['video_duration'] ?? 600); // seconds
+    $videoDuration = (int)($_POST['video_duration'] ?? 600);
     $isFree        = isset($_POST['is_free']) ? 1 : 0;
     $status        = $_POST['status'] ?? 'published';
 
-    // Verify course ownership
     $stmtCheck = $pdo->prepare("SELECT id FROM courses WHERE id = ? AND teacher_id = ? LIMIT 1");
     $stmtCheck->execute([$courseId, $tid]);
 
@@ -53,7 +48,6 @@ if (is_post()) {
         try {
             $pdo->beginTransaction();
 
-            // Find or create course section
             $stmtSec = $pdo->prepare("SELECT id FROM course_sections WHERE course_id = ? AND title = ? LIMIT 1");
             $stmtSec->execute([$courseId, $sectionTitle]);
             $sec = $stmtSec->fetch(PDO::FETCH_ASSOC);

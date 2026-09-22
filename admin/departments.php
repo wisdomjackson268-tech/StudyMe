@@ -1,14 +1,12 @@
 <?php
-/**
- * StudyMe AI Platform — Admin Academic Departments Management
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_ADMIN);
 
 $pdo = getDBConnection();
 $departments = $pdo->query("
-    SELECT d.*, 
+    SELECT d.*,
            (SELECT COUNT(*) FROM subjects s WHERE s.department_id = d.id) AS subject_count
     FROM departments d
     ORDER BY d.name ASC

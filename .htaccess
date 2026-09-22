@@ -3,7 +3,8 @@
     RewriteEngine On
     RewriteBase /StudyMe/
 
-    # Security: Protect sensitive directories and files
+    # Allow database installer while protecting sensitive directory files
+    RewriteRule ^database/init_db\.php$ - [L]
     RewriteRule ^(config|storage|database|includes)/ - [F,L,NC]
     RewriteRule (^|/)\.(env|git) - [F,L,NC]
     RewriteRule \.(sql|log|ini|env|env\..*|bak)$ - [F,L,NC]

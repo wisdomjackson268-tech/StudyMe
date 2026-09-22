@@ -1,14 +1,12 @@
 <?php
-/**
- * StudyMe AI Platform — Community Hub & Guidelines
- */
+
 require_once __DIR__ . '/config/main.php';
 include BASE_PATH . '/includes/layouts/header.php';
 ?>
 
 <div class="py-5 bg-light-subtle" style="min-height: calc(100vh - 120px);">
     <div class="container py-4">
-        <!-- Header -->
+
         <div class="text-center max-w-700 mx-auto mb-5 animate-fade-in">
             <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex mb-3">
                 <i class="bi bi-people-fill fs-1"></i>
@@ -17,9 +15,8 @@ include BASE_PATH . '/includes/layouts/header.php';
             <p class="lead text-muted">A collaborative space for ambitious students, passionate teachers, and AI learning enthusiasts.</p>
         </div>
 
-        <!-- Community Channels Grid -->
         <div class="row g-4 mb-5">
-            <!-- Student Discussion Groups -->
+
             <div class="col-md-4">
                 <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-lift">
                     <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-3 d-inline-flex mb-3 fs-3">
@@ -31,7 +28,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                 </div>
             </div>
 
-            <!-- Instructor Circle -->
             <div class="col-md-4">
                 <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-lift">
                     <div class="p-3 bg-success bg-opacity-10 text-success rounded-3 d-inline-flex mb-3 fs-3">
@@ -43,7 +39,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                 </div>
             </div>
 
-            <!-- AI Research & Updates -->
             <div class="col-md-4">
                 <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-lift">
                     <div class="p-3 bg-warning bg-opacity-10 text-warning rounded-3 d-inline-flex mb-3 fs-3">
@@ -56,7 +51,6 @@ include BASE_PATH . '/includes/layouts/header.php';
             </div>
         </div>
 
-        <!-- Community Guidelines -->
         <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-5">
             <h3 class="fw-bold mb-4"><i class="bi bi-shield-check text-primary me-2"></i> Community Guidelines</h3>
             <div class="row g-4 text-secondary">
@@ -99,7 +93,6 @@ include BASE_PATH . '/includes/layouts/header.php';
             </div>
         </div>
 
-        <!-- Join Discord / Forum CTA -->
         <div class="card border-0 bg-primary text-white rounded-4 p-4 p-md-5 text-center shadow-lg">
             <h2 class="fw-bold mb-3">Join the Official StudyMe Community</h2>
             <p class="lead text-white-50 max-w-700 mx-auto mb-4">

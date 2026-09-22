@@ -1,15 +1,16 @@
 <?php
-/**
- * StudyMe AI Platform — Course Card Component
- * Expects $course array in scope.
- */
+
 if (!isset($course)) return;
 
 $coursePrice = function_exists('get_course_official_price') ? get_course_official_price($course['id']) : (float)($course['price'] ?? 10000.00);
 $catSlug = strtolower($course['category_slug'] ?? '');
 $isSecondary = ($catSlug === 'secondary-waec-neco' || $catSlug === 'secondary');
 $isFreeTesting = defined('FREE_TESTING_MODE') && FREE_TESTING_MODE;
-$cardThumb = function_exists('get_course_thumbnail_url') ? get_course_thumbnail_url($course['thumbnail'] ?? '', $catSlug ?: 'technology') : ($course['thumbnail'] ?? 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=80');
+$cardThumb = function_exists('get_course_thumbnail_url') 
+    ? get_course_thumbnail_url($course['thumbnail'] ?? '', $catSlug ?: 'technology', $course['slug'] ?? ($course['title'] ?? '')) 
+    : ($course['thumbnail'] ?? 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=80');
+
+$hasTeacher = $isSecondary || (!empty($course['teacher_id']) && !empty($course['teacher_name']));
 ?>
 <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden d-flex flex-column hover-lift">
     <div class="position-relative">
@@ -24,9 +25,13 @@ $cardThumb = function_exists('get_course_thumbnail_url') ? get_course_thumbnail_
                 <i class="bi bi-star-fill me-1"></i> Featured
             </span>
         <?php endif; ?>
-        <?php if ($isFreeTesting): ?>
-            <span class="badge bg-success position-absolute top-0 end-0 m-3 rounded-pill fw-bold px-3 py-1 shadow-sm small">
-                Free Testing Mode
+        <?php if ($hasTeacher): ?>
+            <span class="badge bg-success text-white position-absolute top-0 end-0 m-3 rounded-pill fw-bold px-2 py-1 shadow-sm small">
+                <i class="bi bi-patch-check-fill me-1"></i> Staffed
+            </span>
+        <?php else: ?>
+            <span class="badge bg-warning text-dark position-absolute top-0 end-0 m-3 rounded-pill fw-bold px-2 py-1 shadow-sm small">
+                <i class="bi bi-clock me-1"></i> Awaiting Staff
             </span>
         <?php endif; ?>
     </div>
@@ -56,7 +61,7 @@ $cardThumb = function_exists('get_course_thumbnail_url') ? get_course_thumbnail_
                         <i class="bi bi-person-badge-fill me-1"></i><?= e($course['teacher_name']) ?>
                     </a>
                 <?php else: ?>
-                    <span class="text-muted fst-italic small text-nowrap"><i class="bi bi-person-x me-1"></i>Currently unavailable</span>
+                    <span class="text-warning fw-semibold fst-italic small text-nowrap"><i class="bi bi-person-x me-1"></i>Awaiting Assignment</span>
                 <?php endif; ?>
             </div>
             <div class="text-end ps-2">
@@ -74,8 +79,14 @@ $cardThumb = function_exists('get_course_thumbnail_url') ? get_course_thumbnail_
         </div>
     </div>
     <div class="card-footer bg-transparent border-0 px-4 pb-4">
-        <a href="<?= url('courses/details.php?slug=' . urlencode($course['slug'])) ?>" class="btn btn-outline-primary rounded-pill w-100 py-2 fw-bold" data-feedback="click">
-            Explore Course &amp; Enroll
-        </a>
+        <?php if ($hasTeacher): ?>
+            <a href="<?= url('courses/details.php?slug=' . urlencode($course['slug'])) ?>" class="btn btn-primary rounded-pill w-100 py-2 fw-bold" data-feedback="click">
+                Explore Course &amp; Enroll &rarr;
+            </a>
+        <?php else: ?>
+            <a href="<?= url('courses/details.php?slug=' . urlencode($course['slug'])) ?>" class="btn btn-outline-secondary rounded-pill w-100 py-2 fw-semibold" data-feedback="click">
+                <i class="bi bi-info-circle me-1"></i> View Syllabus (Restricted)
+            </a>
+        <?php endif; ?>
     </div>
 </div>

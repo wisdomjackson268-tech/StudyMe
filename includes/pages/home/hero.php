@@ -1,7 +1,6 @@
 <section class="hero-section" id="home">
     <div class="container">
         <div class="row align-items-center g-5">
-            <!-- Left Column: Copywriting & CTAs -->
             <div class="col-lg-6">
                 <div class="hero-badge">
                     <span>🚀</span> AI Powered Learning Platform
@@ -48,7 +47,6 @@
                 </div>
             </div>
 
-            <!-- Right Column: Visual & Floating UI Cards -->
             <div class="col-lg-6">
                 <div class="hero-visual-wrapper">
                     <?php 
@@ -58,7 +56,6 @@
                     ?>
                         <img src="<?= function_exists('asset') ? asset('images/ChatGPT Image Aug 7, 2026, 04_09_46 PM.png') : $heroImagePath ?>" class="img-fluid hero-main-img" alt="StudyMe Student Learning">
                     <?php else: ?>
-                        <!-- SVG Illustration Fallback -->
                         <div class="p-5 text-center bg-white bg-opacity-10 rounded-4 border border-white border-opacity-25 w-100">
                             <i class="bi bi-mortarboard-fill display-1 text-warning mb-3"></i>
                             <h3>StudyMe Learning Hub</h3>
@@ -66,7 +63,6 @@
                         </div>
                     <?php endif; ?>
 
-                    <!-- Floating Glass UI Cards -->
                     <div class="floating-card card-rating">
                         <i class="bi bi-star-fill"></i>
                         <div>

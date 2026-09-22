@@ -1,14 +1,11 @@
 <?php
-/**
- * StudyMe AI Platform — Admin Categories Manager
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_ADMIN);
 
 $pdo = getDBConnection();
 
-// Fetch categories
 $categories = $pdo->query("
     SELECT cat.*,
            (SELECT COUNT(*) FROM courses c WHERE c.category_id = cat.id) AS course_count

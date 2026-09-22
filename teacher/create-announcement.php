@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Teacher Create Announcement Page
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/announcements.php';
 
@@ -10,20 +8,18 @@ $user   = current_user();
 $userId = (int)$user['id'];
 $pdo    = getDBConnection();
 
-// Fetch teacher's assigned courses
 $stmtTeacher = $pdo->prepare("SELECT id, assigned_course_id FROM teachers WHERE user_id = ? LIMIT 1");
 $stmtTeacher->execute([$userId]);
 $teacher = $stmtTeacher->fetch(PDO::FETCH_ASSOC);
 $teacherId = $teacher ? (int)$teacher['id'] : 0;
 $assignedCourseId = (int)($teacher['assigned_course_id'] ?? 0);
 
-// Get all courses owned or assigned to this teacher
 $stmtCourses = $pdo->prepare("SELECT id, title FROM courses WHERE teacher_id = ? OR id = ? ORDER BY title ASC");
 $stmtCourses->execute([$teacherId, $assignedCourseId]);
 $courses = $stmtCourses->fetchAll(PDO::FETCH_ASSOC);
 
 if (empty($courses)) {
-    // If no course row exists yet, check if subject exists
+
     if ($assignedCourseId > 0) {
         $stmtSubj = $pdo->prepare("SELECT name AS title FROM subjects WHERE id = ? LIMIT 1");
         $stmtSubj->execute([$assignedCourseId]);
@@ -98,7 +94,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
             </div>
 
             <div class="card border-0 shadow-sm rounded-4 bg-white p-4 p-md-5">
-                
+
                 <?php if (!empty($errors)): ?>
                     <div class="alert alert-danger rounded-3 mb-4">
                         <ul class="mb-0 small ps-3">
@@ -110,14 +106,12 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                 <?php endif; ?>
 
                 <form action="<?= url('teacher/create-announcement.php') ?>" method="POST" enctype="multipart/form-data">
-                    
-                    <!-- Title -->
+
                     <div class="mb-3">
                         <label for="title" class="form-label fw-bold small">Announcement Title <span class="text-danger">*</span></label>
                         <input type="text" name="title" id="title" class="form-control form-control-lg rounded-3" placeholder="e.g. New Web Development Project Uploaded" value="<?= e($title) ?>" required>
                     </div>
 
-                    <!-- Target Course (Locked strictly to teacher's assigned courses) -->
                     <div class="mb-3">
                         <label for="course_id" class="form-label fw-bold small">Target Course (Enrolled Students) <span class="text-danger">*</span></label>
                         <select name="course_id" id="course_id" class="form-select py-2 rounded-3" required>
@@ -140,14 +134,13 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                         </div>
                     </div>
 
-                    <!-- Message Body -->
                     <div class="mb-3">
                         <label for="message" class="form-label fw-bold small">Message Content <span class="text-danger">*</span></label>
                         <textarea name="message" id="message" rows="6" class="form-control rounded-3" placeholder="Type your detailed message, instructions, or updates for students..." required><?= e($message) ?></textarea>
                     </div>
 
                     <div class="row g-3 mb-4">
-                        <!-- Priority -->
+
                         <div class="col-md-6">
                             <label for="priority" class="form-label fw-bold small">Priority Level</label>
                             <select name="priority" id="priority" class="form-select py-2 rounded-3">
@@ -157,7 +150,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                             </select>
                         </div>
 
-                        <!-- Status -->
                         <div class="col-md-6">
                             <label for="status" class="form-label fw-bold small">Publication Status</label>
                             <select name="status" id="status" class="form-select py-2 rounded-3">
@@ -167,7 +159,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                         </div>
                     </div>
 
-                    <!-- Attachment Upload -->
                     <div class="mb-4">
                         <label for="attachment" class="form-label fw-bold small">Attach Resource / File (Optional)</label>
                         <input type="file" name="attachment" id="attachment" class="form-control rounded-3" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp,.txt,.zip">

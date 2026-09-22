@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Student Quiz Results Review
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 secure_page(ROLE_STUDENT);
 
@@ -10,7 +8,6 @@ $pdo = getDBConnection();
 $user = current_user();
 $userId = $user['id'];
 
-// Resolve student ID
 $stmt = $pdo->prepare("SELECT id FROM students WHERE user_id = ? LIMIT 1");
 $stmt->execute([$userId]);
 $student = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -60,7 +57,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 
 <div class="row justify-content-center">
     <div class="col-lg-8">
-        <!-- Results Scorecard Card -->
+
         <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-5 text-center">
             <div class="p-4 p-md-5 bg-<?= $attempt['passed'] ? 'success' : 'danger' ?> text-white">
                 <div class="p-3 bg-white bg-opacity-20 rounded-circle d-inline-flex mb-3 fs-1">
@@ -86,7 +83,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
             </div>
         </div>
 
-        <!-- Answers Review -->
         <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-5">
             <h4 class="fw-bold mb-4"><i class="bi bi-search text-primary me-2"></i> Detailed Answers Breakdown</h4>
 

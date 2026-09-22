@@ -1,9 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Student Interactive Lesson Viewer & Discussion Hub
- * Provides full video playback, lesson notes, downloadable attachments, syllabus navigation,
- * and live interactive Q&A discussion with the instructor.
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/lessons.php';
 require_once BASE_PATH . '/includes/functions/courses.php';
@@ -23,7 +19,6 @@ if (!$lesson) {
     redirect($role === ROLE_TEACHER ? 'teacher/courses.php' : 'student/my-courses.php');
 }
 
-// Resolve student ID & enrollment
 $studentId = 0;
 if ($role === ROLE_STUDENT) {
     $stmt = $pdo->prepare("SELECT id FROM students WHERE user_id = ? LIMIT 1");
@@ -34,10 +29,8 @@ if ($role === ROLE_STUDENT) {
 
 $enrollment = $studentId ? get_enrollment($studentId, $lesson['course_id']) : null;
 
-// Track lesson view activity
 log_user_activity($userId, 'lesson_view', 'Viewed lesson: ' . ($lesson['title'] ?? 'Unknown'), $lesson['course_id'], $lessonId);
 
-// 1-active course check (applies in production paid mode for students)
 if ($role === ROLE_STUDENT && !(defined('FREE_TESTING_MODE') && FREE_TESTING_MODE)) {
     $activeCourse = get_student_active_course($studentId);
     if ($activeCourse && (int)$activeCourse['course_id'] !== (int)$lesson['course_id']) {
@@ -48,7 +41,7 @@ if ($role === ROLE_STUDENT && !(defined('FREE_TESTING_MODE') && FREE_TESTING_MOD
 
 if (!$enrollment && empty($lesson['is_free']) && $role === ROLE_STUDENT) {
     if (defined('FREE_TESTING_MODE') && FREE_TESTING_MODE) {
-        // In free testing mode, auto-enroll student so lessons can be freely evaluated
+
         if ($studentId) {
             $pdo->prepare("INSERT INTO enrollments (student_id, course_id, status, progress, enrolled_at) VALUES (?, ?, 'active', 0.00, NOW()) ON DUPLICATE KEY UPDATE status = 'active'")
                 ->execute([$studentId, $lesson['course_id']]);
@@ -68,14 +61,12 @@ if ($enrollment) {
     $isCompleted = (bool)($prog['completed'] ?? false);
 }
 
-// Handle Mark Complete action
 if (is_post() && isset($_POST['mark_complete']) && $enrollment) {
     complete_lesson_and_update_progress($enrollment['id'], $lessonId, $lesson['course_id']);
     set_flash('success', 'Lesson marked as complete! Your course progress has been updated.');
     redirect('student/lesson.php?id=' . $lessonId);
 }
 
-// Handle Post New Question
 if (is_post() && isset($_POST['ask_question'])) {
     $qTopic   = trim($_POST['question_topic'] ?? '');
     $qContent = trim($_POST['question_content'] ?? '');
@@ -89,7 +80,6 @@ if (is_post() && isset($_POST['ask_question'])) {
     redirect('student/lesson.php?id=' . $lessonId . '#qa-section');
 }
 
-// Handle Post Reply to Question
 if (is_post() && isset($_POST['post_reply'])) {
     $questionId = (int)($_POST['question_id'] ?? 0);
     $replyText  = trim($_POST['reply_content'] ?? '');
@@ -104,7 +94,6 @@ if (is_post() && isset($_POST['post_reply'])) {
     redirect('student/lesson.php?id=' . $lessonId . '#question-' . $questionId);
 }
 
-// Next & Previous lessons
 $allLessons = [];
 $stmt = $pdo->prepare("
     SELECT l.id, l.title, l.video_duration, l.is_free, cs.title AS section_title
@@ -126,14 +115,12 @@ foreach ($allLessons as $idx => $l) {
     }
 }
 
-// Load all lesson questions & replies
 $lessonQuestions = get_lesson_questions($lessonId);
 $questionCount = count($lessonQuestions);
 
 include BASE_PATH . '/includes/layouts/dashboard-header.php';
 ?>
 
-<!-- Breadcrumb & Top Bar -->
 <div class="mb-4">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
         <a href="<?= url($role === ROLE_TEACHER ? 'teacher/courses.php' : 'student/course.php?id=' . (int)$lesson['course_id']) ?>" class="btn btn-outline-secondary btn-sm rounded-pill">
@@ -162,7 +149,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
             </div>
             <h1 class="h2 fw-bold mb-0 text-main"><?= e($lesson['title']) ?></h1>
         </div>
-        
+
         <?php if ($role === ROLE_STUDENT && $enrollment): ?>
             <form method="POST" action="<?= url('student/lesson.php?id=' . $lessonId) ?>">
                 <input type="hidden" name="mark_complete" value="1">
@@ -181,14 +168,14 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 </div>
 
 <div class="row g-4">
-    <!-- Main Content & Media Column -->
+
     <div class="col-lg-8">
-        <!-- 1. Video Player Container -->
+
         <?php if (!empty($lesson['video_url'])): ?>
             <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4 bg-dark text-white">
                 <div class="ratio ratio-16x9">
                     <?php if (strpos($lesson['video_url'], 'youtube.com') !== false || strpos($lesson['video_url'], 'youtu.be') !== false): ?>
-                        <?php 
+                        <?php
                             preg_match('/(?:v=|\/)([a-zA-Z0-9_-]{11})/', $lesson['video_url'], $matches);
                             $ytId = $matches[1] ?? '';
                         ?>
@@ -203,7 +190,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
             </div>
         <?php endif; ?>
 
-        <!-- 2. Attached PDF or Document Resource Preview -->
         <?php if (!empty($lesson['attachment'])): ?>
             <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-light border">
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
@@ -229,7 +215,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
             </div>
         <?php endif; ?>
 
-        <!-- 3. Comprehensive Lesson Body Notes -->
         <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-4 bg-card">
             <h4 class="fw-bold mb-3 text-main"><i class="bi bi-journal-text text-primary me-2"></i> Lesson Notes &amp; Overview</h4>
             <div class="lesson-body text-secondary lh-lg fs-5">
@@ -237,7 +222,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
             </div>
         </div>
 
-        <!-- 4. Next / Previous Lesson Navigation -->
         <div class="d-flex justify-content-between align-items-center gap-3 mb-5">
             <?php if ($prevLesson): ?>
                 <a href="<?= url('student/lesson.php?id=' . (int)$prevLesson['id']) ?>" class="btn btn-outline-secondary rounded-pill px-4 fw-bold">
@@ -254,7 +238,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
             <?php endif; ?>
         </div>
 
-        <!-- 5. ── LESSON Q&A DISCUSSION HUB (Ask the Teacher) ────────── -->
         <div id="qa-section" class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-5 bg-card">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4 pb-3 border-bottom">
                 <div>
@@ -268,14 +251,13 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                 </span>
             </div>
 
-            <!-- Question Submission Form -->
             <div class="bg-light p-4 rounded-4 mb-4 border">
                 <h6 class="fw-bold mb-3 text-main">
                     <i class="bi bi-chat-square-dots-fill text-primary me-2"></i>Ask a Question to the Instructor
                 </h6>
                 <form method="POST" action="<?= url('student/lesson.php?id=' . $lessonId) ?>">
                     <input type="hidden" name="ask_question" value="1">
-                    
+
                     <div class="mb-3">
                         <label class="form-label fw-semibold small text-muted">Topic / Short Summary (Optional)</label>
                         <input type="text" name="question_topic" class="form-control rounded-3" placeholder="e.g. Clarification on line 4 of code example or formula">
@@ -294,12 +276,11 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                 </form>
             </div>
 
-            <!-- Existing Questions List -->
             <?php if (!empty($lessonQuestions)): ?>
                 <div class="d-flex flex-column gap-4">
                     <?php foreach ($lessonQuestions as $q): ?>
                         <div class="card border rounded-4 p-4 shadow-sm" id="question-<?= (int)$q['id'] ?>" style="background: var(--bg-surface, #ffffff);">
-                            <!-- Question Header -->
+
                             <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="rounded-circle overflow-hidden bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
@@ -326,13 +307,11 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                                 </span>
                             </div>
 
-                            <!-- Question Body -->
                             <?php if (!empty($q['title'])): ?>
                                 <h6 class="fw-bold text-main mb-2"><?= e($q['title']) ?></h6>
                             <?php endif; ?>
                             <p class="text-secondary mb-3 lh-base fs-6"><?= nl2br(e($q['question'])) ?></p>
 
-                            <!-- Replies List -->
                             <?php if (!empty($q['replies'])): ?>
                                 <div class="ps-3 border-start border-3 border-primary my-3 d-flex flex-column gap-3">
                                     <?php foreach ($q['replies'] as $reply): ?>
@@ -363,7 +342,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                                 </div>
                             <?php endif; ?>
 
-                            <!-- Inline Reply Form -->
                             <div class="pt-3 border-top mt-2">
                                 <form method="POST" action="<?= url('student/lesson.php?id=' . $lessonId) ?>" class="d-flex gap-2 align-items-center">
                                     <input type="hidden" name="post_reply" value="1">
@@ -387,9 +365,8 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     </div>
 
-    <!-- Sidebar Syllabus & AI Column -->
     <div class="col-lg-4">
-        <!-- AI Tutor Card -->
+
         <div class="card border-0 shadow-sm rounded-4 p-4 bg-primary text-white mb-4 position-relative overflow-hidden" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%) !important;">
             <div class="d-flex align-items-center gap-2 mb-2">
                 <i class="bi bi-robot fs-3 text-warning"></i>
@@ -411,7 +388,34 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
             </button>
         </div>
 
-        <!-- Course Curriculum & Syllabus Quick Nav -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-card mb-4">
+            <h6 class="fw-bold mb-3 text-main"><i class="bi bi-person-badge text-primary me-2"></i>Course Instructor</h6>
+            <?php if (!empty($lesson['teacher_id']) && !empty($lesson['teacher_name'])): ?>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle overflow-hidden bg-primary text-white fw-bold d-flex align-items-center justify-content-center flex-shrink-0" style="width: 52px; height: 52px;">
+                        <?php if (!empty($lesson['teacher_avatar'])): ?>
+                            <img src="<?= e($lesson['teacher_avatar']) ?>" alt="<?= e($lesson['teacher_name']) ?>" style="width:100%; height:100%; object-fit:cover;">
+                        <?php else: ?>
+                            <?= strtoupper(substr($lesson['teacher_name'], 0, 1)) ?>
+                        <?php endif; ?>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0 text-main"><?= e($lesson['teacher_name']) ?></h6>
+                        <small class="text-muted d-block"><?= e($lesson['teacher_qualification'] ?: 'Certified Instructor') ?></small>
+                        <span class="badge bg-warning bg-opacity-15 text-dark rounded-pill px-2 py-0 small mt-1">
+                            <i class="bi bi-star-fill text-warning me-1"></i><?= number_format((float)($lesson['teacher_rating'] ?? 5.0), 1) ?> Rating
+                        </span>
+                    </div>
+                </div>
+            <?php else: ?>
+                <div class="p-3 bg-light rounded-3 border text-center">
+                    <i class="bi bi-person-x text-muted fs-3 mb-1 d-block"></i>
+                    <div class="fw-bold small text-main mb-1">No Teacher Currently Assigned</div>
+                    <p class="text-muted small mb-0" style="font-size:0.75rem;">This course is in self-paced mode. All video lectures, quiz assessments, and 24/7 AI tutor support are fully active.</p>
+                </div>
+            <?php endif; ?>
+        </div>
+
         <div class="card border-0 shadow-sm rounded-4 p-4 bg-card">
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <h6 class="fw-bold mb-0 text-main"><i class="bi bi-list-task text-primary me-2"></i> Course Lessons</h6>

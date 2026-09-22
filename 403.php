@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — 403 Forbidden Page
- */
+
 require_once __DIR__ . '/config/main.php';
 
 http_response_code(403);

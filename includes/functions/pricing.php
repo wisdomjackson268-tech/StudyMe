@@ -1,12 +1,6 @@
 <?php
-/**
- * StudyMe AI Platform — Official Pricing Engine & Dynamic Category Rates
- */
 require_once dirname(__DIR__, 2) . '/config/database.php';
 
-/**
- * Get pricing configuration setting from database.
- */
 function get_pricing_setting($key, $default = 0.00) {
     $pdo = getDBConnection();
     try {
@@ -19,9 +13,6 @@ function get_pricing_setting($key, $default = 0.00) {
     }
 }
 
-/**
- * Get all official pricing rates from database.
- */
 function get_official_pricing_rates() {
     return [
         'tech'       => get_pricing_setting('price_tech', defined('OFFICIAL_PRICE_TECH') ? OFFICIAL_PRICE_TECH : 10000.00),
@@ -31,10 +22,6 @@ function get_official_pricing_rates() {
     ];
 }
 
-/**
- * Determine official server-side price for a given course ID based on database record & category.
- * NEVER trust client/user-supplied price inputs.
- */
 function get_course_official_price($courseId) {
     $pdo = getDBConnection();
     try {
@@ -52,7 +39,6 @@ function get_course_official_price($courseId) {
             return 10000.00;
         }
 
-        // If explicitly set in course table to a non-zero price, use course DB price
         if ((float)$course['price'] > 0) {
             return (float)$course['price'];
         }
@@ -61,7 +47,6 @@ function get_course_official_price($courseId) {
         $catSlug = strtolower($course['category_slug'] ?? '');
         $text = strtolower(($course['title'] ?? '') . ' ' . ($course['category_name'] ?? '') . ' ' . ($course['subject_name'] ?? ''));
 
-        // Category-based fallback
         if ($catSlug === 'secondary-waec-neco' || preg_match('/(waec|neco|jamb|secondary|high school|ssce)/i', $text)) {
             return $rates['secondary'];
         }

@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Teachers Page
- */
+
 require_once __DIR__ . '/config/main.php';
 include BASE_PATH . '/includes/layouts/header.php';
 
@@ -23,7 +21,7 @@ try {
 
 <div class="py-5 bg-light-subtle" style="min-height: calc(100vh - 120px);">
     <div class="container py-4">
-        <!-- Header -->
+
         <div class="text-center max-w-700 mx-auto mb-5 animate-fade-in">
             <div class="p-3 bg-success bg-opacity-10 text-success rounded-circle d-inline-flex mb-3">
                 <?php include BASE_PATH . '/assets/svg/teacher.svg'; ?>
@@ -32,7 +30,6 @@ try {
             <p class="lead text-muted">Interact with certified instructors who structure top-tier courses, mentor students, and customize AI learning templates.</p>
         </div>
 
-        <!-- Teachers Grid -->
         <div class="row g-4 justify-content-center mb-5">
             <?php if (!empty($teachers)): ?>
                 <?php foreach ($teachers as $t): ?>
@@ -40,13 +37,13 @@ try {
                         <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden hover-lift">
                             <div class="card-body p-4 text-center">
                                 <a href="<?= url('teacher-profile.php?id=' . (int)$t['id']) ?>" class="d-inline-block text-decoration-none">
-                                    <img src="<?= e($t['avatar'] ?: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&q=80') ?>" 
+                                    <img src="<?= e(get_teacher_avatar_url($t['avatar'] ?? '', ($t['first_name'] ?? '') . ' ' . ($t['last_name'] ?? ''), $t['id'] ?? 0)) ?>"
                                          alt="StudyMe Certified Instructor <?= e($t['first_name'] . ' ' . $t['last_name']) ?>"
                                          class="rounded-circle mb-3 border border-3 border-light shadow-sm"
                                          style="width: 100px; height: 100px; object-fit: cover;"
-                                         onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&q=80';">
+                                         onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&q=80';">
                                 </a>
-                                
+
                                 <h5 class="fw-bold mb-1">
                                     <a href="<?= url('teacher-profile.php?id=' . (int)$t['id']) ?>" class="text-decoration-none text-main hover-primary">
                                         <?= e($t['first_name'] . ' ' . $t['last_name']) ?>
@@ -56,7 +53,7 @@ try {
                                     <?= e($t['qualification'] ?? 'Certified Instructor') ?>
                                 </div>
                                 <p class="text-muted small mb-3" style="min-height: 40px;"><?= e($t['specialization']) ?></p>
-                                
+
                                 <div class="d-flex justify-content-center align-items-center gap-3 py-2 border-top border-bottom border-light mb-3">
                                     <div class="text-center">
                                         <div class="fw-bold text-main small"><?= (int)$t['total_courses'] ?></div>
@@ -96,7 +93,6 @@ try {
             <?php endif; ?>
         </div>
 
-        <!-- Instructor CTA -->
         <div class="p-5 bg-primary bg-opacity-5 rounded-4 text-center border border-secondary border-opacity-10 py-5">
             <h3 class="fw-bold mb-2">Are You an Educator?</h3>
             <p class="text-muted max-w-600 mx-auto mb-4">Share your knowledge with thousands of students. Utilize AI tools to draft curriculum templates, generate smart quiz categories, and manage student analytics.</p>

@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Course Search Results Page
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 $pdo   = getDBConnection();
@@ -26,7 +24,6 @@ if (!empty($query)) {
     $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// Check enrollment status if user is logged in
 $enrolledCourseIds = [];
 if (is_logged_in()) {
     $userId = current_user('id');
@@ -57,12 +54,11 @@ include BASE_PATH . '/includes/layouts/header.php';
 
 <div class="py-5 bg-light-subtle" style="min-height: calc(100vh - 120px);">
     <div class="container py-4">
-        <!-- Search Header -->
+
         <div class="mb-4">
             <h2 class="fw-bold mb-2">Search Results for: <span class="text-primary">"<?= e($query) ?>"</span></h2>
             <p class="text-muted mb-4">Found <strong><?= count($courses) ?></strong> course<?= count($courses) !== 1 ? 's' : '' ?> matching your query.</p>
 
-            <!-- Search bar -->
             <form action="<?= url('courses/search.php') ?>" method="GET" class="row g-2 mb-5">
                 <div class="col-md-6 col-lg-5">
                     <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden bg-white">
@@ -74,7 +70,6 @@ include BASE_PATH . '/includes/layouts/header.php';
             </form>
         </div>
 
-        <!-- Course Cards -->
         <?php if (!empty($courses)): ?>
         <div class="row g-4">
             <?php foreach ($courses as $c): ?>
@@ -95,7 +90,7 @@ include BASE_PATH . '/includes/layouts/header.php';
                         </div>
                         <h5 class="fw-bold mb-2 line-clamp-2"><?= e($c['title']) ?></h5>
                         <p class="text-muted small mb-3 line-clamp-2 flex-grow-1"><?= e($c['short_description']) ?></p>
-                        
+
                         <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto">
                             <div>
                                 <span class="fs-5 fw-bold text-main">₦<?= number_format((float)$c['price']) ?></span>

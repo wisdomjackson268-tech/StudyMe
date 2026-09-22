@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Admin Notifications & System Alerts
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/activity.php';
 
@@ -10,10 +8,8 @@ $user   = current_user();
 $pdo    = getDBConnection();
 $userId = (int)$user['id'];
 
-// Log admin dashboard visit
 log_user_activity($userId, 'admin_notifications_view', 'Admin viewed notifications page');
 
-// Fetch recent user registrations (last 30 days)
 $newUsers = [];
 try {
     $newUsers = $pdo->query("
@@ -24,7 +20,6 @@ try {
     ")->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) { error_log($e->getMessage()); }
 
-// Fetch pending teacher applications
 $pendingTeachers = [];
 try {
     $pendingTeachers = $pdo->query("
@@ -35,7 +30,6 @@ try {
     ")->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) { error_log($e->getMessage()); }
 
-// Fetch recent activity (all users, last 24h)
 $recentActivity = [];
 try {
     $recentActivity = $pdo->query("
@@ -46,7 +40,6 @@ try {
     ")->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) { error_log($e->getMessage()); }
 
-// System summary stats
 $stats = ['total_users'=>0,'students'=>0,'teachers'=>0,'active_today'=>0];
 try {
     $row = $pdo->query("SELECT
@@ -58,7 +51,6 @@ try {
     if ($row) $stats = $row;
 } catch (Exception $e) {}
 
-// Mark all-read action
 if (isset($_POST['mark_read'])) {
     set_flash('success', 'All notifications marked as read.');
     redirect('admin/notifications.php');
@@ -83,7 +75,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     <div class="alert alert-<?= $type === 'error' ? 'danger' : $type ?> rounded-3 mb-4"><?= e($msg) ?></div>
 <?php endforeach; endforeach; ?>
 
-<!-- Quick Stats Strip -->
 <div class="row g-3 mb-5">
     <?php $statCards = [
         ['icon'=>'bi-people-fill','color'=>'primary','label'=>'Total Users','value'=> (int)$stats['total_users']],
@@ -110,7 +101,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 
 <div class="row g-4">
 
-    <!-- Recent Registrations -->
     <div class="col-lg-6">
         <div class="card border-0 shadow-sm rounded-4 h-100">
             <div class="card-header bg-transparent border-0 pt-4 pb-2 px-4 d-flex align-items-center gap-2">
@@ -151,7 +141,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     </div>
 
-    <!-- Pending Teacher Applications -->
     <div class="col-lg-6">
         <div class="card border-0 shadow-sm rounded-4 h-100">
             <div class="card-header bg-transparent border-0 pt-4 pb-2 px-4 d-flex align-items-center gap-2">
@@ -192,7 +181,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     </div>
 
-    <!-- Live Activity Feed -->
     <div class="col-12">
         <div class="card border-0 shadow-sm rounded-4">
             <div class="card-header bg-transparent border-0 pt-4 pb-2 px-4 d-flex align-items-center gap-2">

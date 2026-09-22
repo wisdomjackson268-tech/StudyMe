@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Student Quiz Attempt Interface
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 require_login();
@@ -10,7 +8,6 @@ $userId   = $user['id'];
 $pdo      = getDBConnection();
 $quizId   = (int)($_GET['id'] ?? 0);
 
-// Resolve student record
 $stmt = $pdo->prepare("SELECT id FROM students WHERE user_id = ? LIMIT 1");
 $stmt->execute([$userId]);
 $student = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -21,7 +18,6 @@ if (!$studentId && current_user_role() === ROLE_STUDENT) {
     redirect('student/dashboard.php');
 }
 
-// Fetch Quiz
 $stmt = $pdo->prepare("
     SELECT q.*, c.title AS course_title, c.id AS course_id
     FROM quizzes q
@@ -36,7 +32,6 @@ if (!$quiz) {
     redirect('student/quizzes.php');
 }
 
-// Strict Check: Student must be actively enrolled in this quiz's course
 if (current_user_role() === ROLE_STUDENT) {
     $stmtEn = $pdo->prepare("SELECT id FROM enrollments WHERE student_id = ? AND course_id = ? AND status = 'active' LIMIT 1");
     $stmtEn->execute([$studentId, $quiz['course_id']]);
@@ -46,7 +41,6 @@ if (current_user_role() === ROLE_STUDENT) {
     }
 }
 
-// Fetch Questions and Options
 $stmt = $pdo->prepare("
     SELECT q.*, qo.id AS option_id, qo.option_text, qo.sort_order AS opt_sort
     FROM questions q
@@ -77,7 +71,6 @@ foreach ($rows as $r) {
     }
 }
 
-// Handle Quiz Submission
 if (is_post() && isset($_POST['submit_quiz'])) {
     $answers = $_POST['answers'] ?? [];
     $totalScore   = 0.0;
@@ -86,7 +79,6 @@ if (is_post() && isset($_POST['submit_quiz'])) {
     try {
         $pdo->beginTransaction();
 
-        // Create attempt record
         $stmtAtt = $pdo->prepare("
             INSERT INTO quiz_attempts (quiz_id, student_id, score, percentage, passed, started_at, submitted_at)
             VALUES (?, ?, 0, 0, 0, NOW(), NOW())
@@ -101,7 +93,7 @@ if (is_post() && isset($_POST['submit_quiz'])) {
             $earnedPts = 0.0;
 
             if ($selectedOptId > 0) {
-                // Check if correct
+
                 $stmtCheck = $pdo->prepare("SELECT is_correct FROM question_options WHERE id = ? AND question_id = ? LIMIT 1");
                 $stmtCheck->execute([$selectedOptId, $qId]);
                 $isCorrect = (bool)$stmtCheck->fetchColumn();
@@ -112,7 +104,6 @@ if (is_post() && isset($_POST['submit_quiz'])) {
                 }
             }
 
-            // Save individual answer
             $stmtAns = $pdo->prepare("
                 INSERT INTO quiz_answers (attempt_id, question_id, option_id, is_correct, points_earned)
                 VALUES (?, ?, ?, ?, ?)
@@ -123,10 +114,9 @@ if (is_post() && isset($_POST['submit_quiz'])) {
         $percentage = $maxScore > 0 ? round(($totalScore / $maxScore) * 100, 2) : 0.0;
         $passed = ($percentage >= (float)$quiz['passing_score']) ? 1 : 0;
 
-        // Update attempt with final score
         $pdo->prepare("
-            UPDATE quiz_attempts 
-            SET score = ?, percentage = ?, passed = ? 
+            UPDATE quiz_attempts
+            SET score = ?, percentage = ?, passed = ?
             WHERE id = ?
         ")->execute([$totalScore, $percentage, $passed, $attemptId]);
 
@@ -146,7 +136,7 @@ include BASE_PATH . '/includes/layouts/header.php';
     <div class="container py-4">
         <div class="row justify-content-center">
             <div class="col-lg-8">
-                <!-- Quiz Header Card -->
+
                 <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5 mb-4">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                         <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1">
@@ -160,7 +150,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                     <p class="text-muted small mb-0"><?= e($quiz['description'] ?: 'Answer all questions to the best of your ability and click Submit.') ?></p>
                 </div>
 
-                <!-- Questions Form -->
                 <form action="<?= url('quizzes/attempt.php?id=' . $quizId) ?>" method="POST">
                     <input type="hidden" name="submit_quiz" value="1">
 

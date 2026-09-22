@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Admin Create Course
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_ADMIN);
@@ -9,12 +7,11 @@ secure_page(ROLE_ADMIN);
 $pdo = getDBConnection();
 $errors = [];
 
-// Fetch categories & teachers
 $categories = $pdo->query("SELECT id, name, slug FROM categories WHERE status='active' ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
 $teachers   = $pdo->query("
-    SELECT t.id, CONCAT(u.first_name, ' ', u.last_name) AS teacher_name, u.email 
-    FROM teachers t 
-    JOIN users u ON t.user_id = u.id 
+    SELECT t.id, CONCAT(u.first_name, ' ', u.last_name) AS teacher_name, u.email
+    FROM teachers t
+    JOIN users u ON t.user_id = u.id
     WHERE t.status = 'active'
     ORDER BY u.first_name ASC
 ")->fetchAll(PDO::FETCH_ASSOC);
@@ -41,7 +38,6 @@ if (is_post()) {
         $teacherId = (int)$teachers[0]['id'];
     }
 
-    // Default price from category if 0
     if ($price <= 0) {
         $stmtCat = $pdo->prepare("SELECT slug FROM categories WHERE id = ? LIMIT 1");
         $stmtCat->execute([$categoryId]);
@@ -55,7 +51,6 @@ if (is_post()) {
         }
     }
 
-    // Upload thumbnail
     if (!empty($_FILES['thumbnail']['name']) && $_FILES['thumbnail']['error'] === UPLOAD_ERR_OK) {
         $ext = strtolower(pathinfo($_FILES['thumbnail']['name'], PATHINFO_EXTENSION));
         if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp'])) {
@@ -79,7 +74,6 @@ if (is_post()) {
             $stmt->execute([$teacherId, $categoryId, $title, $slug, $shortDescription, $description, $level, $price, $durationMinutes, $thumbnail, $status]);
             $newCourseId = $pdo->lastInsertId();
 
-            // Create default module
             $pdo->prepare("INSERT INTO course_sections (course_id, title, sort_order) VALUES (?, 'Module 1: Foundations', 1)")->execute([$newCourseId]);
 
             set_flash('success', 'Course "' . htmlspecialchars($title) . '" created successfully and added to the catalog!');

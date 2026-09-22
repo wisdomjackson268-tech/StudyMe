@@ -1,13 +1,7 @@
 <?php
-/**
- * StudyMe AI Platform — Lesson Questions & Q&A Discussion Helpers
- */
 require_once dirname(__DIR__, 2) . '/config/database.php';
 require_once __DIR__ . '/notifications.php';
 
-/**
- * Get all questions asked on a specific lesson, with their replies and author details.
- */
 function get_lesson_questions($lessonId) {
     $pdo = getDBConnection();
     try {
@@ -22,7 +16,6 @@ function get_lesson_questions($lessonId) {
         $stmt->execute([(int)$lessonId]);
         $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Fetch replies for each question
         if (!empty($questions)) {
             $stmtReplies = $pdo->prepare("
                 SELECT r.*, 
@@ -47,9 +40,24 @@ function get_lesson_questions($lessonId) {
     }
 }
 
-/**
- * Post a new student question on a lesson.
- */
+function get_lesson_question_by_id($questionId) {
+    $pdo = getDBConnection();
+    try {
+        $stmt = $pdo->prepare("
+            SELECT q.*, u.first_name, u.last_name, u.role, u.avatar
+            FROM lesson_questions q
+            JOIN users u ON q.user_id = u.id
+            WHERE q.id = ?
+            LIMIT 1
+        ");
+        $stmt->execute([(int)$questionId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    } catch (Exception $e) {
+        error_log("Error in get_lesson_question_by_id: " . $e->getMessage());
+        return null;
+    }
+}
+
 function post_lesson_question($lessonId, $userId, $questionText, $title = null) {
     $pdo = getDBConnection();
     try {
@@ -69,7 +77,6 @@ function post_lesson_question($lessonId, $userId, $questionText, $title = null) 
         $stmt->execute([$lessonId, $userId, $title, $questionText]);
         $questionId = (int)$pdo->lastInsertId();
 
-        // Notify the course instructor if one is assigned
         $stmtTch = $pdo->prepare("
             SELECT c.teacher_id, t.user_id AS teacher_user_id, l.title AS lesson_title, c.title AS course_title
             FROM lessons l
@@ -103,9 +110,6 @@ function post_lesson_question($lessonId, $userId, $questionText, $title = null) 
     }
 }
 
-/**
- * Post a reply to a question (by instructor or student).
- */
 function post_lesson_question_reply($questionId, $userId, $replyText, $isInstructor = false) {
     $pdo = getDBConnection();
     try {
@@ -124,12 +128,10 @@ function post_lesson_question_reply($questionId, $userId, $replyText, $isInstruc
         $stmt->execute([$questionId, $userId, $replyText, $isInstructor ? 1 : 0]);
         $replyId = (int)$pdo->lastInsertId();
 
-        // Update question status to answered if instructor replied
         if ($isInstructor) {
             $pdo->prepare("UPDATE lesson_questions SET status = 'answered', updated_at = NOW() WHERE id = ?")->execute([$questionId]);
         }
 
-        // Notify question author if someone else replied
         $stmtQ = $pdo->prepare("
             SELECT q.user_id, q.lesson_id, l.title AS lesson_title
             FROM lesson_questions q
@@ -162,15 +164,11 @@ function post_lesson_question_reply($questionId, $userId, $replyText, $isInstruc
     }
 }
 
-/**
- * Fetch questions for a teacher's courses, assigned categories, or platform with flexible matching.
- */
 function get_teacher_course_questions($teacherIdOrUserId, $statusFilter = null, $scope = 'my_courses') {
     $pdo = getDBConnection();
     try {
         $teacherId = (int)$teacherIdOrUserId;
 
-        // Resolve teacher record
         $stmtT = $pdo->prepare("SELECT id, user_id, assigned_course_id, assigned_category_id FROM teachers WHERE id = ? OR user_id = ? LIMIT 1");
         $stmtT->execute([$teacherId, $teacherId]);
         $teacher = $stmtT->fetch(PDO::FETCH_ASSOC);
@@ -184,9 +182,7 @@ function get_teacher_course_questions($teacherIdOrUserId, $statusFilter = null, 
         $whereClauses = [];
 
         if ($scope === 'all') {
-            // No instructor filter - show all questions
         } else {
-            // Instructor courses matching
             $courseConditions = [];
             if ($tid > 0) {
                 $courseConditions[] = "c.teacher_id = ?";
@@ -237,16 +233,13 @@ function get_teacher_course_questions($teacherIdOrUserId, $statusFilter = null, 
         $stmt->execute($params);
         $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // If no questions found under specific teacher filter and not all scope, check if there are platform questions to display
         if (empty($questions) && $scope !== 'all') {
-            // Check if user has no assigned courses yet, fallback to all questions
             $totalPlatformQuestions = (int)$pdo->query("SELECT COUNT(*) FROM lesson_questions")->fetchColumn();
             if ($totalPlatformQuestions > 0 && count($courseConditions ?? []) === 0) {
                 return get_teacher_course_questions($teacherIdOrUserId, $statusFilter, 'all');
             }
         }
 
-        // Fetch replies for each
         if (!empty($questions)) {
             $stmtR = $pdo->prepare("
                 SELECT r.*, u.first_name, u.last_name, u.role, u.avatar

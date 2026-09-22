@@ -1,15 +1,8 @@
 <?php
-/**
- * StudyMe AI Platform — File Upload Helper Functions
- *
- * Provides secure file upload handling for teacher resources.
- */
 
-// Upload directory (relative to BASE_PATH)
 define('UPLOAD_DIR', BASE_PATH . '/uploads');
 define('UPLOAD_URL', APP_URL . '/uploads');
 
-// Allowed MIME types by category
 const ALLOWED_DOCUMENTS = [
     'application/pdf'                                                              => 'pdf',
     'application/msword'                                                           => 'doc',
@@ -27,32 +20,48 @@ const ALLOWED_IMAGES = [
 ];
 
 const ALLOWED_VIDEOS = [
-    'video/mp4'  => 'mp4',
-    'video/webm' => 'webm',
-    'video/ogg'  => 'ogv',
-    'video/quicktime' => 'mov',
+    'video/mp4'        => 'mp4',
+    'video/webm'       => 'webm',
+    'video/ogg'        => 'ogv',
+    'video/quicktime'  => 'mov',
+    'video/x-matroska' => 'mkv',
 ];
 
-define('MAX_DOCUMENT_SIZE', 50 * 1024 * 1024);  // 50 MB
-define('MAX_VIDEO_SIZE',    500 * 1024 * 1024); // 500 MB
-define('MAX_IMAGE_SIZE',    10 * 1024 * 1024);  // 10 MB
+const ALLOWED_AUDIO = [
+    'audio/mpeg'        => 'mp3',
+    'audio/mp3'         => 'mp3',
+    'audio/wav'         => 'wav',
+    'audio/x-wav'       => 'wav',
+    'audio/vnd.wave'    => 'wav',
+    'audio/wave'        => 'wav',
+    'audio/ogg'         => 'ogg',
+    'application/ogg'   => 'ogg',
+    'audio/webm'        => 'webm',
+    'video/webm'        => 'webm', // Browsers MediaRecorder often produces WebM audio with video/webm mime signature in finfo
+    'video/x-matroska'  => 'webm',
+    'audio/x-matroska'  => 'webm',
+    'audio/mp4'         => 'm4a',
+    'audio/x-m4a'       => 'm4a',
+    'audio/aac'         => 'aac',
+    'audio/x-aac'       => 'aac',
+    'audio/3gpp'        => '3gp',
+    'audio/3gpp2'       => '3g2',
+];
 
-/**
- * Ensure the upload subdirectory exists.
- */
+define('MAX_DOCUMENT_SIZE', 50 * 1024 * 1024);
+define('MAX_VIDEO_SIZE',    500 * 1024 * 1024);
+define('MAX_IMAGE_SIZE',    10 * 1024 * 1024);
+define('MAX_AUDIO_SIZE',    50 * 1024 * 1024);
+
 function ensure_upload_dir($subdir) {
     $path = UPLOAD_DIR . '/' . $subdir;
     if (!is_dir($path)) {
         mkdir($path, 0755, true);
-        // Create .htaccess to prevent PHP execution in upload dirs
         file_put_contents($path . '/.htaccess', "Options -Indexes\n<FilesMatch \"\\.php$\">\n  Deny from all\n</FilesMatch>\n");
     }
     return $path;
 }
 
-/**
- * Detect the real MIME type of an uploaded file using PHP's finfo.
- */
 function detect_mime_type($filePath) {
     if (function_exists('finfo_open')) {
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -63,20 +72,10 @@ function detect_mime_type($filePath) {
     return mime_content_type($filePath) ?: 'application/octet-stream';
 }
 
-/**
- * Generate a secure random filename preserving the extension.
- */
 function generate_secure_filename($extension) {
     return bin2hex(random_bytes(16)) . '.' . strtolower($extension);
 }
 
-/**
- * Handle document upload (PDF, DOC, DOCX, PPT, PPTX, TXT).
- *
- * @param array $file    $_FILES['field']
- * @param int   $teacherId  for ownership validation
- * @return array  ['success' => bool, 'filename' => string, 'path' => string, 'mime' => string, 'size' => int, 'needs_conversion' => bool, 'error' => string]
- */
 function upload_document($file, $teacherId) {
     if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
         return ['success' => false, 'error' => 'Upload failed: ' . upload_error_message($file['error'] ?? UPLOAD_ERR_NO_FILE)];
@@ -119,9 +118,6 @@ function upload_document($file, $teacherId) {
     ];
 }
 
-/**
- * Handle video upload.
- */
 function upload_video($file, $teacherId) {
     if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
         return ['success' => false, 'error' => 'Upload failed: ' . upload_error_message($file['error'] ?? UPLOAD_ERR_NO_FILE)];
@@ -156,9 +152,6 @@ function upload_video($file, $teacherId) {
     ];
 }
 
-/**
- * Handle image upload (thumbnails, avatars).
- */
 function upload_image($file, $subdir = 'images') {
     if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
         return ['success' => false, 'error' => 'Upload failed: ' . upload_error_message($file['error'] ?? UPLOAD_ERR_NO_FILE)];
@@ -193,10 +186,143 @@ function upload_image($file, $subdir = 'images') {
     ];
 }
 
+function upload_voice_note($file, $teacherId) {
+    if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
+        return ['success' => false, 'error' => 'Voice note upload failed.'];
+    }
+
+    if ($file['size'] > MAX_AUDIO_SIZE) {
+        return ['success' => false, 'error' => 'Voice note is too large. Maximum size is 50 MB.'];
+    }
+
+    $realMime = detect_mime_type($file['tmp_name']);
+    $clientMime = !empty($file['type']) ? strtolower(explode(';', $file['type'])[0]) : '';
+    $ext = null;
+
+    if (array_key_exists($realMime, ALLOWED_AUDIO)) {
+        $ext = ALLOWED_AUDIO[$realMime];
+    } elseif (!empty($clientMime) && array_key_exists($clientMime, ALLOWED_AUDIO)) {
+        $ext = ALLOWED_AUDIO[$clientMime];
+        $realMime = $clientMime;
+    } else {
+        $origExt = strtolower(pathinfo($file['name'] ?? '', PATHINFO_EXTENSION));
+        if (in_array($origExt, ['webm', 'mp3', 'wav', 'ogg', 'm4a', 'aac', '3gp', 'oga'], true)) {
+            $ext = ($origExt === 'oga') ? 'ogg' : $origExt;
+            $realMime = 'audio/' . $ext;
+        }
+    }
+
+    if (!$ext) {
+        return ['success' => false, 'error' => 'Audio type not allowed. Use MP3, WAV, OGG, WebM, M4A, or AAC.'];
+    }
+
+    $storedFilename = generate_secure_filename($ext);
+    $uploadPath = ensure_upload_dir('voice-notes/teacher_' . (int)$teacherId);
+    $destPath = $uploadPath . '/' . $storedFilename;
+
+    if (!move_uploaded_file($file['tmp_name'], $destPath)) {
+        return ['success' => false, 'error' => 'Failed to save the voice note.'];
+    }
+
+    return [
+        'success'       => true,
+        'filename'      => $storedFilename,
+        'path'          => $destPath,
+        'relative_path' => 'uploads/voice-notes/teacher_' . (int)$teacherId . '/' . $storedFilename,
+        'mime'          => $realMime,
+        'size'          => $file['size'],
+    ];
+}
+
 /**
- * Try to convert a document to PDF using LibreOffice (if available).
- * Returns the path to the generated PDF or false.
+ * Upload recorded voice or video note from MediaRecorder or file input
  */
+function upload_recorded_media($file, $teacherId, $mediaType = 'voice') {
+    if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
+        return ['success' => false, 'error' => 'Media upload failed: ' . upload_error_message($file['error'] ?? UPLOAD_ERR_NO_FILE)];
+    }
+
+    $maxSize = ($mediaType === 'video') ? MAX_VIDEO_SIZE : 50 * 1024 * 1024; // 50MB for voice, 500MB for video
+    if ($file['size'] > $maxSize) {
+        $maxMb = round($maxSize / (1024 * 1024));
+        return ['success' => false, 'error' => "Recorded file is too large. Maximum allowed is {$maxMb} MB."];
+    }
+
+    $detectedMime = detect_mime_type($file['tmp_name']);
+    $clientMime = !empty($file['type']) ? strtolower(explode(';', $file['type'])[0]) : '';
+    
+    // Choose the best matching MIME and extension
+    $ext = null;
+    $finalMime = $detectedMime;
+
+    if ($mediaType === 'voice') {
+        $audioMap = [
+            'audio/webm' => 'webm',
+            'video/webm' => 'webm', // Some browsers send audio-only webm as video/webm
+            'audio/ogg' => 'ogg',
+            'application/ogg' => 'ogg',
+            'audio/wav' => 'wav',
+            'audio/x-wav' => 'wav',
+            'audio/mpeg' => 'mp3',
+            'audio/mp3' => 'mp3',
+            'audio/mp4' => 'm4a',
+            'audio/x-m4a' => 'm4a',
+            'audio/aac' => 'aac',
+        ];
+
+        if (isset($audioMap[$detectedMime])) {
+            $ext = $audioMap[$detectedMime];
+            $finalMime = $detectedMime;
+        } elseif (isset($audioMap[$clientMime])) {
+            $ext = $audioMap[$clientMime];
+            $finalMime = $clientMime;
+        } else {
+            // Default audio fallback if generic octet-stream
+            $ext = 'webm';
+            $finalMime = 'audio/webm';
+        }
+    } else {
+        $videoMap = [
+            'video/webm' => 'webm',
+            'video/mp4' => 'mp4',
+            'video/ogg' => 'ogv',
+            'video/quicktime' => 'mov',
+            'video/x-matroska' => 'mkv',
+        ];
+
+        if (isset($videoMap[$detectedMime])) {
+            $ext = $videoMap[$detectedMime];
+            $finalMime = $detectedMime;
+        } elseif (isset($videoMap[$clientMime])) {
+            $ext = $videoMap[$clientMime];
+            $finalMime = $clientMime;
+        } else {
+            // Default video fallback
+            $ext = 'webm';
+            $finalMime = 'video/webm';
+        }
+    }
+
+    $storedFilename = generate_secure_filename($ext);
+    $subdir = 'media-notes/teacher_' . (int)$teacherId;
+    $uploadPath = ensure_upload_dir($subdir);
+    $destPath = $uploadPath . '/' . $storedFilename;
+
+    if (!move_uploaded_file($file['tmp_name'], $destPath)) {
+        return ['success' => false, 'error' => 'Failed to save recorded media file on server.'];
+    }
+
+    return [
+        'success'       => true,
+        'filename'      => $storedFilename,
+        'path'          => $destPath,
+        'relative_path' => 'uploads/' . $subdir . '/' . $storedFilename,
+        'mime'          => $finalMime,
+        'size'          => (int)$file['size'],
+        'error'         => null,
+    ];
+}
+
 function try_convert_to_pdf($inputPath, $outputDir) {
     $loPath = null;
     $candidates = [
@@ -231,9 +357,6 @@ function try_convert_to_pdf($inputPath, $outputDir) {
     return ['success' => false, 'error' => 'Conversion failed. Output: ' . $output];
 }
 
-/**
- * Save a resource record to the DB.
- */
 function save_resource($teacherId, $data) {
     $pdo = getDBConnection();
     try {
@@ -262,9 +385,6 @@ function save_resource($teacherId, $data) {
     }
 }
 
-/**
- * Get resources for a teacher.
- */
 function get_teacher_resources($teacherId, $type = null) {
     $pdo = getDBConnection();
     try {
@@ -279,9 +399,6 @@ function get_teacher_resources($teacherId, $type = null) {
     }
 }
 
-/**
- * Get a resource by ID (with ownership check).
- */
 function get_resource_by_id($resourceId, $teacherId = null) {
     $pdo = getDBConnection();
     try {
@@ -296,14 +413,10 @@ function get_resource_by_id($resourceId, $teacherId = null) {
     }
 }
 
-/**
- * Delete a resource (with ownership check).
- */
 function delete_resource($resourceId, $teacherId) {
     $resource = get_resource_by_id($resourceId, $teacherId);
     if (!$resource) return false;
 
-    // Delete physical file
     if (file_exists($resource['file_path'])) {
         @unlink($resource['file_path']);
     }
@@ -317,9 +430,6 @@ function delete_resource($resourceId, $teacherId) {
     }
 }
 
-/**
- * Human-readable upload error messages.
- */
 function upload_error_message($errorCode) {
     $messages = [
         UPLOAD_ERR_INI_SIZE   => 'File exceeds server maximum upload size.',
@@ -333,9 +443,6 @@ function upload_error_message($errorCode) {
     return $messages[$errorCode] ?? 'Unknown upload error.';
 }
 
-/**
- * Format file size to human-readable string.
- */
 function format_file_size($bytes) {
     if ($bytes >= 1073741824) return round($bytes / 1073741824, 2) . ' GB';
     if ($bytes >= 1048576)    return round($bytes / 1048576, 2) . ' MB';

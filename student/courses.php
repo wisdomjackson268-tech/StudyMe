@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Student Enrolled Courses Directory
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 secure_page(ROLE_STUDENT);
 
@@ -9,7 +7,6 @@ $user = current_user();
 $pdo = getDBConnection();
 $userId = $user['id'];
 
-// Fetch student ID
 $stmt = $pdo->prepare("SELECT id FROM students WHERE user_id = ? LIMIT 1");
 $stmt->execute([$userId]);
 $student = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -18,7 +15,7 @@ $studentId = $student ? (int)$student['id'] : 0;
 $enrolledCourses = [];
 if ($studentId) {
     $stmt = $pdo->prepare("
-        SELECT c.*, cat.name AS category_name, 
+        SELECT c.*, cat.name AS category_name,
                CONCAT(u.first_name, ' ', u.last_name) AS teacher_name,
                e.progress, e.status AS enrollment_status, e.enrolled_at
         FROM enrollments e
@@ -51,9 +48,9 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         <?php foreach ($enrolledCourses as $c): ?>
             <div class="col-md-6 col-xl-4">
                 <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden hover-lift d-flex flex-column">
-                    <?php $scThumb = function_exists('get_course_thumbnail_url') ? get_course_thumbnail_url($c['thumbnail'] ?? '', 'technology') : ($c['thumbnail'] ?? 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=80'); ?>
-                    <img src="<?= e($scThumb) ?>" 
-                         class="card-img-top" style="height: 180px; object-fit: cover;" 
+                    <?php $scThumb = function_exists('get_course_thumbnail_url') ? get_course_thumbnail_url($c['thumbnail'] ?? '', $c['category_slug'] ?? 'technology', $c['slug'] ?? ($c['title'] ?? '')) : ($c['thumbnail'] ?? 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=80'); ?>
+                    <img src="<?= e($scThumb) ?>"
+                         class="card-img-top" style="height: 180px; object-fit: cover;"
                          alt="<?= e($c['title']) ?>"
                          onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=80';">
                     <div class="card-body p-4 d-flex flex-column">
@@ -68,7 +65,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                         <h5 class="fw-bold mb-2 line-clamp-2"><?= e($c['title']) ?></h5>
                         <p class="text-muted small mb-3">Instructor: <?= e($c['teacher_name']) ?></p>
 
-                        <!-- Progress Bar -->
                         <div class="mt-auto pt-3">
                             <div class="d-flex justify-content-between small text-muted mb-1 fw-bold">
                                 <span>Progress</span>

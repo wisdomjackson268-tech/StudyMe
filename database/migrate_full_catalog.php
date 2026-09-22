@@ -1,18 +1,12 @@
 <?php
-/**
- * StudyMe AI Platform — Standard Database Migration & Course Catalog Setup
- * Sets standard categories: Technology, Secondary / WAEC / NECO, University, Teacher
- * Populates all 20 Tech (₦10k), 12 Secondary (₦3k), 11 University (₦4k) courses with rich details.
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 $pdo = getDBConnection();
 echo "Executing Standard Catalog Setup...\n";
 
-// Disable foreign key checks for clean remapping
 $pdo->exec("SET FOREIGN_KEY_CHECKS = 0;");
 
-// 1. Ensure Categories table exists and has proper standard rows
 $pdo->exec("
     CREATE TABLE IF NOT EXISTS categories (
         id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -26,7 +20,6 @@ $pdo->exec("
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ");
 
-// Remove legacy test categories or deactivate non-standard ones
 $pdo->exec("UPDATE categories SET status = 'inactive' WHERE slug NOT IN ('technology', 'secondary-waec-neco', 'university', 'teacher')");
 
 $standardCats = [
@@ -45,7 +38,6 @@ foreach ($standardCats as $cat) {
     $stmt->execute([$cat[0], $cat[1], $cat[2], $cat[3]]);
 }
 
-// Fetch map of category slugs to IDs
 $catMap = [];
 $res = $pdo->query("SELECT id, slug FROM categories WHERE status = 'active'")->fetchAll(PDO::FETCH_ASSOC);
 foreach ($res as $r) {
@@ -54,11 +46,10 @@ foreach ($res as $r) {
 
 echo "✔ Standard Categories Configured: " . implode(', ', array_keys($catMap)) . "\n";
 
-// Ensure default teacher exists
 $teacherStmt = $pdo->query("SELECT id FROM teachers LIMIT 1");
 $teacherRow = $teacherStmt->fetch(PDO::FETCH_ASSOC);
 if (!$teacherRow) {
-    // Check if user 1 or teacher user exists
+
     $uRow = $pdo->query("SELECT id FROM users WHERE role = 'teacher' LIMIT 1")->fetch(PDO::FETCH_ASSOC);
     $uId = $uRow ? (int)$uRow['id'] : 1;
     $pdo->prepare("INSERT INTO teachers (user_id, teacher_number, qualification, specialization, bio, rating, status) VALUES (?, 'TCH-001', 'Ph.D in Computer Science & Pedagogy', 'Lead Instructor', 'Experienced educator and mentor.', 4.95, 'active')")->execute([$uId]);
@@ -67,7 +58,6 @@ if (!$teacherRow) {
     $teacherId = (int)$teacherRow['id'];
 }
 
-// 2. SEED 20 TECHNOLOGY COURSES (₦10,000)
 $techCourses = [
     [
         'title' => 'Web Development Bootcamp (Full Stack)',
@@ -276,7 +266,7 @@ foreach ($techCourses as $tc) {
     $stmt = $pdo->prepare("
         INSERT INTO courses (teacher_id, category_id, title, slug, short_description, description, level, price, duration_minutes, thumbnail, status, featured, certificate_enabled, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'published', 1, 1, NOW(), NOW())
-        ON DUPLICATE KEY UPDATE 
+        ON DUPLICATE KEY UPDATE
             category_id = VALUES(category_id),
             title = VALUES(title),
             short_description = VALUES(short_description),
@@ -291,7 +281,6 @@ foreach ($techCourses as $tc) {
 }
 echo "✔ 20 Technology Courses Configured (₦10,000 each)\n";
 
-// 3. SEED 12 SECONDARY / WAEC / NECO COURSES (₦3,000)
 $secondaryCourses = [
     [
         'title' => 'Mathematics (WAEC/NECO/JAMB Prep)',
@@ -408,7 +397,7 @@ foreach ($secondaryCourses as $sc) {
     $stmt = $pdo->prepare("
         INSERT INTO courses (teacher_id, category_id, title, slug, short_description, description, level, price, duration_minutes, thumbnail, status, featured, certificate_enabled, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1800, ?, 'published', 1, 1, NOW(), NOW())
-        ON DUPLICATE KEY UPDATE 
+        ON DUPLICATE KEY UPDATE
             category_id = VALUES(category_id),
             title = VALUES(title),
             short_description = VALUES(short_description),
@@ -423,7 +412,6 @@ foreach ($secondaryCourses as $sc) {
 }
 echo "✔ 12 Secondary / WAEC / NECO Courses Configured (₦3,000 each)\n";
 
-// 4. SEED 11 UNIVERSITY COURSES (₦4,000)
 $uniCourses = [
     [
         'title' => 'Computer Science (Undergraduate Core)',
@@ -531,7 +519,7 @@ foreach ($uniCourses as $uc) {
     $stmt = $pdo->prepare("
         INSERT INTO courses (teacher_id, category_id, title, slug, short_description, description, level, price, duration_minutes, thumbnail, status, featured, certificate_enabled, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 2400, ?, 'published', 1, 1, NOW(), NOW())
-        ON DUPLICATE KEY UPDATE 
+        ON DUPLICATE KEY UPDATE
             category_id = VALUES(category_id),
             title = VALUES(title),
             short_description = VALUES(short_description),
@@ -546,7 +534,6 @@ foreach ($uniCourses as $uc) {
 }
 echo "✔ 11 University Courses Configured (₦4,000 each)\n";
 
-// Enable foreign key checks
 $pdo->exec("SET FOREIGN_KEY_CHECKS = 1;");
 
 echo "All catalog setup completed successfully!\n";

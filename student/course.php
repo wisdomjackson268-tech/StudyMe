@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Student Course Overview & Syllabus View
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/courses.php';
 require_once BASE_PATH . '/includes/functions/enrollments.php';
@@ -18,20 +16,18 @@ $user = current_user();
 $pdo = getDBConnection();
 $userId = $user['id'];
 
-// Resolve student ID
 $stmt = $pdo->prepare("SELECT id FROM students WHERE user_id = ? LIMIT 1");
 $stmt->execute([$userId]);
 $student = $stmt->fetch(PDO::FETCH_ASSOC);
 $studentId = $student ? (int)$student['id'] : 0;
 
-// Strict Access Check: User MUST have verified active enrollment
 $stmtEn = $pdo->prepare("SELECT * FROM enrollments WHERE student_id = ? AND course_id = ? AND status = 'active' LIMIT 1");
 $stmtEn->execute([$studentId, $courseId]);
 $enrollment = $stmtEn->fetch(PDO::FETCH_ASSOC);
 
 if (!$enrollment && current_user_role() !== ROLE_ADMIN) {
     if (defined('FREE_TESTING_MODE') && FREE_TESTING_MODE) {
-        // In free testing mode, auto-enroll student so they can test immediately
+
         if ($studentId) {
             $pdo->prepare("INSERT INTO enrollments (student_id, course_id, status, progress, enrolled_at) VALUES (?, ?, 'active', 0.00, NOW()) ON DUPLICATE KEY UPDATE status = 'active'")
                 ->execute([$studentId, $courseId]);
@@ -39,7 +35,7 @@ if (!$enrollment && current_user_role() !== ROLE_ADMIN) {
             $enrollment = $stmtEn->fetch(PDO::FETCH_ASSOC);
         }
     } else {
-        // Check if student has another active course
+
         $activeCourse = get_student_active_course($studentId);
         if ($activeCourse) {
             set_flash('error', 'Access Restricted: You are enrolled in "' . htmlspecialchars($activeCourse['course_title']) . '". Students are restricted to ONE active course at a time.');
@@ -81,7 +77,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 </div>
 
 <div class="row g-4">
-    <!-- Syllabus Sections Column -->
+
     <div class="col-lg-8">
         <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
             <h4 class="fw-bold mb-3"><i class="bi bi-list-nested text-primary me-2"></i> Course Curriculum</h4>
@@ -138,7 +134,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     </div>
 
-    <!-- Course Details Sidebar Column -->
     <div class="col-lg-4">
         <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
             <?php $cThumb = function_exists('get_course_thumbnail_url') ? get_course_thumbnail_url($course['thumbnail'], $course['category_slug'] ?? 'technology') : ($course['thumbnail'] ?: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=80'); ?>

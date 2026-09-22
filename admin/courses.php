@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Admin Course Management (Fixed SQL + Full Actions)
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_ADMIN);
@@ -10,13 +8,12 @@ $pdo     = getDBConnection();
 $errors  = [];
 $success = '';
 
-// ── POST Actions ─────────────────────────────────────────────
 if (is_post()) {
     $action   = trim($_POST['action'] ?? '');
     $courseId = (int)($_POST['course_id'] ?? 0);
 
     if ($action === 'delete' && $courseId > 0) {
-        // Check for active enrollments / payment records
+
         $stmt = $pdo->prepare("SELECT COUNT(*) FROM enrollments WHERE course_id = ? AND status = 'active'");
         $stmt->execute([$courseId]);
         $activeStudents = (int)$stmt->fetchColumn();
@@ -26,7 +23,7 @@ if (is_post()) {
         $paymentRecords = (int)$stmt2->fetchColumn();
 
         if ($activeStudents > 0 || $paymentRecords > 0) {
-            // Archive instead of delete
+
             $pdo->prepare("UPDATE courses SET status = 'archived' WHERE id = ?")->execute([$courseId]);
             $success = "Course archived (not deleted) — it has {$activeStudents} active students and {$paymentRecords} payment record(s).";
         } else {
@@ -45,7 +42,6 @@ if (is_post()) {
     }
 }
 
-// ── Search & Filter ──────────────────────────────────────────
 $search       = trim($_GET['search'] ?? '');
 $filterStatus = trim($_GET['status'] ?? '');
 $filterCat    = (int)($_GET['category'] ?? 0);
@@ -69,7 +65,6 @@ if ($filterCat > 0) {
 
 $whereSQL = $whereClauses ? 'WHERE ' . implode(' AND ', $whereClauses) : '';
 
-// Fetch all courses with real metrics (uses assignments table for tasks, not resources)
 $stmt = $pdo->prepare("
     SELECT c.*, cat.name AS category_name,
            CONCAT(u.first_name, ' ', u.last_name) AS teacher_name,
@@ -89,10 +84,8 @@ $stmt = $pdo->prepare("
 $stmt->execute($params);
 $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Categories for filter dropdown
 $categories = $pdo->query("SELECT id, name FROM categories WHERE status='active' ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
 
-// Summary stats
 $totalAll       = (int)$pdo->query("SELECT COUNT(*) FROM courses")->fetchColumn();
 $totalPublished = (int)$pdo->query("SELECT COUNT(*) FROM courses WHERE status='published'")->fetchColumn();
 $totalDraft     = (int)$pdo->query("SELECT COUNT(*) FROM courses WHERE status='draft'")->fetchColumn();
@@ -113,7 +106,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 
 <?php if ($success): ?><div class="alert alert-success rounded-3 mb-4"><i class="bi bi-check-circle me-1"></i> <?= e($success) ?></div><?php endif; ?>
 
-<!-- Stats Row -->
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
         <div class="stat-card"><div class="stat-icon blue"><i class="bi bi-collection-play-fill"></i></div><div><div class="stat-value"><?= $totalAll ?></div><p class="stat-label">Total Courses</p></div></div>
@@ -129,7 +121,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
 </div>
 
-<!-- Search & Filters -->
 <div class="card border-0 shadow-sm rounded-4 p-3 mb-4">
     <form method="GET" class="row g-2 align-items-end">
         <div class="col-md-4">
@@ -160,7 +151,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </form>
 </div>
 
-<!-- Courses Table -->
 <?php if (!empty($courses)): ?>
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="table-responsive">
@@ -221,7 +211,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                                class="btn btn-sm btn-outline-secondary rounded-pill px-2" title="Edit">
                                 <i class="bi bi-pencil-square"></i>
                             </a>
-                            <!-- Status Toggle -->
+
                             <form method="POST" class="d-inline">
                                 <input type="hidden" name="course_id" value="<?= $c['id'] ?>">
                                 <?php if ($c['status'] === 'published'): ?>
@@ -236,7 +226,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                                     </button>
                                 <?php endif; ?>
                             </form>
-                            <!-- Delete with confirmation -->
+
                             <form method="POST" class="d-inline" id="delForm<?= $c['id'] ?>">
                                 <input type="hidden" name="action" value="delete">
                                 <input type="hidden" name="course_id" value="<?= $c['id'] ?>">

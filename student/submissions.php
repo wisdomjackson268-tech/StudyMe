@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Student Submissions Handler
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/uploads.php';
 
@@ -12,7 +10,6 @@ $user = current_user();
 $pdo = getDBConnection();
 $userId = $user['id'];
 
-// Resolve student ID
 $stmt = $pdo->prepare("SELECT id FROM students WHERE user_id = ? LIMIT 1");
 $stmt->execute([$userId]);
 $student = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -39,7 +36,6 @@ if ($assignmentId) {
     }
 }
 
-// Handle assignment submission
 $errors = [];
 if (is_post() && isset($_POST['submit_solution']) && $assignment && $studentId) {
     $submissionText = trim($_POST['submission_text'] ?? '');

@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Teacher Activity Log Hub
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_TEACHER);
@@ -10,7 +8,6 @@ $user   = current_user();
 $userId = $user['id'];
 $pdo    = getDBConnection();
 
-// Fetch teacher activity stream
 $stmt = $pdo->prepare("
     SELECT a.*, c.title AS course_title
     FROM activity_logs a

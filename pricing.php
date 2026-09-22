@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Official Pricing Overview
- */
+
 require_once __DIR__ . '/config/main.php';
 
 $rates = get_official_pricing_rates();
@@ -11,7 +9,7 @@ include BASE_PATH . '/includes/layouts/header.php';
 
 <div class="py-5 bg-light-subtle" style="min-height: calc(100vh - 120px);">
     <div class="container py-4">
-        <!-- Header -->
+
         <div class="text-center max-w-700 mx-auto mb-5">
             <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 fw-bold text-uppercase mb-3">
                 Official Platform Rates
@@ -22,9 +20,8 @@ include BASE_PATH . '/includes/layouts/header.php';
             </p>
         </div>
 
-        <!-- Plans Grid -->
         <div class="row g-4 justify-content-center">
-            <!-- Secondary / WAEC / NECO -->
+
             <div class="col-md-6 col-lg-3">
                 <div class="card h-100 border-0 shadow-sm rounded-4 p-4 d-flex flex-column hover-lift">
                     <div class="p-3 bg-info bg-opacity-10 text-info rounded-3 d-inline-flex mb-3" style="width: fit-content;">
@@ -48,7 +45,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                 </div>
             </div>
 
-            <!-- University Courses -->
             <div class="col-md-6 col-lg-3">
                 <div class="card h-100 border-0 shadow-sm rounded-4 p-4 d-flex flex-column hover-lift">
                     <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-3 d-inline-flex mb-3" style="width: fit-content;">
@@ -72,7 +68,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                 </div>
             </div>
 
-            <!-- Technology Courses (Best Value) -->
             <div class="col-md-6 col-lg-3">
                 <div class="card h-100 border-0 shadow-sm rounded-4 p-4 d-flex flex-column hover-lift border-primary" style="border: 2px solid var(--primary-color) !important;">
                     <div class="badge bg-primary text-white rounded-pill px-3 py-1 mb-3 align-self-start fw-bold small">High Demand</div>
@@ -94,7 +89,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                 </div>
             </div>
 
-            <!-- Teacher Plan -->
             <div class="col-md-6 col-lg-3">
                 <div class="card h-100 border-0 shadow-sm rounded-4 p-4 d-flex flex-column hover-lift">
                     <div class="p-3 bg-success bg-opacity-10 text-success rounded-3 d-inline-flex mb-3" style="width: fit-content;">

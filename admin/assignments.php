@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Admin Assignments & Tasks Manager
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_ADMIN);

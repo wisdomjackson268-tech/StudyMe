@@ -1,14 +1,118 @@
-<?php
-/**
- * StudyMe Comprehensive Deep Codebase Auditor
- * Inspects all files for:
- * 1. Missing includes/requires
- * 2. Invalid SQL table references
- * 3. Broken redirect destinations
- * 4. Broken form actions
- * 5. Undefined or missing user settings/profile pages across Student, Teacher, and Admin
- */
+﻿<?php
+
 require_once dirname(__DIR__) . '/config/main.php';
+
+function extractIncludeStatements(string $source): array {
+    $tokens = token_get_all($source);
+    $statements = [];
+    $count = count($tokens);
+
+    for ($i = 0; $i < $count; $i++) {
+        $token = $tokens[$i];
+        if (!is_array($token)) {
+            continue;
+        }
+
+        $tokenId = $token[0];
+        if (!in_array($tokenId, [T_REQUIRE, T_REQUIRE_ONCE, T_INCLUDE, T_INCLUDE_ONCE], true)) {
+            continue;
+        }
+
+        $statement = $token[1];
+        $j = $i + 1;
+        while ($j < $count) {
+            $next = $tokens[$j];
+            if (is_array($next)) {
+                $statement .= $next[1];
+            } else {
+                $statement .= $next;
+            }
+
+            if ($next === ';') {
+                $j++;
+                break;
+            }
+            $j++;
+        }
+
+        $statements[] = $statement;
+        $i = $j - 1;
+    }
+
+    return $statements;
+}
+
+function extractRedirectCalls(string $source): array {
+    $calls = [];
+    $tokens = token_get_all($source);
+    $count = count($tokens);
+
+    for ($i = 0; $i < $count; $i++) {
+        if (!is_array($tokens[$i])) {
+            continue;
+        }
+
+        $text = strtolower($tokens[$i][1]);
+        if (!in_array($text, ['header', 'redirect'], true)) {
+            continue;
+        }
+
+        $call = $tokens[$i][1];
+        $depth = 0;
+        $j = $i + 1;
+        while ($j < $count) {
+            $next = $tokens[$j];
+            if (is_array($next)) {
+                $call .= $next[1];
+            } else {
+                $call .= $next;
+                if ($next === '(') {
+                    $depth++;
+                } elseif ($next === ')') {
+                    $depth--;
+                    if ($depth === 0) {
+                        $j++;
+                        break;
+                    }
+                }
+            }
+            $j++;
+        }
+
+        $calls[] = $call;
+        $i = $j - 1;
+    }
+
+    return $calls;
+}
+
+function resolveIncludeTargets(string $statement, string $baseDir): array {
+    $targets = [];
+    $normalized = preg_replace('/\s+/', ' ', $statement);
+
+    $resolvedBase = $baseDir;
+    if (stripos($normalized, 'BASE_PATH') !== false) {
+        $resolvedBase = BASE_PATH;
+    } elseif (preg_match('/dirname\s*\(\s*__DIR__\s*\)/i', $normalized)) {
+        $resolvedBase = dirname($baseDir);
+    } elseif (stripos($normalized, '__DIR__') !== false) {
+        $resolvedBase = $baseDir;
+    }
+
+    preg_match_all('/(?:__DIR__|BASE_PATH|dirname\s*\(\s*__DIR__\s*\))\s*\.\s*[\'\"]([^\'\"]+)[\'\"]/i', $normalized, $dirMatches);
+    foreach ($dirMatches[1] as $path) {
+        $targets[] = rtrim($resolvedBase, DIRECTORY_SEPARATOR) . '/' . ltrim($path, '/');
+    }
+
+    preg_match_all('/(?:require|include)(?:_once)?\s*(?:\(\s*)?[\'\"]([^\'\"]+)[\'\"]/i', $normalized, $literalMatches);
+    foreach ($literalMatches[1] as $path) {
+        if ($path !== '') {
+            $targets[] = rtrim($baseDir, DIRECTORY_SEPARATOR) . '/' . ltrim($path, '/');
+        }
+    }
+
+    return array_values(array_unique(array_filter($targets, static fn($value) => $value !== '')));
+}
 
 $pdo = getDBConnection();
 $baseDir = BASE_PATH;
@@ -17,12 +121,9 @@ echo "=======================================================\n";
 echo "      STUDYME DEEP TECHNICAL AUDIT & ANALYSIS         \n";
 echo "=======================================================\n\n";
 
-// 1. Get all actual database tables
 $tables = $pdo->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
-$tablesLower = array_map('strtolower', $tables);
 echo "✔ MySQL Database Tables (" . count($tables) . "): " . implode(', ', $tables) . "\n\n";
 
-// 2. Scan all PHP files
 $iterator = new RecursiveIteratorIterator(
     new RecursiveDirectoryIterator($baseDir, RecursiveDirectoryIterator::SKIP_DOTS)
 );
@@ -37,49 +138,54 @@ foreach ($iterator as $path => $file) {
 $brokenIncludes = [];
 $brokenRedirects = [];
 $brokenFormActions = [];
-$sqlIssues = [];
 
 foreach ($phpFiles as $file) {
     $content = file_get_contents($file);
-    $relFile = str_replace($baseDir . DIRECTORY_SEPARATOR, '', $file);
-    $lines = explode("\n", $content);
+    if ($content === false) {
+        continue;
+    }
 
-    // A. Check require/include statements
-    preg_match_all('/(?:require|require_once|include|include_once)\s*[\(\s]+([^;\)]+)[\)\s]*;/i', $content, $incMatches, PREG_SET_ORDER);
-    foreach ($incMatches as $m) {
-        $rawPath = trim($m[1], "'\" ");
-        // Skip dynamic expressions like $file, dirname(__DIR__), BASE_PATH
-        if (strpos($rawPath, '$') !== false || strpos($rawPath, 'BASE_PATH') !== false || strpos($rawPath, 'dirname') !== false) {
-            // Evaluate standard BASE_PATH patterns
-            if (preg_match('/BASE_PATH\s*\.\s*[\'"]([^\'"]+)[\'"]/', $m[0], $subM)) {
-                $target = BASE_PATH . $subM[1];
-                if (!file_exists($target)) {
-                    $brokenIncludes[] = ['file' => $relFile, 'target' => $target, 'code' => $m[0]];
-                }
+    $relFile = str_replace($baseDir . DIRECTORY_SEPARATOR, '', $file);
+
+    foreach (extractIncludeStatements($content) as $statement) {
+        foreach (resolveIncludeTargets($statement, dirname($file)) as $target) {
+            if (file_exists($target)) {
+                continue;
             }
-        } elseif (file_exists($rawPath) === false && file_exists(dirname($file) . '/' . $rawPath) === false && file_exists(BASE_PATH . '/' . $rawPath) === false) {
-            $brokenIncludes[] = ['file' => $relFile, 'target' => $rawPath, 'code' => $m[0]];
+            $brokenIncludes[] = ['file' => $relFile, 'target' => $target, 'code' => $statement];
         }
     }
 
-    // B. Check redirect() and header('Location: ...')
-    preg_match_all('/(?:redirect|header)\s*\(\s*[\'"](?:Location:\s*)?([^\'"]+)[\'"]\s*\)/i', $content, $redMatches);
-    foreach ($redMatches[1] as $target) {
-        if (strpos($target, 'http') === 0 || strpos($target, '#') === 0 || strpos($target, '?') === 0) continue;
+    foreach (extractRedirectCalls($content) as $call) {
+        $target = null;
+
+        if (preg_match('/header\s*\(\s*[\'\"]\s*Location\s*:\s*([\'\"]?)([^\'\")]+)\1/i', $call, $headerMatch)) {
+            $target = $headerMatch[2];
+        } elseif (preg_match('/redirect\s*\(\s*[\'\"]([^\'\"]+)[\'\"]/i', $call, $redirectMatch)) {
+            $target = $redirectMatch[1];
+        }
+
+        if ($target === null || $target === '' || strpos($target, '$') !== false || strpos($target, '.') !== false && preg_match('/[\$\w]+\s*\./', $target)) {
+            continue;
+        }
+
+        if (strpos($target, 'http') === 0 || strpos($target, '#') === 0 || strpos($target, '?') === 0) {
+            continue;
+        }
+
         $cleanTarget = strtok($target, '?');
         $cleanTarget = ltrim($cleanTarget, '/');
-        if (!file_exists(BASE_PATH . '/' . $cleanTarget) && !file_exists(dirname($file) . '/' . $cleanTarget)) {
-            // Check if it's an external or parameterized route
-            if (!in_array($cleanTarget, ['javascript:void(0)', ''])) {
-                $brokenRedirects[] = ['file' => $relFile, 'target' => $target];
-            }
+        if (!file_exists(BASE_PATH . '/' . $cleanTarget) && !file_exists(dirname($file) . '/' . $cleanTarget) && !in_array($cleanTarget, ['javascript:void(0)', ''])) {
+            $brokenRedirects[] = ['file' => $relFile, 'target' => $target];
         }
     }
 
-    // C. Check form action URLs
-    preg_match_all('/<form[^>]+action=[\'"]([^\'"]+)[\'"]/i', $content, $formMatches);
+    preg_match_all('/<form[^>]+action=[\'\"]([^\'\"]+)[\'\"]/i', $content, $formMatches);
     foreach ($formMatches[1] as $action) {
-        if (empty($action) || strpos($action, 'http') === 0 || strpos($action, '#') === 0 || strpos($action, '?') === 0 || strpos($action, '<?=') !== false) continue;
+        if (empty($action) || strpos($action, 'http') === 0 || strpos($action, '#') === 0 || strpos($action, '?') === 0 || strpos($action, '<?=') !== false) {
+            continue;
+        }
+
         $cleanAction = strtok($action, '?');
         $cleanAction = ltrim($cleanAction, '/');
         if (!file_exists(BASE_PATH . '/' . $cleanAction) && !file_exists(dirname($file) . '/' . $cleanAction)) {
@@ -121,7 +227,6 @@ if (empty($brokenFormActions)) {
     echo "\n";
 }
 
-// 5. Check Universal User Settings across Student, Teacher, and Admin
 echo "5. Universal Settings & Profile Pages Audit:\n";
 $settingsFiles = [
     'Student Settings' => 'student/settings.php',

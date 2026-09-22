@@ -11,7 +11,6 @@
         <div class="row justify-content-center">
             <div class="col-lg-10">
                 <div class="accordion custom-accordion" id="faqAccordion">
-                    <!-- Q1 -->
                     <div class="accordion-item">
                         <h3 class="accordion-header" id="faqHeading1">
                             <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse1" aria-expanded="true" aria-controls="faqCollapse1">
@@ -20,12 +19,11 @@
                         </h3>
                         <div id="faqCollapse1" class="accordion-collapse collapse show" aria-labelledby="faqHeading1" data-bs-parent="#faqAccordion">
                             <div class="accordion-body">
-                                StudyMe is an advanced AI-powered AI-powered learning platform (AI-Powered Learning Platform) that connects students with expert teachers. It offers interactive video courses, automated quiz evaluations, progress tracking, 24/7 AI tutoring, and verified certificates of completion.
+                                StudyMe is an advanced AI-powered learning platform (AI-Powered Learning Platform) that connects students with expert teachers. It offers interactive video courses, automated quiz evaluations, progress tracking, 24/7 AI tutoring, and verified certificates of completion.
                             </div>
                         </div>
                     </div>
 
-                    <!-- Q2 -->
                     <div class="accordion-item">
                         <h3 class="accordion-header" id="faqHeading2">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse2" aria-expanded="false" aria-controls="faqCollapse2">
@@ -39,7 +37,6 @@
                         </div>
                     </div>
 
-                    <!-- Q3 -->
                     <div class="accordion-item">
                         <h3 class="accordion-header" id="faqHeading3">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse3" aria-expanded="false" aria-controls="faqCollapse3">
@@ -53,7 +50,6 @@
                         </div>
                     </div>
 
-                    <!-- Q4 -->
                     <div class="accordion-item">
                         <h3 class="accordion-header" id="faqHeading4">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse4" aria-expanded="false" aria-controls="faqCollapse4">
@@ -67,7 +63,6 @@
                         </div>
                     </div>
 
-                    <!-- Q5 -->
                     <div class="accordion-item">
                         <h3 class="accordion-header" id="faqHeading5">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse5" aria-expanded="false" aria-controls="faqCollapse5">
@@ -81,7 +76,6 @@
                         </div>
                     </div>
 
-                    <!-- Q6 -->
                     <div class="accordion-item">
                         <h3 class="accordion-header" id="faqHeading6">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse6" aria-expanded="false" aria-controls="faqCollapse6">

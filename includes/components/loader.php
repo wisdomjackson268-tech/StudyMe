@@ -1,10 +1,6 @@
 <?php
-/**
- * StudyMe AI Platform — Minimal Branded Page Preloader & Unified Loading Styles
- */
 ?>
 <script>
-    // Inline blocking script to set dark/light class instantly and prevent flash of unstyled content (FOUC)
     (function() {
         try {
             var savedTheme = localStorage.getItem("theme");
@@ -47,7 +43,6 @@
         height: 120px;
     }
 
-    /* Branded mortarboard icon pulse/scale */
     .preloader-brand-icon {
         font-size: 2.8rem;
         color: #6C2BFF;
@@ -62,7 +57,6 @@
         color: #a78bfa;
     }
 
-    /* Smooth spinner ring around logo */
     .preloader-spinner {
         position: absolute;
         width: 90px;
@@ -78,7 +72,6 @@
         border-top: 3px solid #a78bfa;
     }
 
-    /* --- Reusable AI Thinking Indicator Bubble --- */
     .ai-thinking-bubble {
         display: flex;
         align-items: center;
@@ -149,7 +142,6 @@
     .ai-thinking-dot:nth-child(2) { animation-delay: 0.2s; }
     .ai-thinking-dot:nth-child(3) { animation-delay: 0.4s; }
 
-    /* --- Reusable AI Error Bubble --- */
     .ai-error-bubble {
         display: flex;
         flex-direction: column;
@@ -170,7 +162,6 @@
         border: 1px solid rgba(239, 68, 68, 0.25);
     }
 
-    /* --- Reusable Panel/AJAX Loader Overlay --- */
     .panel-loader-overlay {
         position: absolute;
         top: 0;
@@ -198,7 +189,6 @@
         pointer-events: all;
     }
 
-    /* --- Keyframes --- */
     @keyframes preloader-spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }

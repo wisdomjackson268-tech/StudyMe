@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Teacher Edit Announcement Page
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/announcements.php';
 
@@ -11,7 +9,6 @@ $userId = (int)$user['id'];
 $annId  = (int)($_GET['id'] ?? 0);
 $pdo    = getDBConnection();
 
-// Fetch announcement with ownership check
 $stmt = $pdo->prepare("SELECT * FROM announcements WHERE id = ? AND created_by = ? LIMIT 1");
 $stmt->execute([$annId, $userId]);
 $ann = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -21,7 +18,6 @@ if (!$ann) {
     redirect('teacher/announcements.php');
 }
 
-// Fetch teacher's assigned courses
 $stmtTeacher = $pdo->prepare("SELECT id, assigned_course_id FROM teachers WHERE user_id = ? LIMIT 1");
 $stmtTeacher->execute([$userId]);
 $teacher = $stmtTeacher->fetch(PDO::FETCH_ASSOC);
@@ -74,7 +70,7 @@ if (is_post()) {
         $publishedAt = ($status === 'published' && $wasDraft) ? date('Y-m-d H:i:s') : $ann['published_at'];
 
         $stmtUpd = $pdo->prepare("
-            UPDATE announcements 
+            UPDATE announcements
             SET title = ?, content = ?, course_id = ?, priority = ?, status = ?, attachment = ?, published_at = ?, updated_at = NOW()
             WHERE id = ? AND created_by = ?
         ");
@@ -116,7 +112,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
             </div>
 
             <div class="card border-0 shadow-sm rounded-4 bg-white p-4 p-md-5">
-                
+
                 <?php if (!empty($errors)): ?>
                     <div class="alert alert-danger rounded-3 mb-4">
                         <ul class="mb-0 small ps-3">
@@ -128,7 +124,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                 <?php endif; ?>
 
                 <form action="<?= url('teacher/edit-announcement.php?id=' . $annId) ?>" method="POST" enctype="multipart/form-data">
-                    
+
                     <div class="mb-3">
                         <label for="title" class="form-label fw-bold small">Announcement Title <span class="text-danger">*</span></label>
                         <input type="text" name="title" id="title" class="form-control form-control-lg rounded-3" value="<?= e($title) ?>" required>

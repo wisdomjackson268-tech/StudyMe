@@ -27,17 +27,12 @@ foreach ($first as $f) {
 }
 exit;
 
-
-
-
-
 echo "\n=== ALL THUMBNAILS IN COURSES TABLE ===\n";
 $stmt2 = $pdo->query("SELECT DISTINCT thumbnail FROM courses");
 $thumbs = $stmt2->fetchAll(PDO::FETCH_COLUMN);
 foreach ($thumbs as $th) {
     echo "Thumbnail: " . $th . "\n";
 }
-
 
 echo "\n=== ALL UNIVERSITY COURSES ===\n";
 $uniCourses = $pdo->query("SELECT c.id, c.title, c.category_id, c.teacher_id, c.price, c.thumbnail FROM courses c WHERE c.category_id = 8")->fetchAll(PDO::FETCH_ASSOC);
@@ -51,7 +46,6 @@ foreach ($secCourses as $sc) {
     echo "ID: {$sc['id']} | Title: {$sc['title']} | Teacher: {$sc['teacher_id']} | Price: {$sc['price']} | Thumb: {$sc['thumbnail']}\n";
 }
 
-
 echo "\n=== SUBSCRIPTION PLANS ===\n";
 $plans = $pdo->query("SELECT * FROM subscription_plans")->fetchAll(PDO::FETCH_ASSOC);
 foreach ($plans as $p) {
@@ -61,4 +55,3 @@ foreach ($plans as $p) {
 echo "\n=== TABLES IN DB ===\n";
 $tables = $pdo->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
 echo implode(", ", $tables) . "\n";
-

@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform - Admin Payment Verification
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 require_login();
@@ -11,36 +9,32 @@ if (current_user_role() !== 'admin') {
 
 $pdo = getDBConnection();
 
-// Handle Approve / Reject
 if (is_post() && isset($_POST['payment_id'], $_POST['action'])) {
     $paymentId = (int)$_POST['payment_id'];
     $action = $_POST['action'];
 
-    // Get payment details
     $stmt = $pdo->prepare("SELECT * FROM payments WHERE id = ?");
     $stmt->execute([$paymentId]);
     $payment = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($payment && $payment['status'] === 'pending') {
         if ($action === 'approve') {
-            // Mark payment successful
-            $pdo->prepare("UPDATE payments SET status = 'successful', paid_at = NOW() WHERE id = ?")->execute([$paymentId]);
-            
-            // Extract plan_id from metadata if available
-            $meta = json_decode($payment['metadata'], true);
-            $planId = $meta['plan_id'] ?? 1; // Fallback
 
-            // Give the user an active subscription
+            $pdo->prepare("UPDATE payments SET status = 'successful', paid_at = NOW() WHERE id = ?")->execute([$paymentId]);
+
+            $meta = json_decode($payment['metadata'], true);
+            $planId = $meta['plan_id'] ?? 1;
+
             $stmt = $pdo->prepare("SELECT id FROM subscriptions WHERE student_id = (SELECT id FROM students WHERE user_id = ?) LIMIT 1");
             $stmt->execute([$payment['user_id']]);
             $sub = $stmt->fetch();
 
             if ($sub) {
-                // Update existing
+
                 $pdo->prepare("UPDATE subscriptions SET plan_id = ?, status = 'active', starts_at = NOW(), ends_at = DATE_ADD(NOW(), INTERVAL 1 MONTH) WHERE id = ?")
                     ->execute([$planId, $sub['id']]);
             } else {
-                // Determine if student or teacher
+
                 $stmt = $pdo->prepare("SELECT id, 'student' as type FROM students WHERE user_id = ? UNION SELECT id, 'teacher' as type FROM teachers WHERE user_id = ?");
                 $stmt->execute([$payment['user_id'], $payment['user_id']]);
                 $roleRec = $stmt->fetch();
@@ -60,11 +54,10 @@ if (is_post() && isset($_POST['payment_id'], $_POST['action'])) {
     redirect('admin/payments.php');
 }
 
-// Fetch all payments
 $stmt = $pdo->prepare("
-    SELECT p.*, u.first_name, u.last_name, u.email 
-    FROM payments p 
-    JOIN users u ON p.user_id = u.id 
+    SELECT p.*, u.first_name, u.last_name, u.email
+    FROM payments p
+    JOIN users u ON p.user_id = u.id
     ORDER BY p.created_at DESC
 ");
 $stmt->execute();
@@ -98,7 +91,7 @@ include BASE_PATH . '/includes/layouts/admin-header.php';
                                 <td colspan="6" class="text-center py-5 text-muted">No payments found.</td>
                             </tr>
                         <?php else: ?>
-                            <?php foreach ($payments as $pay): 
+                            <?php foreach ($payments as $pay):
                                 $meta = !empty($pay['metadata']) ? json_decode($pay['metadata'], true) : [];
                             ?>
                             <tr>

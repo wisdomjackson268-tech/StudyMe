@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Teacher Create Task Form
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_TEACHER);
@@ -14,7 +12,6 @@ $pdo  = getDBConnection();
 $uid  = $user['id'];
 $preSelectedCourse = (int)($_GET['course_id'] ?? 0);
 
-// Resolve teacher ID
 $stmt = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ? LIMIT 1");
 $stmt->execute([$uid]);
 $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -25,7 +22,6 @@ if (!$tid) {
     redirect('teacher/dashboard.php');
 }
 
-// Fetch ONLY courses owned by this teacher (Ownership Enforcement)
 $stmt = $pdo->prepare("SELECT id, title FROM courses WHERE teacher_id = ? ORDER BY title ASC");
 $stmt->execute([$tid]);
 $myCourses = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -43,7 +39,6 @@ if (is_post()) {
     $maxScore    = (float)($_POST['max_score'] ?? 100.00);
     $status      = $_POST['status'] ?? 'published';
 
-    // Verify course belongs to authenticated teacher
     $stmtCheck = $pdo->prepare("SELECT id FROM courses WHERE id = ? AND teacher_id = ? LIMIT 1");
     $stmtCheck->execute([$courseId, $tid]);
     if (!$stmtCheck->fetch()) {

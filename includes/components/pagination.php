@@ -1,8 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Pagination Component
- * Expects $currentPage, $totalPages, $baseUrl in scope.
- */
+
 if (!isset($totalPages) || $totalPages <= 1) return;
 $currentPage = max(1, (int)($currentPage ?? 1));
 $baseUrl = $baseUrl ?? '?page=';

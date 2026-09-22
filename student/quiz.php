@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Student Quiz Runner & Submission Processor
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/quizzes.php';
 require_once BASE_PATH . '/includes/functions/certificates.php';
@@ -20,16 +18,13 @@ $user = current_user();
 $pdo = getDBConnection();
 $userId = $user['id'];
 
-// Resolve student ID
 $stmt = $pdo->prepare("SELECT id FROM students WHERE user_id = ? LIMIT 1");
 $stmt->execute([$userId]);
 $student = $stmt->fetch(PDO::FETCH_ASSOC);
 $studentId = $student ? (int)$student['id'] : 0;
 
-// Track quiz start activity
 log_user_activity($userId, 'quiz_start', 'Started quiz: ' . ($quiz['title'] ?? 'Unknown'), $quiz['course_id'] ?? null, null, $quizId);
 
-// Strict Check: Student must be actively enrolled in this quiz's course
 if (current_user_role() === ROLE_STUDENT) {
     $stmtEn = $pdo->prepare("SELECT id FROM enrollments WHERE student_id = ? AND course_id = ? AND status = 'active' LIMIT 1");
     $stmtEn->execute([$studentId, $quiz['course_id']]);
@@ -39,13 +34,11 @@ if (current_user_role() === ROLE_STUDENT) {
     }
 }
 
-// Handle Quiz Submission
 if (is_post() && isset($_POST['submit_quiz'])) {
     $userAnswers = $_POST['answers'] ?? [];
     $totalPoints = 0.0;
     $earnedPoints = 0.0;
 
-    // Create attempt entry
     $stmt = $pdo->prepare("
         INSERT INTO quiz_attempts (quiz_id, student_id, started_at, submitted_at)
         VALUES (?, ?, NOW(), NOW())
@@ -71,7 +64,6 @@ if (is_post() && isset($_POST['submit_quiz'])) {
             }
         }
 
-        // Record answer
         $stmt = $pdo->prepare("
             INSERT INTO quiz_answers (attempt_id, question_id, option_id, is_correct, points_earned)
             VALUES (?, ?, ?, ?, ?)
@@ -83,15 +75,13 @@ if (is_post() && isset($_POST['submit_quiz'])) {
     $passingScore = (float)($quiz['passing_score'] ?? 50.0);
     $passed = $percentage >= $passingScore;
 
-    // Update attempt record
     $stmt = $pdo->prepare("
-        UPDATE quiz_attempts 
+        UPDATE quiz_attempts
         SET score = ?, percentage = ?, passed = ?
         WHERE id = ?
     ");
     $stmt->execute([$earnedPoints, $percentage, $passed ? 1 : 0, $attemptId]);
 
-    // Check certificate eligibility
     if ($passed) {
         $stmt = $pdo->prepare("SELECT id FROM enrollments WHERE student_id = ? AND course_id = ? LIMIT 1");
         $stmt->execute([$studentId, $quiz['course_id']]);

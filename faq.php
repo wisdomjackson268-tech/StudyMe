@@ -1,14 +1,12 @@
 <?php
-/**
- * StudyMe AI Platform — Frequently Asked Questions (FAQ)
- */
+
 require_once __DIR__ . '/config/main.php';
 include BASE_PATH . '/includes/layouts/header.php';
 ?>
 
 <div class="py-5 bg-light-subtle" style="min-height: calc(100vh - 120px);">
     <div class="container py-4">
-        <!-- Header -->
+
         <div class="text-center max-w-700 mx-auto mb-5 animate-fade-in">
             <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex mb-3">
                 <i class="bi bi-question-diamond-fill fs-1"></i>
@@ -17,7 +15,6 @@ include BASE_PATH . '/includes/layouts/header.php';
             <p class="lead text-muted">Everything you need to know about StudyMe, AI tutors, courses, verified certificates, and teaching.</p>
         </div>
 
-        <!-- Search / Category Filters -->
         <div class="row justify-content-center mb-5">
             <div class="col-lg-8">
                 <div class="input-group input-group-lg shadow-sm rounded-4 overflow-hidden mb-4">
@@ -36,12 +33,10 @@ include BASE_PATH . '/includes/layouts/header.php';
             </div>
         </div>
 
-        <!-- Accordion Section -->
         <div class="row justify-content-center">
             <div class="col-lg-9">
                 <div class="accordion custom-accordion" id="faqAccordion">
-                    
-                    <!-- General FAQs -->
+
                     <div class="accordion-item faq-item" data-category="general">
                         <h2 class="accordion-header" id="headingGen1">
                             <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGen1" aria-expanded="true" aria-controls="collapseGen1">
@@ -68,7 +63,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                         </div>
                     </div>
 
-                    <!-- AI Learning FAQs -->
                     <div class="accordion-item faq-item" data-category="ai">
                         <h2 class="accordion-header" id="headingAI1">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAI1" aria-expanded="false" aria-controls="collapseAI1">
@@ -95,7 +89,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                         </div>
                     </div>
 
-                    <!-- Courses & Lessons FAQs -->
                     <div class="accordion-item faq-item" data-category="courses">
                         <h2 class="accordion-header" id="headingCourse1">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCourse1" aria-expanded="false" aria-controls="collapseCourse1">
@@ -122,7 +115,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                         </div>
                     </div>
 
-                    <!-- Teaching FAQs -->
                     <div class="accordion-item faq-item" data-category="teachers">
                         <h2 class="accordion-header" id="headingTeach1">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTeach1" aria-expanded="false" aria-controls="collapseTeach1">
@@ -149,7 +141,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                         </div>
                     </div>
 
-                    <!-- Certificates FAQs -->
                     <div class="accordion-item faq-item" data-category="certificates">
                         <h2 class="accordion-header" id="headingCert1">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCert1" aria-expanded="false" aria-controls="collapseCert1">
@@ -164,7 +155,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                     </div>
                 </div>
 
-                <!-- Still have questions? -->
                 <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mt-5 text-center">
                     <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex mb-3 fs-3">
                         <i class="bi bi-headset"></i>

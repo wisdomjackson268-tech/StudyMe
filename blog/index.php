@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Blog & Articles Hub (Premium Redesign)
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 $categories  = [];
@@ -343,11 +341,10 @@ body.dark .blog-card-footer { border-color: rgba(255,255,255,0.07); }
 }
 </style>
 
-<!-- HERO SECTION -->
 <section class="blog-hero">
     <div class="container position-relative" style="z-index:2;">
         <div class="text-center">
-            <!-- Eyebrow chips -->
+
             <div class="d-flex justify-content-center flex-wrap gap-2 mb-4">
                 <span class="hero-chip"><i class="bi bi-newspaper text-warning"></i> StudyMe Blog</span>
                 <span class="hero-chip"><i class="bi bi-stars text-warning"></i> AI-Powered Insights</span>
@@ -364,7 +361,6 @@ body.dark .blog-card-footer { border-color: rgba(255,255,255,0.07); }
                 Evidence-based study strategies, WAEC &amp; JAMB guides, AI breakthroughs in education, and real student success stories — all in one place.
             </p>
 
-            <!-- Search -->
             <div class="blog-search-glass">
                 <span class="search-icon"><i class="bi bi-search"></i></span>
                 <form action="<?= url('blog/search.php') ?>" method="GET" style="flex:1; display:flex;">
@@ -376,11 +372,9 @@ body.dark .blog-card-footer { border-color: rgba(255,255,255,0.07); }
     </div>
 </section>
 
-<!-- MAIN CONTENT -->
 <div class="py-5 bg-light-subtle" style="min-height:60vh;">
     <div class="container">
 
-        <!-- Category Filter -->
         <div class="d-flex flex-wrap justify-content-center gap-2 mb-5">
             <a href="<?= url('blog/index.php') ?>" class="cat-pill cat-pill-primary">
                 <i class="bi bi-grid-fill"></i> All Articles
@@ -396,7 +390,7 @@ body.dark .blog-card-footer { border-color: rgba(255,255,255,0.07); }
         </div>
 
         <?php if ($featuredPost): ?>
-        <!-- FEATURED ARTICLE -->
+
         <div class="sec-marker">
             <div class="sec-marker-bar"></div>
             <span>Featured Article</span>
@@ -462,7 +456,7 @@ body.dark .blog-card-footer { border-color: rgba(255,255,255,0.07); }
         <?php endif; ?>
 
         <?php if (!empty($posts)): ?>
-        <!-- ARTICLES GRID -->
+
         <div class="sec-marker">
             <div class="sec-marker-bar"></div>
             <span>Latest Articles</span>
@@ -500,7 +494,7 @@ body.dark .blog-card-footer { border-color: rgba(255,255,255,0.07); }
         </div>
 
         <?php elseif (!$featuredPost): ?>
-        <!-- EMPTY STATE -->
+
         <div class="empty-state">
             <div class="empty-icon-wrap">
                 <i class="bi bi-journal-richtext"></i>
@@ -515,7 +509,6 @@ body.dark .blog-card-footer { border-color: rgba(255,255,255,0.07); }
         </div>
         <?php endif; ?>
 
-        <!-- NEWSLETTER STRIP -->
         <div class="newsletter-section mb-5 position-relative">
             <div class="row align-items-center g-4" style="position:relative;z-index:2;">
                 <div class="col-lg-5">
@@ -540,7 +533,6 @@ body.dark .blog-card-footer { border-color: rgba(255,255,255,0.07); }
             </div>
         </div>
 
-        <!-- TOPICS BROWSER -->
         <div class="text-center mb-5">
             <div class="sec-marker justify-content-center mb-3">
                 <div class="sec-marker-bar"></div>

@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Full Announcement Detail Viewer
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/announcements.php';
 
@@ -13,7 +11,6 @@ $annId    = (int)($_GET['id'] ?? 0);
 
 $pdo = getDBConnection();
 
-// Fetch announcement details
 $stmt = $pdo->prepare("
     SELECT a.*,
            CONCAT(u.first_name, ' ', u.last_name) AS author_name,
@@ -32,7 +29,6 @@ if (!$ann) {
     redirect('announcements/index.php');
 }
 
-// Check access permission
 $accessibleUserIds = get_target_recipient_user_ids(
     $ann['target_type'],
     $ann['course_id'],
@@ -47,7 +43,6 @@ if (!$hasAccess) {
     redirect('announcements/index.php');
 }
 
-// Mark as read automatically for this user
 mark_announcement_as_read($annId, $userId);
 
 $priorityColors = ['normal'=>'secondary','important'=>'warning text-dark','urgent'=>'danger'];
@@ -63,13 +58,13 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 <div class="container-fluid py-4">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            
+
             <a href="<?= url('announcements/index.php') ?>" class="btn btn-outline-secondary btn-sm rounded-pill mb-4 px-3">
                 &larr; Back to All Announcements
             </a>
 
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white p-4 p-md-5">
-                
+
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                     <div class="d-flex align-items-center gap-2">
                         <span class="badge bg-<?= $priorityColors[$ann['priority']] ?? 'secondary' ?> rounded-pill px-3 py-1 text-uppercase">
@@ -94,7 +89,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 
                 <h2 class="display-6 fw-bold mb-4 text-dark"><?= e($ann['title']) ?></h2>
 
-                <!-- Author details bar -->
                 <div class="p-3 bg-light rounded-4 d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
                     <div class="d-flex align-items-center gap-3">
                         <div class="p-2 bg-primary text-white rounded-circle fs-4">
@@ -111,14 +105,12 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                     </span>
                 </div>
 
-                <!-- Announcement Body -->
                 <div class="announcement-content lead fs-6 text-dark mb-4" style="line-height: 1.8;">
                     <?= nl2br(e($ann['content'])) ?>
                 </div>
 
-                <!-- Attachment Box if present -->
                 <?php if (!empty($ann['attachment'])): ?>
-                    <?php 
+                    <?php
                     $ext = strtolower(pathinfo($ann['attachment'], PATHINFO_EXTENSION));
                     $fileName = basename($ann['attachment']);
                     ?>

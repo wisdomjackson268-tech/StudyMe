@@ -1,12 +1,9 @@
 <?php
-/**
- * StudyMe AI Platform — AI Learning Showcase Page
- */
+
 require_once __DIR__ . '/config/main.php';
 include BASE_PATH . '/includes/layouts/header.php';
 ?>
 
-<!-- Custom CSS for the simulated chat -->
 <style>
 .chat-window {
     background: #0f172a;
@@ -60,7 +57,6 @@ include BASE_PATH . '/includes/layouts/header.php';
 
 <div class="py-5 bg-light-subtle" style="min-height: calc(100vh - 120px);">
     <div class="container py-4">
-        <!-- Hero Section -->
         <div class="row align-items-center g-5 mb-5">
             <div class="col-lg-6">
                 <div class="p-3 bg-warning bg-opacity-15 text-warning rounded-circle d-inline-flex mb-3">
@@ -86,7 +82,6 @@ include BASE_PATH . '/includes/layouts/header.php';
             </div>
         </div>
 
-        <!-- Simulated Interactive AI Chat Widget -->
         <div class="row justify-content-center py-5" id="demo-chat">
             <div class="col-lg-8">
                 <div class="text-center mb-4">
@@ -111,7 +106,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                     </div>
 
                     <div class="chat-body" id="chatBody">
-                        <!-- Welcome message -->
                         <div class="chat-bubble ai">
                             Hello! I am your StudyMe AI Tutor. Ask me any question from your lessons, request a summary, or let's generate a quick practice quiz! What are we studying today?
                         </div>
@@ -134,7 +128,6 @@ include BASE_PATH . '/includes/layouts/header.php';
             </div>
         </div>
 
-        <!-- Core AI Features Cards -->
         <div class="row g-4 py-5 mt-3">
             <div class="col-md-4">
                 <div class="card h-100 border-0 shadow-sm rounded-4 p-4 text-center">
@@ -174,19 +167,16 @@ function sendSimulatedMessage() {
     const selectedText = simQuery.options[simQuery.selectedIndex].text;
     const value = simQuery.value;
 
-    // 1. Add Student Bubble
     const studentBubble = document.createElement('div');
     studentBubble.className = 'chat-bubble student';
     studentBubble.innerText = selectedText;
     chatBody.appendChild(studentBubble);
     chatBody.scrollTop = chatBody.scrollHeight;
 
-    // 2. Play feedback sound
     if (typeof StudyMeFeedback !== 'undefined') {
         StudyMeFeedback.click();
     }
 
-    // 3. Simulated Typing and AI Response
     setTimeout(() => {
         const aiBubble = document.createElement('div');
         aiBubble.className = 'chat-bubble ai';

@@ -1,7 +1,4 @@
 <?php
-/**
- * StudyMe AI Platform — Role & Permission Definitions
- */
 
 function user_can($permission, $role = null) {
     if ($role === null) {

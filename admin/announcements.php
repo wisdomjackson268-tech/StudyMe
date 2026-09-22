@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Admin Announcements Management & Audience Broadcasting
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/announcements.php';
 
@@ -12,7 +10,6 @@ $userId = (int)(current_user()['id'] ?? 0);
 $errors = [];
 $success = '';
 
-// ── POST Actions ─────────────────────────────────────────────
 if (is_post()) {
     $action = trim($_POST['action'] ?? '');
 
@@ -52,7 +49,7 @@ if (is_post()) {
                     $errors[] = $res['error'];
                 }
             } else {
-                // Edit existing announcement
+
                 $attachmentPath = null;
                 if (!empty($attachment) && isset($attachment['tmp_name']) && is_uploaded_file($attachment['tmp_name'])) {
                     $ext = strtolower(pathinfo($attachment['name'], PATHINFO_EXTENSION));
@@ -73,7 +70,7 @@ if (is_post()) {
                 $publishedAt = ($status === 'published' && $wasDraft) ? date('Y-m-d H:i:s') : ($prev['published_at'] ?? null);
 
                 $stmtUpd = $pdo->prepare("
-                    UPDATE announcements 
+                    UPDATE announcements
                     SET title=?, content=?, target_type=?, course_id=?, target_user_id=?, priority=?, status=?, attachment=?, published_at=?, updated_at=NOW()
                     WHERE id=?
                 ");
@@ -106,7 +103,7 @@ if (is_post()) {
     } elseif ($action === 'toggle_status') {
         $id = (int)($_POST['id'] ?? 0);
         $newStatus = in_array($_POST['new_status'] ?? '', ['published','draft','archived']) ? $_POST['new_status'] : 'published';
-        
+
         $publishedAt = ($newStatus === 'published') ? date('Y-m-d H:i:s') : null;
         $pdo->prepare("UPDATE announcements SET status=?, published_at=?, updated_at=NOW() WHERE id=?")
             ->execute([$newStatus, $publishedAt, $id]);
@@ -120,13 +117,11 @@ if (is_post()) {
     }
 }
 
-// Fetch all courses and users for targeting selects
 $allCourses = $pdo->query("SELECT id, title FROM courses ORDER BY title ASC")->fetchAll(PDO::FETCH_ASSOC);
 $allUsers   = $pdo->query("SELECT id, first_name, last_name, email, role FROM users WHERE status = 'active' ORDER BY first_name ASC LIMIT 200")->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch all announcements
 $announcements = $pdo->query("
-    SELECT a.*, 
+    SELECT a.*,
            CONCAT(u.first_name,' ',u.last_name) AS author_name,
            c.title AS course_title
     FROM announcements a
@@ -165,7 +160,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     <?php endif; ?>
 
-    <!-- Announcements Table Card -->
     <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden mb-4">
         <div class="card-header bg-white py-3 px-4 border-0 d-flex align-items-center justify-content-between">
             <h5 class="fw-bold mb-0">Broadcast Telemetry &amp; Announcement Records</h5>
@@ -215,7 +209,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                                 </td>
                                 <td>
                                     <div class="small">
-                                        <span class="text-success fw-bold"><?= $stats['read_count'] ?> Read</span> / 
+                                        <span class="text-success fw-bold"><?= $stats['read_count'] ?> Read</span> /
                                         <span class="text-warning fw-bold"><?= $stats['unread_count'] ?> Unread</span>
                                     </div>
                                 </td>
@@ -260,7 +254,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 
 </div>
 
-<!-- Modal: Create / Broadcast Announcement -->
 <div class="modal fade" id="annModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow-lg">
@@ -270,15 +263,14 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
             </div>
             <form action="<?= url('admin/announcements.php') ?>" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="create">
-                
+
                 <div class="modal-body p-4">
-                    
+
                     <div class="mb-3">
                         <label for="title" class="form-label fw-bold small">Announcement Title <span class="text-danger">*</span></label>
                         <input type="text" name="title" id="title" class="form-control form-control-lg rounded-3" placeholder="e.g. StudyMe Scheduled Maintenance & Updates" required>
                     </div>
 
-                    <!-- Target Audience Selector -->
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label for="target_type" class="form-label fw-bold small">Target Audience <span class="text-danger">*</span></label>
@@ -294,7 +286,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                             </select>
                         </div>
 
-                        <!-- Specific Course Select (Hidden by default unless 'course' chosen) -->
                         <div class="col-md-6 d-none" id="courseSelectCol">
                             <label for="course_id" class="form-label fw-bold small">Select Course</label>
                             <select name="course_id" id="course_id" class="form-select rounded-3">
@@ -305,7 +296,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                             </select>
                         </div>
 
-                        <!-- Specific User Select (Hidden by default unless 'user' chosen) -->
                         <div class="col-md-6 d-none" id="userSelectCol">
                             <label for="target_user_id" class="form-label fw-bold small">Select User</label>
                             <select name="target_user_id" id="target_user_id" class="form-select rounded-3">

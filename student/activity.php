@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Student Daily Activity & Learning Streak Hub
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/enrollments.php';
 
@@ -11,7 +9,6 @@ $user   = current_user();
 $userId = $user['id'];
 $pdo    = getDBConnection();
 
-// Resolve student record & single active course
 $stmt = $pdo->prepare("SELECT id FROM students WHERE user_id = ? LIMIT 1");
 $stmt->execute([$userId]);
 $studentRow = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -19,13 +16,11 @@ $studentId  = $studentRow ? (int)$studentRow['id'] : 0;
 
 $activeCourse = $studentId ? get_student_active_course($studentId) : null;
 
-// Telemetry & Stats Calculations
 $streak    = calculate_user_learning_streak($userId);
 $todayStats= get_user_today_stats($userId);
 $todayLogs = get_user_daily_activity($userId, date('Y-m-d'));
-$heatmap   = get_user_activity_heatmap($userId, 27); // 4 weeks
+$heatmap   = get_user_activity_heatmap($userId, 27);
 
-// Fetch recent 20 activity history items
 $recentStream = $pdo->prepare("
     SELECT a.*, c.title AS course_title
     FROM activity_logs a
@@ -37,7 +32,6 @@ $recentStream = $pdo->prepare("
 $recentStream->execute([$userId]);
 $historyLogs = $recentStream->fetchAll(PDO::FETCH_ASSOC);
 
-// Helper for Activity Icons
 function get_activity_icon($action) {
     $act = strtolower($action);
     if (strpos($act, 'login') !== false || strpos($act, 'auth') !== false) return '<i class="bi bi-shield-lock-fill text-primary"></i>';
@@ -71,7 +65,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
 </div>
 
-<!-- Active Course Banner -->
 <?php if ($activeCourse): ?>
     <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-gradient-primary text-white position-relative overflow-hidden">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 position-relative z-2">
@@ -87,7 +80,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
 <?php endif; ?>
 
-<!-- Today's Activity Breakdown Cards -->
 <div class="row g-4 mb-4">
     <div class="col-sm-6 col-xl-3">
         <div class="stat-card">
@@ -128,16 +120,16 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 </div>
 
 <div class="row g-4">
-    <!-- Heatmap & Stream Column -->
+
     <div class="col-lg-7">
-        <!-- Activity Heatmap Calendar -->
+
         <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
             <h5 class="fw-bold mb-3"><i class="bi bi-calendar3-week text-primary me-2"></i>Activity Calendar (Past 4 Weeks)</h5>
             <div class="d-flex flex-wrap gap-2 justify-content-between p-3 bg-light rounded-3 border">
                 <?php foreach ($heatmap as $day): ?>
                     <div class="text-center" style="width: 32px;" title="<?= $day['date'] ?>: <?= $day['count'] ?> activities">
                         <small class="text-muted d-block" style="font-size:0.65rem;"><?= substr($day['day_name'], 0, 1) ?></small>
-                        <div class="rounded-2 my-1" style="height: 28px; width: 100%; 
+                        <div class="rounded-2 my-1" style="height: 28px; width: 100%;
                             background: <?= $day['intensity'] == 0 ? 'rgba(226, 232, 240, 0.8)' : ($day['intensity'] == 1 ? 'rgba(37, 99, 235, 0.35)' : ($day['intensity'] == 2 ? 'rgba(37, 99, 235, 0.7)' : '#2563EB')) ?>;">
                         </div>
                     </div>
@@ -145,7 +137,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
             </div>
         </div>
 
-        <!-- Today's Live Activity Feed -->
         <div class="card border-0 shadow-sm rounded-4 p-4">
             <h5 class="fw-bold mb-3"><i class="bi bi-clock-history text-success me-2"></i>Today's Logged Actions</h5>
             <?php if (!empty($todayLogs)): ?>
@@ -172,7 +163,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     </div>
 
-    <!-- History Stream Column -->
     <div class="col-lg-5">
         <div class="card border-0 shadow-sm rounded-4 p-4">
             <h5 class="fw-bold mb-3"><i class="bi bi-journal-check text-info me-2"></i>Recent Activity History</h5>

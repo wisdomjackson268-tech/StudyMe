@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Admin Referrals & Financial Overview Dashboard
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/referrals.php';
 
@@ -11,7 +9,6 @@ $pdo = getDBConnection();
 $message = '';
 $messageType = 'success';
 
-// Handle Configurable Referral Rates Update
 if (is_post() && isset($_POST['action']) && $_POST['action'] === 'update_rates') {
     $rateTeacher    = (float)($_POST['bonus_rate_teacher'] ?? 1000);
     $rateUniversity = (float)($_POST['bonus_rate_university'] ?? 1000);
@@ -28,7 +25,6 @@ if (is_post() && isset($_POST['action']) && $_POST['action'] === 'update_rates')
     redirect('admin/referrals.php');
 }
 
-// Handle Withdrawal Action (Approve / Reject)
 if (is_post() && isset($_POST['action']) && $_POST['action'] === 'process_withdrawal') {
     $wId    = (int)($_POST['withdrawal_id'] ?? 0);
     $status = $_POST['status'] === 'completed' ? 'completed' : 'rejected';
@@ -44,22 +40,20 @@ if (is_post() && isset($_POST['action']) && $_POST['action'] === 'process_withdr
             $stmtUpdW = $pdo->prepare("UPDATE withdrawals SET status = ?, admin_notes = ?, processed_at = NOW() WHERE id = ?");
             $stmtUpdW->execute([$status, $notes, $wId]);
 
-            // If rejected, refund the available balance to user's wallet
             if ($status === 'rejected') {
                 $stmtRefund = $pdo->prepare("
-                    UPDATE wallets 
-                    SET available_balance = available_balance + ?, 
+                    UPDATE wallets
+                    SET available_balance = available_balance + ?,
                         total_withdrawn = GREATEST(0, total_withdrawn - ?)
                     WHERE user_id = ?
                 ");
                 $stmtRefund->execute([$wRow['amount'], $wRow['amount'], $wRow['user_id']]);
             }
 
-            // Send notification
             $stmtNotif = $pdo->prepare("INSERT INTO notifications (user_id, title, message, type, created_at) VALUES (?, ?, ?, 'withdrawal', NOW())");
             $notifTitle = $status === 'completed' ? 'Withdrawal Completed! 💸' : 'Withdrawal Request Rejected';
-            $notifMsg   = $status === 'completed' 
-                ? 'Your withdrawal of ₦' . number_format($wRow['amount'], 2) . ' to ' . $wRow['bank_name'] . ' (' . $wRow['account_number'] . ') has been processed.' 
+            $notifMsg   = $status === 'completed'
+                ? 'Your withdrawal of ₦' . number_format($wRow['amount'], 2) . ' to ' . $wRow['bank_name'] . ' (' . $wRow['account_number'] . ') has been processed.'
                 : 'Your withdrawal request of ₦' . number_format($wRow['amount'], 2) . ' was rejected. Funds have been refunded to your wallet.';
             $stmtNotif->execute([$wRow['user_id'], $notifTitle, $notifMsg]);
 
@@ -73,48 +67,38 @@ if (is_post() && isset($_POST['action']) && $_POST['action'] === 'process_withdr
     }
 }
 
-// ── 1. FINANCIAL OVERVIEW AGGREGATIONS FROM DATABASE ───────────────────
 $currentRates = get_referral_bonus_rates();
 
-// Teacher Commissions Total
 $teacherCommissions = (float)$pdo->query("
     SELECT COALESCE(SUM(bonus_amount), 0) FROM referrals WHERE applied_rule = 'teacher_commission' AND status = 'completed'
 ")->fetchColumn();
 
-// University Referral Bonuses Total
 $uniBonuses = (float)$pdo->query("
     SELECT COALESCE(SUM(bonus_amount), 0) FROM referrals WHERE applied_rule = 'university_student' AND status = 'completed'
 ")->fetchColumn();
 
-// Secondary Referral Bonuses Total
 $secBonuses = (float)$pdo->query("
     SELECT COALESCE(SUM(bonus_amount), 0) FROM referrals WHERE applied_rule = 'secondary_student' AND status = 'completed'
 ")->fetchColumn();
 
-// Technology Referral Bonuses Total
 $techBonuses = (float)$pdo->query("
     SELECT COALESCE(SUM(bonus_amount), 0) FROM referrals WHERE applied_rule = 'technology_student' AND status = 'completed'
 ")->fetchColumn();
 
-// Total Incoming Payments
 $totalIncoming = (float)$pdo->query("
     SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status = 'successful'
 ")->fetchColumn();
 
-// Total Withdrawals (Completed)
 $totalCompletedWithdrawals = (float)$pdo->query("
     SELECT COALESCE(SUM(amount), 0) FROM withdrawals WHERE status = 'completed'
 ")->fetchColumn();
 
-// Pending Withdrawals Amount
 $totalPendingWithdrawals = (float)$pdo->query("
     SELECT COALESCE(SUM(amount), 0) FROM withdrawals WHERE status = 'pending'
 ")->fetchColumn();
 
-// Total Bonuses Paid Out
 $totalBonusesPaid = $teacherCommissions + $uniBonuses + $secBonuses + $techBonuses;
 
-// ── 2. FILTERED REFERRAL ACTIVITY TABLE ─────────────────────────────────
 $filterCategory = trim($_GET['category'] ?? 'all');
 $whereClause = "1=1";
 $params = [];
@@ -149,7 +133,6 @@ $stmtAllRefs = $pdo->prepare("
 $stmtAllRefs->execute($params);
 $referralRecords = $stmtAllRefs->fetchAll(PDO::FETCH_ASSOC);
 
-// ── 3. FETCH PENDING & RECENT WITHDRAWAL REQUESTS ─────────────────────
 $stmtWithdrawals = $pdo->query("
     SELECT w.*, CONCAT(u.first_name, ' ', u.last_name) AS user_name, u.email, u.role
     FROM withdrawals w
@@ -163,7 +146,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 
 <div class="container-fluid py-4">
 
-    <!-- Header -->
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
         <div>
             <h1 class="h3 fw-bold mb-1">Referral System &amp; Financial Overview</h1>
@@ -174,7 +156,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </button>
     </div>
 
-    <!-- ── 1. FINANCIAL OVERVIEW METRICS (ALL FROM DB) ────────────────── -->
     <div class="row g-3 mb-5">
         <div class="col-sm-6 col-md-3">
             <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-primary">
@@ -241,12 +222,10 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     </div>
 
-    <!-- ── 2. REFERRAL ACTIVITY TABLE & FILTERS ────────────────────────── -->
     <div class="card border-0 shadow-sm rounded-4 mb-5 bg-white overflow-hidden">
         <div class="card-header bg-white py-3 px-4 border-0 d-flex align-items-center justify-content-between flex-wrap gap-2">
             <h5 class="fw-bold mb-0">Referral Activity &amp; Transaction Audit</h5>
-            
-            <!-- Category Filter Buttons -->
+
             <div class="btn-group btn-group-sm" role="group" aria-label="Category Filters">
                 <a href="<?= url('admin/referrals.php?category=all') ?>" class="btn <?= $filterCategory==='all'?'btn-primary':'btn-outline-secondary' ?>">All</a>
                 <a href="<?= url('admin/referrals.php?category=technology') ?>" class="btn <?= $filterCategory==='technology'?'btn-primary':'btn-outline-secondary' ?>">Technology</a>
@@ -324,7 +303,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     </div>
 
-    <!-- ── 3. USER WITHDRAWAL REQUESTS AUDIT & ACTION TABLE ──────────────── -->
     <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden mb-4">
         <div class="card-header bg-white py-3 px-4 border-0">
             <h5 class="fw-bold mb-0">Withdrawal Requests &amp; Payout Approvals</h5>
@@ -374,11 +352,11 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                                 </td>
                                 <td class="pe-4 text-end">
                                     <?php if ($w['status'] === 'pending'): ?>
-                                        <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-bold me-1" 
+                                        <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-bold me-1"
                                                 onclick="openWithdrawalModal(<?= $w['id'] ?>, 'completed', '<?= e($w['user_name']) ?>', '<?= number_format((float)$w['amount'], 2) ?>')">
                                             Approve Payout
                                         </button>
-                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold" 
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold"
                                                 onclick="openWithdrawalModal(<?= $w['id'] ?>, 'rejected', '<?= e($w['user_name']) ?>', '<?= number_format((float)$w['amount'], 2) ?>')">
                                             Reject
                                         </button>
@@ -400,7 +378,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 
 </div>
 
-<!-- Modal 1: Edit Configurable Bonus Rates -->
 <div class="modal fade" id="ratesModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow-lg">
@@ -412,7 +389,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                 <input type="hidden" name="action" value="update_rates">
                 <div class="modal-body p-4">
                     <p class="text-muted small mb-4">Set server-side bonus values in NGN. Changes apply automatically to all future verified payment referrals.</p>
-                    
+
                     <div class="mb-3">
                         <label for="bonus_rate_technology" class="form-label fw-bold small text-success">Technology Student Referral Bonus (₦)</label>
                         <input type="number" step="0.01" name="bonus_rate_technology" id="bonus_rate_technology" class="form-control py-2" value="<?= number_format($currentRates['technology'], 2, '.', '') ?>" required>
@@ -446,7 +423,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
 </div>
 
-<!-- Modal 2: Process Withdrawal Action -->
 <div class="modal fade" id="withdrawalActionModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow-lg">

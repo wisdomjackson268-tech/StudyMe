@@ -1,8 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Comprehensive Course Details & Syllabus
- * Supports both ?slug=... and ?id=... parameters.
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/courses.php';
 require_once BASE_PATH . '/includes/functions/enrollments.php';
@@ -45,33 +42,35 @@ if ($isLoggedIn && current_user_role() === ROLE_STUDENT) {
     }
 }
 
-// Official Price Calculation strictly from database
 $officialPrice = function_exists('get_course_official_price') ? get_course_official_price($course['id']) : (float)$course['price'];
 $durationHours = max(1, (int)(($course['duration_minutes'] ?? 1800) / 60));
-$courseThumbUrl = function_exists('get_course_thumbnail_url') ? get_course_thumbnail_url($course['thumbnail'], $course['category_slug'] ?? 'technology') : ($course['thumbnail'] ?: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80');
+$courseThumbUrl = function_exists('get_course_thumbnail_url') ? get_course_thumbnail_url($course['thumbnail'], $course['category_slug'] ?? 'technology', $course['slug'] ?? ($course['title'] ?? '')) : ($course['thumbnail'] ?: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80');
 
-// ── Handle Enroll Click (POST or GET) ────────────────────────
+$courseCheck = course_has_active_teacher($course['id']);
+
 if ((is_post() && isset($_POST['enroll'])) || isset($_GET['enroll'])) {
-    // 1. Prevent multiple active courses if already enrolled elsewhere (in production mode)
+
+    if (!$courseCheck['can_enroll']) {
+        set_flash('error', 'Enrollment Denied: ' . $courseCheck['reason'] . ' University regulations require an active verified teacher before student enrollment can be approved.');
+        redirect('courses/details.php?slug=' . urlencode($course['slug']));
+    }
+
     if ($activeOtherCourse && !(defined('FREE_TESTING_MODE') && FREE_TESTING_MODE)) {
         set_flash('error', 'You already have an active course: "' . htmlspecialchars($activeOtherCourse['course_title']) . '". Platform policy restricts learners to ONE active course at a time.');
         redirect('student/my-courses.php');
     }
 
-    // 2. Store selected course strictly in session
     $_SESSION['pending_course_id']    = (int)$course['id'];
     $_SESSION['pending_course_slug']  = $course['slug'];
     $_SESSION['pending_course_title'] = $course['title'];
     $_SESSION['pending_course_cat']   = $course['category_name'] ?: 'Technology';
     $_SESSION['pending_course_price'] = $officialPrice;
 
-    // 3. If guest -> go to register/login while remembering selected course
     if (!$isLoggedIn) {
         set_flash('info', 'Please create an account or sign in to complete your enrollment in ' . $course['title']);
         redirect('auth/register.php');
     }
 
-    // 4. Role checking
     $role = current_user_role();
     if ($role === ROLE_ADMIN) {
         set_flash('info', 'Admin mode: You have administrative access to all course contents.');
@@ -80,7 +79,7 @@ if ((is_post() && isset($_POST['enroll'])) || isset($_GET['enroll'])) {
         set_flash('info', 'Teacher mode: Please use the Teacher Suite dashboard.');
         redirect('teacher/dashboard.php');
     } else {
-        // 5. Student -> In FREE_TESTING_MODE: enroll immediately for free testing!
+
         if (defined('FREE_TESTING_MODE') && FREE_TESTING_MODE) {
             $stmtSt = $pdo->prepare("SELECT id FROM students WHERE user_id = ? LIMIT 1");
             $stmtSt->execute([$user['id']]);
@@ -92,20 +91,20 @@ if ((is_post() && isset($_POST['enroll'])) || isset($_GET['enroll'])) {
                 $sId = (int)$pdo->lastInsertId();
             }
             if ($sId > 0) {
-                $pdo->prepare("INSERT INTO enrollments (student_id, course_id, status, progress, enrolled_at) VALUES (?, ?, 'active', 0.00, NOW()) ON DUPLICATE KEY UPDATE status = 'active'")
-                    ->execute([$sId, (int)$course['id']]);
+                $tchId = !empty($courseCheck['teacher']['id']) ? (int)$courseCheck['teacher']['id'] : null;
+                $pdo->prepare("INSERT INTO enrollments (student_id, course_id, teacher_id, status, progress, enrolled_at) VALUES (?, ?, ?, 'active', 0.00, NOW()) ON DUPLICATE KEY UPDATE status = 'active', teacher_id = IF(VALUES(teacher_id) IS NOT NULL, VALUES(teacher_id), teacher_id)")
+                    ->execute([$sId, (int)$course['id'], $tchId]);
             }
             unset($_SESSION['pending_course_id'], $_SESSION['pending_course_slug'], $_SESSION['pending_course_title']);
             set_flash('success', 'Enrolled successfully in ' . $course['title'] . '! Free testing access activated.');
             redirect('student/course.php?id=' . $course['id']);
         } else {
-            // Normal mode -> proceed to Profile Setup / Confirmation
+
             redirect('student/profile.php?enroll=1');
         }
     }
 }
 
-// Dynamic Course Benefits & Curriculum Data
 $whatYoullLearn = [
     'Master practical and foundational concepts in ' . $course['title'],
     'Build real-world hands-on projects and portfolio demonstrations',
@@ -174,7 +173,6 @@ $seo_options = [
     'faq'         => $courseFaq
 ];
 
-// Fetch Related Courses for Internal Linking
 $stmtRelated = $pdo->prepare("
     SELECT c.id, c.title, c.slug, c.thumbnail, c.level, c.price,
            cat.name AS category_name
@@ -192,7 +190,7 @@ include BASE_PATH . '/includes/layouts/header.php';
 
 <div class="py-5 bg-light-subtle" style="min-height: calc(100vh - 120px);">
     <div class="container py-4">
-        <!-- Breadcrumb -->
+
         <nav class="mb-4" aria-label="breadcrumb">
             <ol class="breadcrumb small">
                 <li class="breadcrumb-item"><a href="<?= url('index.php') ?>" class="text-decoration-none">Home</a></li>
@@ -220,9 +218,9 @@ include BASE_PATH . '/includes/layouts/header.php';
         <?php endif; ?>
 
         <div class="row g-5">
-            <!-- ── Left Column: Course Main Content ───────────── -->
+
             <div class="col-lg-8">
-                <!-- Category Badge -->
+
                 <div class="d-flex align-items-center gap-2 mb-3">
                     <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 fw-bold small">
                         <i class="bi bi-tag-fill me-1"></i> <?= e($course['category_name'] ?: 'Technology') ?>
@@ -235,7 +233,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                 <h1 class="fw-bold mb-3 lh-sm display-6"><?= e($course['title']) ?></h1>
                 <p class="lead text-secondary mb-4"><?= e($course['short_description']) ?></p>
 
-                <!-- Metadata Strip -->
                 <div class="d-flex flex-wrap gap-4 align-items-center py-3 px-4 bg-light rounded-4 mb-4 border border-secondary border-opacity-10 small">
                     <div>
                         <span class="text-muted d-block mb-1">Teacher</span>
@@ -259,7 +256,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                     </div>
                 </div>
 
-                <!-- What You'll Learn -->
                 <div class="card border-0 bg-primary bg-opacity-5 rounded-4 p-4 mb-4 border border-primary border-opacity-15">
                     <h4 class="fw-bold mb-3 text-main"><i class="bi bi-lightbulb-fill text-warning me-2"></i>What You Will Learn</h4>
                     <div class="row g-3">
@@ -274,22 +270,19 @@ include BASE_PATH . '/includes/layouts/header.php';
                     </div>
                 </div>
 
-                <!-- Course Hero Featured Image / Banner in Overview -->
                 <div class="card border-0 rounded-4 overflow-hidden mb-4 shadow-sm position-relative">
-                    <img src="<?= e($courseThumbUrl) ?>" 
-                         class="w-100 img-fluid rounded-4" 
-                         style="max-height: 360px; width: 100%; object-fit: cover;" 
+                    <img src="<?= e($courseThumbUrl) ?>"
+                         class="w-100 img-fluid rounded-4"
+                         style="max-height: 360px; width: 100%; object-fit: cover;"
                          alt="StudyMe <?= e($course['title']) ?>"
                          onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&q=80';">
                 </div>
 
-                <!-- Course Description -->
                 <h4 class="fw-bold mb-3">Course Overview</h4>
                 <div class="text-secondary lh-lg mb-4" style="white-space: pre-line;">
                     <?= nl2br(e($course['description'])) ?>
                 </div>
 
-                <!-- Skills & Requirements Grid -->
                 <div class="row g-4 mb-5">
                     <div class="col-md-6">
                         <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
@@ -315,7 +308,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                     </div>
                 </div>
 
-                <!-- AI Learning Features Highlight -->
                 <div class="card border-0 rounded-4 p-4 mb-5" style="background: linear-gradient(135deg, #1e1e38 0%, #111827 100%);">
                     <div class="d-flex align-items-center gap-3 mb-3">
                         <div class="p-2 rounded-3" style="background:rgba(245,158,11,0.2);">
@@ -351,7 +343,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                     </div>
                 </div>
 
-                <!-- Course Curriculum / Syllabus -->
                 <h4 class="fw-bold mb-3">Course Curriculum</h4>
                 <div class="accordion border-0 shadow-sm rounded-4 overflow-hidden mb-5" id="syllabusAccordion">
                     <?php if (!empty($sections)): ?>
@@ -406,7 +397,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                     <?php endif; ?>
                 </div>
 
-                <!-- Instructor Card -->
                 <?php if ($categorySlug === 'secondary-waec-neco'): ?>
                     <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                         <h5 class="fw-bold mb-2"><i class="bi bi-book-half text-primary me-2"></i>Secondary School Academic Curriculum</h5>
@@ -456,7 +446,7 @@ include BASE_PATH . '/includes/layouts/header.php';
                         </div>
                     </div>
                 <?php endif; ?>
-                <!-- Course FAQ Section -->
+
                 <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                     <h4 class="fw-bold mb-3 d-flex align-items-center gap-2">
                         <i class="bi bi-question-circle text-primary"></i> Frequently Asked Questions
@@ -480,7 +470,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                 </div>
             </div>
 
-            <!-- ── Right Column: Sticky Enrollment Card ──────── -->
             <div class="col-lg-4">
                 <div class="card border-0 shadow-lg rounded-4 p-4 sticky-top" style="top:2rem; z-index:10;">
                     <img src="<?= e($courseThumbUrl) ?>"
@@ -497,7 +486,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                         </div>
                     </div>
 
-                    <!-- Enrollment Action -->
                     <?php if ($isEnrolled): ?>
                         <a href="<?= url('student/course.php?id=' . $course['id']) ?>"
                            class="btn btn-success btn-lg rounded-pill w-100 py-3 fw-bold shadow mb-3"
@@ -506,6 +494,17 @@ include BASE_PATH . '/includes/layouts/header.php';
                         </a>
                         <div class="text-center small text-muted">
                             <i class="bi bi-check-circle-fill text-success me-1"></i> You are actively enrolled in this course
+                        </div>
+                    <?php elseif (!$courseCheck['can_enroll']): ?>
+                        <div class="alert alert-warning border-0 rounded-4 small p-3 mb-3">
+                            <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>
+                            <strong>Enrollment Restricted:</strong> <?= e($courseCheck['reason']) ?>
+                        </div>
+                        <button class="btn btn-secondary bg-opacity-75 btn-lg rounded-pill w-100 py-3 fw-bold mb-3" disabled style="cursor:not-allowed;">
+                            <i class="bi bi-person-x-fill me-1"></i> Awaiting Active Instructor
+                        </button>
+                        <div class="text-center small text-muted">
+                            Please choose an active course with an assigned teacher.
                         </div>
                     <?php elseif ($activeOtherCourse && !(defined('FREE_TESTING_MODE') && FREE_TESTING_MODE)): ?>
                         <button class="btn btn-secondary bg-opacity-75 btn-lg rounded-pill w-100 py-3 fw-bold mb-3" disabled>
@@ -545,7 +544,7 @@ include BASE_PATH . '/includes/layouts/header.php';
         </div>
 
         <?php if (!empty($relatedCourses)): ?>
-        <!-- ── Related Courses Section (Internal Linking) ──────── -->
+
         <div class="mt-5 pt-4 border-top">
             <div class="d-flex align-items-center justify-content-between mb-4">
                 <div>

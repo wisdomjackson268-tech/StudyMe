@@ -1,8 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Comprehensive Announcements System Test Suite
- * Validates all 5 required test scenarios from the specification.
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/announcements.php';
 require_once BASE_PATH . '/includes/functions/notifications.php';
@@ -15,7 +12,6 @@ echo "=======================================================\n\n";
 $passCount = 0;
 $totalCount = 5;
 
-// Helper to create test user
 function create_ann_test_user($firstName, $lastName, $email, $role = 'student') {
     $pdo = getDBConnection();
     $stmt = $pdo->prepare("SELECT id, role, first_name, last_name, email FROM users WHERE email = ? LIMIT 1");
@@ -42,7 +38,6 @@ function create_ann_test_user($firstName, $lastName, $email, $role = 'student') 
     return ['id' => $uid, 'role' => $role, 'first_name' => $firstName, 'last_name' => $lastName, 'email' => $email];
 }
 
-// Ensure courses exist for testing
 function get_or_create_course($title, $slug, $teacherUserId) {
     $pdo = getDBConnection();
     $stmt = $pdo->prepare("SELECT id FROM courses WHERE slug = ? LIMIT 1");
@@ -70,7 +65,6 @@ function enroll_test_student($userId, $courseId) {
         ->execute([$stId, $courseId]);
 }
 
-// ── SETUP USERS & COURSES ─────────────────────────────────────────────
 $teacherA = create_ann_test_user('Teacher', 'John', 'teacher.john@studyme.test', 'teacher');
 $teacherB = create_ann_test_user('Teacher', 'Sarah', 'teacher.sarah@studyme.test', 'teacher');
 $adminObj = create_ann_test_user('Admin', 'Super', 'admin.super@studyme.test', 'admin');
@@ -79,7 +73,6 @@ $webDevCourseId = get_or_create_course('Web Development Bootcamp', 'ann-test-web
 $cyberCourseId  = get_or_create_course('Cybersecurity Specialist', 'ann-test-cyber', $teacherB['id']);
 $mathCourseId   = get_or_create_course('Mathematics Masterclass', 'ann-test-math', $teacherB['id']);
 
-// Assign course to teacher A in teachers table
 $pdo->prepare("UPDATE teachers SET assigned_course_id = ? WHERE user_id = ?")->execute([$webDevCourseId, $teacherA['id']]);
 $pdo->prepare("UPDATE teachers SET assigned_course_id = ? WHERE user_id = ?")->execute([$cyberCourseId, $teacherB['id']]);
 
@@ -91,8 +84,6 @@ enroll_test_student($studentWebDev['id'], $webDevCourseId);
 enroll_test_student($studentCyber['id'], $cyberCourseId);
 enroll_test_student($studentMath['id'], $mathCourseId);
 
-
-// ── TEST 1: TEACHER A (WEB DEV) ANNOUNCEMENT TARGETING ───────────────
 echo "--------------------------------------------------------\n";
 echo "TEST 1: Teacher A (Web Dev) Announcement Targeting\n";
 
@@ -127,8 +118,6 @@ if ($res1['success'] && $webDevHasIt && !$cyberHasIt) {
     echo "❌ FAIL: Targeting failed. WebDev: " . ($webDevHasIt ? 'Yes' : 'No') . " | Cyber: " . ($cyberHasIt ? 'Yes' : 'No') . "\n";
 }
 
-
-// ── TEST 2: ADMIN BROADCAST TO ALL USERS ─────────────────────────────
 echo "--------------------------------------------------------\n";
 echo "TEST 2: Admin Broadcast to All Users\n";
 
@@ -163,8 +152,6 @@ if ($res2['success'] && $stReceived && $tchReceived) {
     echo "❌ FAIL: Admin broadcast failed. Student: " . ($stReceived ? 'Yes' : 'No') . " | Teacher: " . ($tchReceived ? 'Yes' : 'No') . "\n";
 }
 
-
-// ── TEST 3: ADMIN SPECIFIC COURSE TARGETING (MATHEMATICS) ────────────
 echo "--------------------------------------------------------\n";
 echo "TEST 3: Admin Course Targeting (Mathematics Course Only)\n";
 
@@ -199,8 +186,6 @@ if ($res3['success'] && $mathReceived && !$webDevReceived3) {
     echo "❌ FAIL: Course targeting failed. Math: " . ($mathReceived ? 'Yes' : 'No') . " | WebDev: " . ($webDevReceived3 ? 'Yes' : 'No') . "\n";
 }
 
-
-// ── TEST 4: STUDENT ATTEMPTS TO CREATE ANNOUNCEMENT (ACCESS DENIED) ──
 echo "--------------------------------------------------------\n";
 echo "TEST 4: Student Creation Attempt (Must be ACCESS DENIED)\n";
 
@@ -219,12 +204,9 @@ if (!$res4['success'] && strpos($res4['error'], 'ACCESS DENIED') !== false) {
     echo "❌ FAIL: Student creation was not blocked!\n";
 }
 
-
-// ── TEST 5: TEACHER ATTEMPTS TO POST TO ANOTHER TEACHER'S COURSE ─────
 echo "--------------------------------------------------------\n";
 echo "TEST 5: Teacher Course Spoofing Attempt (Must be REJECTED)\n";
 
-// Teacher A (assigned to Web Dev) attempts to post to Cybersecurity ($cyberCourseId)
 $res5 = create_announcement_entry(
     "Spoofed Teacher Announcement",
     "Teacher A trying to post into Cybersecurity course without authorization.",

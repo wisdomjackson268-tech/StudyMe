@@ -1,7 +1,5 @@
 <?php
-/**
- * Migration: Create lesson_questions and lesson_question_replies tables
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 $pdo = getDBConnection();

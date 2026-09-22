@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe Comprehensive Project Lint & Syntax Audit
- */
+
 $baseDir = dirname(__DIR__);
 $phpCli = 'C:\\xampp\\php\\php.exe';
 

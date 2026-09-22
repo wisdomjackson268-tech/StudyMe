@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Teacher Notifications & Activity Stream
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_TEACHER);

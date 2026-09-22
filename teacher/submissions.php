@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Teacher Submissions Manager
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_TEACHER);
@@ -9,7 +7,6 @@ $user = current_user();
 $pdo  = getDBConnection();
 $uid  = $user['id'];
 
-// Get teacher ID
 $stmt = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ? LIMIT 1");
 $stmt->execute([$uid]);
 $teacher = $stmt->fetch(PDO::FETCH_ASSOC);

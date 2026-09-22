@@ -1,13 +1,5 @@
 <?php
-/**
- * StudyMe LMS - Database Connection Test Script
- * Development / Diagnostic Utility Only
- * 
- * Tests connection: PHP -> PDO -> MySQL -> studyme
- * Read-only query: SELECT 1
- */
 
-// Load central application bootstrap
 require_once dirname(__DIR__) . '/config/main.php';
 
 header('Content-Type: text/html; charset=utf-8');
@@ -19,10 +11,9 @@ echo "<h2>StudyMe LMS - Database Connection Test</h2>\n";
 echo "<p>Testing chain: <code>PHP</code> &rarr; <code>PDO</code> &rarr; <code>MySQL</code> &rarr; <code>studyme</code></p>\n";
 
 try {
-    // Obtain PDO database connection
+
     $db = getDBConnection();
 
-    // Perform non-destructive read-only query
     $stmt = $db->query("SELECT 1 AS test_val");
     $result = $stmt->fetch();
 

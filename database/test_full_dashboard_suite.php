@@ -1,8 +1,5 @@
 <?php
-/**
- * StudyMe Comprehensive Full-Site Route & Dashboard Verification Suite
- * Tests rendering of all student, teacher, admin, and public endpoints in isolated scopes.
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 $pdo = getDBConnection();
@@ -49,7 +46,6 @@ function render_route($file, $user, $getParams = []) {
     }
 }
 
-// ── 1. TEST STUDENT PORTAL ───────────────────────────────────────────
 echo "1. TESTING STUDENT DASHBOARD & LEARNING ROUTES:\n";
 $studentRoutes = [
     'student/dashboard.php',
@@ -81,7 +77,6 @@ foreach ($studentRoutes as $route) {
 }
 echo "   Student Routes: $passStudent / " . count($studentRoutes) . " passed.\n\n";
 
-// ── 2. TEST TEACHER PORTAL ───────────────────────────────────────────
 echo "2. TESTING INSTRUCTOR SUITE ROUTES:\n";
 $teacherRoutes = [
     'teacher/dashboard.php',
@@ -116,7 +111,6 @@ foreach ($teacherRoutes as $route) {
 }
 echo "   Teacher Routes: $passTeacher / " . count($teacherRoutes) . " passed.\n\n";
 
-// ── 3. TEST ADMIN PORTAL ─────────────────────────────────────────────
 echo "3. TESTING ADMIN COMMAND CENTER ROUTES:\n";
 $adminRoutes = [
     'admin/dashboard.php',
@@ -159,7 +153,6 @@ foreach ($adminRoutes as $route) {
 }
 echo "   Admin Routes: $passAdmin / " . count($adminRoutes) . " passed.\n\n";
 
-// ── 4. TEST PUBLIC & AUTH PAGES ──────────────────────────────────────
 echo "4. TESTING PUBLIC & AUTHENTICATION ROUTES:\n";
 $publicRoutes = [
     'index.php',
@@ -208,7 +201,6 @@ foreach ($publicRoutes as $route) {
 }
 echo "   Public Routes: $passPublic / " . count($publicRoutes) . " passed.\n\n";
 
-// ── 5. TEST UNIVERSAL DASHBOARD ROUTER REDIRECTION ──────────────────
 echo "5. TESTING UNIVERSAL DASHBOARD ROUTER (dashboard.php):\n";
 echo "   ✔ PASS: Guest access to dashboard.php correctly sets flash ('Please log in first to access your dashboard.') and redirects to auth/login.php\n";
 echo "   ✔ PASS: Student access to dashboard.php correctly routes to student/dashboard.php\n";

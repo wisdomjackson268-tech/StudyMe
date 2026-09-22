@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Course Category Listing Page
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 $pdo  = getDBConnection();
@@ -17,7 +15,6 @@ if ($slug === 'university') {
     redirect('courses/teacher.php');
 }
 
-// Fetch category
 $stmt = $pdo->prepare("SELECT * FROM categories WHERE slug = ? AND status = 'active' LIMIT 1");
 $stmt->execute([$slug]);
 $category = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -26,7 +23,6 @@ if (!$category) {
     redirect('courses/index.php');
 }
 
-// Fetch courses in this category
 $stmt = $pdo->prepare("
     SELECT c.*, cat.name AS category_name, cat.slug AS category_slug,
            CONCAT(u.first_name, ' ', u.last_name) AS teacher_name,
@@ -41,7 +37,6 @@ $stmt = $pdo->prepare("
 $stmt->execute([$category['id']]);
 $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Check enrollment status if user is logged in
 $enrolledCourseIds = [];
 if (is_logged_in()) {
     $userId = current_user('id');
@@ -71,7 +66,7 @@ include BASE_PATH . '/includes/layouts/header.php';
 
 <div class="py-5 bg-light-subtle" style="min-height: calc(100vh - 120px);">
     <div class="container py-4">
-        <!-- Header -->
+
         <div class="mb-5">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb small">
@@ -91,7 +86,6 @@ include BASE_PATH . '/includes/layouts/header.php';
             </div>
         </div>
 
-        <!-- Course Grid -->
         <?php if (!empty($courses)): ?>
         <div class="row g-4">
             <?php foreach ($courses as $c): ?>
@@ -99,7 +93,7 @@ include BASE_PATH . '/includes/layouts/header.php';
             <div class="col-md-6 col-lg-4">
                 <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 d-flex flex-column hover-lift transition">
                     <div class="position-relative">
-                        <?php $catThumb = function_exists('get_course_thumbnail_url') ? get_course_thumbnail_url($c['thumbnail'] ?? '', $category['slug'] ?? 'technology') : ($c['thumbnail'] ?? 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=80'); ?>
+                        <?php $catThumb = function_exists('get_course_thumbnail_url') ? get_course_thumbnail_url($c['thumbnail'] ?? '', $category['slug'] ?? 'technology', $c['slug'] ?? ($c['title'] ?? '')) : ($c['thumbnail'] ?? 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=80'); ?>
                         <img src="<?= e($catThumb) ?>"
                              class="card-img-top" style="height: 180px; object-fit: cover;" alt="<?= e($c['title']) ?>"
                              onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=80';">
@@ -114,7 +108,7 @@ include BASE_PATH . '/includes/layouts/header.php';
                         </div>
                         <h5 class="fw-bold mb-2 line-clamp-2"><?= e($c['title']) ?></h5>
                         <p class="text-muted small mb-3 line-clamp-2 flex-grow-1"><?= e($c['short_description']) ?></p>
-                        
+
                         <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto">
                             <div>
                                 <span class="fs-5 fw-bold text-main">₦<?= number_format((float)$c['price']) ?></span>

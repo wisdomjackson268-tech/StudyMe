@@ -1,11 +1,4 @@
 <?php
-/**
- * StudyMe AI Platform — Payment Helper Functions
- */
-
-/**
- * Get payments for a user.
- */
 function get_user_payments($userId, $limit = 20, $offset = 0) {
     $pdo = getDBConnection();
     try {
@@ -24,9 +17,6 @@ function get_user_payments($userId, $limit = 20, $offset = 0) {
     }
 }
 
-/**
- * Get all payments (admin).
- */
 function get_all_payments($status = null, $limit = 50, $offset = 0) {
     $pdo = getDBConnection();
     try {
@@ -50,9 +40,6 @@ function get_all_payments($status = null, $limit = 50, $offset = 0) {
     }
 }
 
-/**
- * Get total revenue.
- */
 function get_total_revenue() {
     $pdo = getDBConnection();
     try {
@@ -64,9 +51,6 @@ function get_total_revenue() {
     }
 }
 
-/**
- * Create a payment record.
- */
 function create_payment_record($userId, $amount, $paymentMethod, $reference, $courseId = null, $subscriptionId = null) {
     $pdo = getDBConnection();
     try {
@@ -79,9 +63,6 @@ function create_payment_record($userId, $amount, $paymentMethod, $reference, $co
     }
 }
 
-/**
- * Update payment status.
- */
 function update_payment_status($reference, $status) {
     $pdo = getDBConnection();
     try {

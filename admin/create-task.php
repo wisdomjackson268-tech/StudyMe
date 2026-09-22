@@ -1,14 +1,11 @@
 <?php
-/**
- * StudyMe AI Platform — Admin Create Task Page
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_ADMIN);
 
 $pdo = getDBConnection();
 
-// Fetch all courses with their teacher owners
 $stmt = $pdo->prepare("
     SELECT c.id, c.title, CONCAT(u.first_name, ' ', u.last_name) AS teacher_name
     FROM courses c

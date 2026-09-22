@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Blog Search Results
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 $query = trim($_GET['q'] ?? '');
@@ -32,7 +30,7 @@ include BASE_PATH . '/includes/layouts/header.php';
 
 <div class="py-5 bg-light-subtle" style="min-height: calc(100vh - 120px);">
     <div class="container py-4">
-        <!-- Breadcrumb -->
+
         <nav aria-label="breadcrumb" class="mb-4">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="<?= url('index.php') ?>" class="text-decoration-none">Home</a></li>
@@ -41,13 +39,11 @@ include BASE_PATH . '/includes/layouts/header.php';
             </ol>
         </nav>
 
-        <!-- Header -->
         <div class="text-center max-w-700 mx-auto mb-5">
             <h1 class="display-6 fw-bold mb-2">Search Results</h1>
             <p class="lead text-muted">Showing results for: <span class="fw-bold text-main">&ldquo;<?= e($query) ?>&rdquo;</span> (<?= count($posts) ?> found)</p>
         </div>
 
-        <!-- Search Form -->
         <div class="row justify-content-center mb-5">
             <div class="col-lg-7">
                 <form action="<?= url('blog/search.php') ?>" method="GET" class="input-group input-group-lg shadow-sm rounded-4 overflow-hidden">
@@ -58,15 +54,14 @@ include BASE_PATH . '/includes/layouts/header.php';
             </div>
         </div>
 
-        <!-- Posts Grid -->
         <?php if (!empty($posts)): ?>
             <div class="row g-4 mb-5">
                 <?php foreach ($posts as $post): ?>
                     <div class="col-md-6 col-lg-4">
                         <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden hover-lift d-flex flex-column">
-                            <img src="<?= e($post['featured_image'] ?: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&q=80') ?>" 
-                                 alt="<?= e($post['title']) ?>" 
-                                 class="card-img-top object-fit-cover" 
+                            <img src="<?= e($post['featured_image'] ?: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&q=80') ?>"
+                                 alt="<?= e($post['title']) ?>"
+                                 class="card-img-top object-fit-cover"
                                  style="height: 200px;">
                             <div class="card-body p-4 d-flex flex-column">
                                 <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill align-self-start mb-2 px-3 py-1 small fw-semibold">

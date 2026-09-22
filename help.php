@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Help Center
- */
+
 require_once __DIR__ . '/config/main.php';
 include BASE_PATH . '/includes/layouts/header.php';
 ?>
@@ -52,7 +50,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                 </div>
             </div>
 
-            <!-- 3. Courses & Lessons -->
             <div class="col-md-6 col-lg-4">
                 <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-lift help-card">
                     <div class="p-3 bg-info bg-opacity-10 text-info rounded-3 d-inline-flex mb-3" style="width: fit-content;">
@@ -68,7 +65,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                 </div>
             </div>
 
-            <!-- 4. Teacher Tools & Uploads -->
             <div class="col-md-6 col-lg-4">
                 <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-lift help-card">
                     <div class="p-3 bg-success bg-opacity-10 text-success rounded-3 d-inline-flex mb-3" style="width: fit-content;">
@@ -84,7 +80,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                 </div>
             </div>
 
-            <!-- 5. Certificates & Quizzes -->
             <div class="col-md-6 col-lg-4">
                 <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-lift help-card">
                     <div class="p-3 bg-danger bg-opacity-10 text-danger rounded-3 d-inline-flex mb-3" style="width: fit-content;">
@@ -100,7 +95,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                 </div>
             </div>
 
-            <!-- 6. Billing & Access -->
             <div class="col-md-6 col-lg-4">
                 <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-lift help-card">
                     <div class="p-3 bg-secondary bg-opacity-10 text-secondary rounded-3 d-inline-flex mb-3" style="width: fit-content;">
@@ -117,7 +111,6 @@ include BASE_PATH . '/includes/layouts/header.php';
             </div>
         </div>
 
-        <!-- Contact Support CTA -->
         <div class="card border-0 bg-primary text-white rounded-4 p-4 p-md-5 text-center shadow-lg">
             <h2 class="fw-bold mb-3">Need Personalized Technical Assistance?</h2>
             <p class="lead text-white-50 max-w-700 mx-auto mb-4">

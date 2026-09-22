@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Admin Pricing Rates Manager
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_ADMIN);
@@ -56,7 +54,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         <div class="card border-0 shadow-sm rounded-4 p-4">
             <h5 class="fw-bold mb-3"><i class="bi bi-cash-stack text-success me-2"></i>Official Rates (Stored in Database)</h5>
             <form method="POST">
-                <!-- Tech Courses -->
+
                 <div class="mb-4 p-3 bg-light rounded-3 border border-primary border-opacity-25">
                     <label class="form-label fw-bold text-primary fs-5 mb-1">
                         <i class="bi bi-cpu me-1"></i> Technology Courses Rate
@@ -68,7 +66,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                     </div>
                 </div>
 
-                <!-- University Courses -->
                 <div class="mb-4 p-3 bg-light rounded-3 border">
                     <label class="form-label fw-bold text-main fs-5 mb-1">
                         <i class="bi bi-mortarboard me-1"></i> University Courses Rate
@@ -80,7 +77,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                     </div>
                 </div>
 
-                <!-- Secondary / WAEC / NECO -->
                 <div class="mb-4 p-3 bg-light rounded-3 border">
                     <label class="form-label fw-bold text-main fs-5 mb-1">
                         <i class="bi bi-book me-1"></i> Secondary / WAEC / NECO Rate
@@ -92,7 +88,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                     </div>
                 </div>
 
-                <!-- Teacher Access -->
                 <div class="mb-4 p-3 bg-light rounded-3 border">
                     <label class="form-label fw-bold text-success fs-5 mb-1">
                         <i class="bi bi-person-badge me-1"></i> Teacher Subscription Access Rate
@@ -111,7 +106,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     </div>
 
-    <!-- Summary Box -->
     <div class="col-lg-5">
         <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top: 90px;">
             <h5 class="fw-bold mb-3"><i class="bi bi-shield-lock-fill text-warning me-2"></i>Pricing &amp; Access Policy</h5>

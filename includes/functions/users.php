@@ -1,11 +1,4 @@
 <?php
-/**
- * StudyMe AI Platform — User/Profile Helper Functions
- */
-
-/**
- * Get a user by ID.
- */
 function get_user_by_id($userId) {
     $pdo = getDBConnection();
     try {
@@ -18,9 +11,6 @@ function get_user_by_id($userId) {
     }
 }
 
-/**
- * Get user by email.
- */
 function get_user_by_email($email) {
     $pdo = getDBConnection();
     try {
@@ -33,9 +23,6 @@ function get_user_by_email($email) {
     }
 }
 
-/**
- * Update user profile fields.
- */
 function update_user_profile($userId, array $data) {
     $pdo = getDBConnection();
     try {
@@ -58,9 +45,6 @@ function update_user_profile($userId, array $data) {
     }
 }
 
-/**
- * Update user password.
- */
 function update_user_password($userId, $newPassword) {
     $pdo = getDBConnection();
     try {
@@ -73,9 +57,6 @@ function update_user_password($userId, $newPassword) {
     }
 }
 
-/**
- * Get all users (admin).
- */
 function get_all_users($role = null, $status = null, $search = '', $limit = 50, $offset = 0) {
     $pdo = getDBConnection();
     try {
@@ -96,9 +77,6 @@ function get_all_users($role = null, $status = null, $search = '', $limit = 50, 
     }
 }
 
-/**
- * Count users.
- */
 function count_users($role = null, $status = null, $search = '') {
     $pdo = getDBConnection();
     try {
@@ -115,9 +93,6 @@ function count_users($role = null, $status = null, $search = '') {
     }
 }
 
-/**
- * Update user status (admin).
- */
 function update_user_status($userId, $status) {
     $pdo = getDBConnection();
     try {
@@ -131,9 +106,6 @@ function update_user_status($userId, $status) {
     }
 }
 
-/**
- * Get student profile by user_id.
- */
 function get_student_by_user_id($userId) {
     $pdo = getDBConnection();
     try {
@@ -145,9 +117,6 @@ function get_student_by_user_id($userId) {
     }
 }
 
-/**
- * Get teacher profile by user_id.
- */
 function get_teacher_by_user_id($userId) {
     $pdo = getDBConnection();
     try {

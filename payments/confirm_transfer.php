@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform - Confirm Bank Transfer & Course Activation
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/courses.php';
 require_once BASE_PATH . '/includes/functions/pricing.php';
@@ -26,15 +24,13 @@ if (is_post()) {
     }
 
     $pdo = getDBConnection();
-    
-    // Check if reference already exists
+
     $stmt = $pdo->prepare("SELECT id FROM payments WHERE transaction_reference = ?");
     $stmt->execute([$reference]);
     if ($stmt->fetch()) {
         $reference = 'SM_BT_' . time() . '_' . rand(1000, 9999);
     }
 
-    // Forward to activation to verify and activate
     ?>
     <!DOCTYPE html>
     <html>

@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Admin Lessons Management
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_ADMIN);
@@ -39,7 +37,6 @@ $stmt = $pdo->prepare("
 $stmt->execute($params);
 $lessons = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Courses for filter
 $courses = $pdo->query("SELECT id, title FROM courses ORDER BY title ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 $totalLessons   = count($lessons);
@@ -57,7 +54,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     <div class="text-muted small">Total: <strong><?= $totalLessons ?></strong> lessons</div>
 </div>
 
-<!-- Stats -->
 <div class="row g-3 mb-4">
     <div class="col-sm-4">
         <div class="stat-card">
@@ -79,7 +75,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
 </div>
 
-<!-- Search & Filter -->
 <div class="card border-0 shadow-sm rounded-4 p-3 mb-4">
     <form method="GET" class="row g-2 align-items-end">
         <div class="col-md-5">
@@ -102,7 +97,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </form>
 </div>
 
-<!-- Lessons Table -->
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0 small">

@@ -1,8 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Technology Courses Category
- * Displays modern technology bootcamps & skills courses with official ₦10,000 pricing and teacher profile links.
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/courses.php';
 require_once BASE_PATH . '/includes/functions/pricing.php';
@@ -46,8 +43,7 @@ include BASE_PATH . '/includes/layouts/header.php';
 
 <div class="py-5 bg-light-subtle" style="min-height: calc(100vh - 120px);">
     <div class="container py-4">
-        
-        <!-- Breadcrumb & Header -->
+
         <nav aria-label="breadcrumb" class="mb-3">
             <ol class="breadcrumb small">
                 <li class="breadcrumb-item"><a href="<?= url('index.php') ?>" class="text-decoration-none">Home</a></li>
@@ -77,7 +73,6 @@ include BASE_PATH . '/includes/layouts/header.php';
             </div>
         </div>
 
-        <!-- Search & Filter Controls -->
         <div class="card border-0 shadow-sm rounded-4 p-3 mb-4">
             <form method="GET" class="row g-2 align-items-center">
                 <div class="col-md-7">
@@ -103,19 +98,17 @@ include BASE_PATH . '/includes/layouts/header.php';
             </form>
         </div>
 
-        <!-- Courses Grid -->
         <div class="row g-4" id="techCoursesGrid">
             <?php if (!empty($courses)): ?>
                 <?php foreach ($courses as $c): ?>
-                    <?php 
+                    <?php
                     $officialPrice = 10000.00;
                     $durationHours = max(1, (int)(($c['duration_minutes'] ?? 3600) / 60));
-                    $techThumb = function_exists('get_course_thumbnail_url') ? get_course_thumbnail_url($c['thumbnail'] ?? '', 'technology') : ($c['thumbnail'] ?? 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80');
+                    $techThumb = function_exists('get_course_thumbnail_url') ? get_course_thumbnail_url($c['thumbnail'] ?? '', 'technology', $c['slug'] ?? ($c['title'] ?? '')) : ($c['thumbnail'] ?? 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80');
                     ?>
                     <div class="col-md-6 col-lg-4">
                         <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden d-flex flex-column hover-lift transition">
-                            
-                            <!-- Thumbnail with Category Badge -->
+
                             <div class="position-relative">
                                 <a href="<?= url('courses/details.php?slug=' . urlencode($c['slug'])) ?>">
                                     <img src="<?= e($techThumb) ?>"

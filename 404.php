@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — 404 Not Found Page
- */
+
 require_once __DIR__ . '/config/main.php';
 
 http_response_code(404);
@@ -30,8 +28,8 @@ include BASE_PATH . '/includes/layouts/header.php';
                     </p>
                     <div class="d-flex flex-wrap justify-content-center gap-3">
                         <a href="<?= url('index.php') ?>" class="btn btn-primary rounded-pill px-4 fw-bold" data-feedback="click">
-                            <i class="bi bi-house-door- me-2"></i> Return Home
-                        </a>fill
+                            <i class="bi bi-house-door-fill me-2"></i> Return Home
+                        </a>
                         <a href="<?= url('courses/index.php') ?>" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-feedback="click">
                             <i class="bi bi-compass me-2"></i> Browse Courses
                         </a>

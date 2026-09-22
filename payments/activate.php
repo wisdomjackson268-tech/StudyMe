@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Payment Verification & Enrollment Activation Handler
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/enrollments.php';
 require_once BASE_PATH . '/includes/functions/pricing.php';
@@ -14,7 +12,6 @@ $courseId = (int)($_POST['course_id'] ?? $_GET['course_id'] ?? 0);
 $txRef    = trim($_POST['tx_ref'] ?? $_GET['tx_ref'] ?? ('SM_TX_' . time() . '_' . rand(1000, 9999)));
 $method   = trim($_POST['payment_method'] ?? 'card');
 
-// Resolve / auto-create student record
 $stmtSt = $pdo->prepare("SELECT id FROM students WHERE user_id = ? LIMIT 1");
 $stmtSt->execute([$userId]);
 $stRow = $stmtSt->fetch(PDO::FETCH_ASSOC);
@@ -29,10 +26,9 @@ if (!$studentId && current_user_role() === ROLE_STUDENT) {
 }
 
 if ($courseId > 0 && $studentId) {
-    // 1. Backend Server-side Price Calculation
+
     $expectedPrice = get_course_official_price($courseId);
 
-    // 2. One-Course-Per-Student Check (bypassed in FREE_TESTING_MODE so users can test freely)
     if (!(defined('FREE_TESTING_MODE') && FREE_TESTING_MODE)) {
         $activeCourse = get_student_active_course($studentId);
         if ($activeCourse && (int)$activeCourse['course_id'] !== $courseId) {
@@ -44,7 +40,6 @@ if ($courseId > 0 && $studentId) {
     try {
         $pdo->beginTransaction();
 
-        // 3. Record Successful Payment in DB
         $stmtPay = $pdo->prepare("
             INSERT INTO payments (user_id, course_id, amount, currency, payment_method, transaction_reference, status, paid_at, created_at)
             VALUES (?, ?, ?, 'NGN', ?, ?, 'successful', NOW(), NOW())
@@ -52,7 +47,6 @@ if ($courseId > 0 && $studentId) {
         ");
         $stmtPay->execute([$userId, $courseId, $expectedPrice, $method, $txRef]);
 
-        // 4. Activate Single Course Enrollment
         $stmtEnroll = $pdo->prepare("
             INSERT INTO enrollments (student_id, course_id, status, progress, enrolled_at)
             VALUES (?, ?, 'active', 0.00, NOW())
@@ -60,14 +54,12 @@ if ($courseId > 0 && $studentId) {
         ");
         $stmtEnroll->execute([$studentId, $courseId]);
 
-        // 5. Log Activity Event
         if (function_exists('log_user_activity')) {
             log_user_activity($userId, 'Course Payment Verified', 'Paid ₦' . number_format($expectedPrice, 2) . ' for course enrollment.', $courseId);
         }
 
         $pdo->commit();
 
-        // 6. Trigger Referral Verification & Bonus Engine (Server-side validation)
         if (function_exists('process_verified_payment_referral')) {
             $stmtP = $pdo->prepare("SELECT id FROM payments WHERE transaction_reference = ? LIMIT 1");
             $stmtP->execute([$txRef]);
@@ -77,7 +69,6 @@ if ($courseId > 0 && $studentId) {
             }
         }
 
-        // Clear pending course session
         unset($_SESSION['pending_course_id'], $_SESSION['pending_course_slug'], $_SESSION['pending_course_title'], $_SESSION['pending_course_price'], $_SESSION['pending_course_cat']);
 
         $_SESSION['auth_success_vibrate'] = true;
@@ -92,7 +83,7 @@ if ($courseId > 0 && $studentId) {
         redirect('courses/index.php');
     }
 } elseif (current_user_role() === ROLE_TEACHER) {
-    // Teacher Access Activation
+
     $rates = get_official_pricing_rates();
     try {
         $stmtPay = $pdo->prepare("

@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Teacher Enrolled Students Manager
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_TEACHER);
@@ -14,23 +12,24 @@ $pdo  = getDBConnection();
 $uid  = $user['id'];
 $courseFilter = (int)($_GET['course_id'] ?? 0);
 
-// Get teacher ID
-$stmt = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ? LIMIT 1");
+$stmt = $pdo->prepare("SELECT id, assigned_course_id FROM teachers WHERE user_id = ? LIMIT 1");
 $stmt->execute([$uid]);
 $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
 $tid = $teacher ? (int)$teacher['id'] : 0;
 
 $students = [];
 if ($tid) {
-    $params = [$tid];
+    $assignedCourseId = (int)($teacher['assigned_course_id'] ?? 0);
+    $params = [$tid, $tid, $assignedCourseId];
     $sql = "
-        SELECT e.*, c.title AS course_title,
-               u.first_name, u.last_name, u.email, u.avatar
+        SELECT e.*, c.title AS course_title, c.academic_level,
+               s.id AS student_id, s.bio, s.city, s.country,
+               u.id AS student_user_id, u.first_name, u.last_name, u.email, u.avatar
         FROM enrollments e
         JOIN courses c ON e.course_id = c.id
         JOIN students s ON e.student_id = s.id
         JOIN users u ON s.user_id = u.id
-        WHERE c.teacher_id = ? AND e.status = 'active'
+        WHERE (e.teacher_id = ? OR c.teacher_id = ? OR c.id = ?) AND e.status = 'active'
     ";
     if ($courseFilter > 0) {
         $sql .= " AND e.course_id = ?";
@@ -71,15 +70,12 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                         <tr>
                             <td class="ps-4">
                                 <div class="d-flex align-items-center gap-3">
-                                    <?php if (!empty($s['avatar'])): ?>
-                                        <img src="<?= e($s['avatar']) ?>" class="rounded-circle border" style="width:40px; height:40px; object-fit:cover;" alt="Student">
-                                    <?php else: ?>
-                                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center" style="width:40px; height:40px;">
-                                            <?= strtoupper(substr($s['first_name'], 0, 1)) ?>
-                                        </div>
-                                    <?php endif; ?>
+                                    <?php $studentAvatar = function_exists('get_avatar_url') ? get_avatar_url($s['avatar'] ?? null, $s['first_name'] . ' ' . $s['last_name']) : ($s['avatar'] ?? ''); ?>
+                                    <img src="<?= e($studentAvatar) ?>" class="rounded-circle border" style="width:40px; height:40px; object-fit:cover;" alt="<?= e($s['first_name'] . ' ' . $s['last_name']) ?>" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=<?= urlencode($s['first_name'] . ' ' . $s['last_name']) ?>&background=4f46e5&color=ffffff&bold=true';">
                                     <div>
-                                        <div class="fw-bold text-main"><?= e($s['first_name'] . ' ' . $s['last_name']) ?></div>
+                                        <a href="<?= url('teacher/student-profile.php?user_id=' . (int)$s['student_user_id']) ?>" class="fw-bold text-main text-decoration-none">
+                                            <?= e($s['first_name'] . ' ' . $s['last_name']) ?> <i class="bi bi-arrow-up-right small text-primary"></i>
+                                        </a>
                                         <small class="text-muted"><?= e($s['email']) ?></small>
                                     </div>
                                 </div>

@@ -1,8 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Teacher Student Q&A & Lesson Discussions Hub
- * Allows instructors to view all questions asked on their course lessons and reply directly.
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/discussions.php';
 
@@ -15,7 +12,6 @@ $user   = current_user();
 $userId = (int)$user['id'];
 $pdo    = getDBConnection();
 
-// Get teacher ID
 $stmt = $pdo->prepare("SELECT id, user_id, assigned_course_id, assigned_category_id FROM teachers WHERE user_id = ? LIMIT 1");
 $stmt->execute([$userId]);
 $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -31,7 +27,6 @@ if (!in_array($scope, ['my_courses', 'all'])) {
     $scope = 'my_courses';
 }
 
-// Handle Instructor Reply Submission
 if (is_post() && isset($_POST['post_instructor_reply'])) {
     $questionId = (int)($_POST['question_id'] ?? 0);
     $replyText  = trim($_POST['reply_content'] ?? '');
@@ -42,17 +37,15 @@ if (is_post() && isset($_POST['post_instructor_reply'])) {
     } else {
         set_flash('error', $res['message']);
     }
-    
+
     $redirectUrl = 'teacher/discussions.php?scope=' . urlencode($scope);
     if ($statusFilter) $redirectUrl .= '&status=' . urlencode($statusFilter);
     $redirectUrl .= '#question-' . $questionId;
     redirect($redirectUrl);
 }
 
-// Fetch questions
 $questions = get_teacher_course_questions($tid ?: $userId, $statusFilter, $scope);
 
-// Calculate counts
 $allScopeQuestions = get_teacher_course_questions($tid ?: $userId, null, $scope);
 $totalQuestionsCount = count($allScopeQuestions);
 $unansweredCount = 0;
@@ -62,7 +55,6 @@ foreach ($allScopeQuestions as $aq) {
     if (($aq['status'] ?? '') === 'answered') $answeredCount++;
 }
 
-// Count platform-wide questions
 $totalPlatformQuestions = (int)$pdo->query("SELECT COUNT(*) FROM lesson_questions")->fetchColumn();
 
 include BASE_PATH . '/includes/layouts/dashboard-header.php';
@@ -76,8 +68,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         <h1 class="h3 fw-bold mb-1">Student Q&amp;A &amp; Lesson Discussions</h1>
         <p class="text-muted small mb-0">Review and reply directly to academic questions asked by enrolled students on course lessons.</p>
     </div>
-    
-    <!-- Scope Switcher Tabs -->
+
     <div class="btn-group bg-light p-1 rounded-pill border" role="group">
         <a href="<?= url('teacher/discussions.php?scope=my_courses' . ($statusFilter ? '&status=' . $statusFilter : '')) ?>" class="btn btn-sm <?= $scope === 'my_courses' ? 'btn-primary shadow-sm' : 'btn-light text-muted' ?> rounded-pill px-3 fw-bold">
             <i class="bi bi-person-check me-1"></i> My Courses
@@ -88,7 +79,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     </div>
 </div>
 
-<!-- Status Filter Pills -->
 <div class="d-flex gap-2 flex-wrap mb-4">
     <a href="<?= url('teacher/discussions.php?scope=' . $scope) ?>" class="btn btn-sm <?= !$statusFilter ? 'btn-dark' : 'btn-outline-secondary' ?> rounded-pill px-3 fw-bold">
         All Questions (<?= $totalQuestionsCount ?>)
@@ -105,7 +95,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
     <div class="d-flex flex-column gap-4 mb-5">
         <?php foreach ($questions as $q): ?>
             <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-card" id="question-<?= (int)$q['id'] ?>">
-                <!-- Question Header -->
+
                 <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3 border-bottom pb-3">
                     <div>
                         <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
@@ -128,7 +118,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                     </span>
                 </div>
 
-                <!-- Question Content -->
                 <?php if (!empty($q['title'])): ?>
                     <h5 class="fw-bold text-main mb-2"><?= e($q['title']) ?></h5>
                 <?php endif; ?>
@@ -136,7 +125,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                     <?= nl2br(e($q['question'])) ?>
                 </div>
 
-                <!-- Existing Replies -->
                 <?php if (!empty($q['replies'])): ?>
                     <h6 class="fw-bold text-main mb-3 small text-uppercase">
                         <i class="bi bi-chat-left-dots-fill text-primary me-1"></i> Discussion Thread (<?= count($q['replies']) ?>)
@@ -170,12 +158,11 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                     </div>
                 <?php endif; ?>
 
-                <!-- Instructor Reply Form -->
                 <div class="pt-3 border-top mt-2">
                     <form method="POST" action="<?= url('teacher/discussions.php?scope=' . urlencode($scope) . ($statusFilter ? '&status=' . urlencode($statusFilter) : '')) ?>">
                         <input type="hidden" name="post_instructor_reply" value="1">
                         <input type="hidden" name="question_id" value="<?= (int)$q['id'] ?>">
-                        
+
                         <label class="form-label fw-bold small text-main mb-2">
                             <i class="bi bi-reply-fill text-primary me-1"></i> Reply as Instructor
                         </label>

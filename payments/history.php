@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Payment & Billing History
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page();

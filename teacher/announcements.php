@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Teacher Announcements Management
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/announcements.php';
 
@@ -10,13 +8,12 @@ $user   = current_user();
 $userId = (int)$user['id'];
 $pdo    = getDBConnection();
 
-// Handle Delete Announcement
 if (is_post() && isset($_POST['action']) && $_POST['action'] === 'delete') {
     $delId = (int)($_POST['id'] ?? 0);
-    // Strict ownership verification: teacher can only delete their own announcements
+
     $stmtDel = $pdo->prepare("DELETE FROM announcements WHERE id = ? AND created_by = ?");
     $stmtDel->execute([$delId, $userId]);
-    
+
     if ($stmtDel->rowCount() > 0) {
         set_flash('success', 'Announcement deleted successfully.');
     } else {
@@ -25,7 +22,6 @@ if (is_post() && isset($_POST['action']) && $_POST['action'] === 'delete') {
     redirect('teacher/announcements.php');
 }
 
-// Fetch teacher's assigned course & announcements
 $stmtTeacher = $pdo->prepare("SELECT id, assigned_course_id FROM teachers WHERE user_id = ? LIMIT 1");
 $stmtTeacher->execute([$userId]);
 $teacher = $stmtTeacher->fetch(PDO::FETCH_ASSOC);
@@ -45,7 +41,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 ?>
 
 <div class="container-fluid py-4">
-    <!-- Header -->
+
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
         <div>
             <h1 class="h3 fw-bold mb-1"><i class="bi bi-megaphone-fill text-warning me-2"></i> My Announcements</h1>
@@ -62,7 +58,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     </div>
 
-    <!-- Announcement Table Card -->
     <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
         <div class="card-header bg-white py-3 px-4 border-0 d-flex align-items-center justify-content-between">
             <h5 class="fw-bold mb-0">Published &amp; Draft Announcements</h5>

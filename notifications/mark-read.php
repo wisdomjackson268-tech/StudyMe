@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Mark Notification Read API/Handler
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 require_login();
@@ -14,7 +12,7 @@ if ($notifId > 0) {
     $stmt = $pdo->prepare("UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?");
     $stmt->execute([$notifId, $userId]);
 } else {
-    // Mark all read
+
     $stmt = $pdo->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ?");
     $stmt->execute([$userId]);
 }

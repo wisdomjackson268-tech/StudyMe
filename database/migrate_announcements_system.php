@@ -1,13 +1,10 @@
 <?php
-/**
- * StudyMe AI Platform — Announcement System Database Migration
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 $pdo = getDBConnection();
 echo "Starting Announcement System Migration...\n";
 
-// 1. Upgrade announcements table columns
 $annCols = $pdo->query("SHOW COLUMNS FROM announcements")->fetchAll(PDO::FETCH_COLUMN);
 
 if (!in_array('creator_role', $annCols)) {
@@ -35,13 +32,11 @@ if (!in_array('attachment', $annCols)) {
     echo "✔ Added attachment to announcements\n";
 }
 
-// Modify status column to include archived
 try {
     $pdo->exec("ALTER TABLE announcements MODIFY COLUMN status ENUM('draft','published','archived') DEFAULT 'published'");
     echo "✔ Updated status column on announcements\n";
 } catch (Exception $e) {}
 
-// 2. Create announcement_reads table for individual user read tracking
 $pdo->exec("
 CREATE TABLE IF NOT EXISTS announcement_reads (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -55,7 +50,6 @@ CREATE TABLE IF NOT EXISTS announcement_reads (
 ");
 echo "✔ Verified announcement_reads table\n";
 
-// 3. Create storage/uploads/announcements directory if missing
 $uploadDir = BASE_PATH . '/uploads/announcements';
 if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0777, true);

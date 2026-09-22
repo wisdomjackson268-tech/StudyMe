@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Teacher PDF & Learning Resources Manager
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_TEACHER);
@@ -14,7 +12,6 @@ $pdo  = getDBConnection();
 $uid  = $user['id'];
 $courseFilter = (int)($_GET['course_id'] ?? 0);
 
-// Resolve teacher ID
 $stmt = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ? LIMIT 1");
 $stmt->execute([$uid]);
 $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -25,12 +22,10 @@ if (!$tid) {
     redirect('teacher/dashboard.php');
 }
 
-// Fetch teacher's owned courses
 $stmt = $pdo->prepare("SELECT id, title FROM courses WHERE teacher_id = ? ORDER BY title ASC");
 $stmt->execute([$tid]);
 $myCourses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Handle Delete Resource
 if (isset($_GET['action']) && $_GET['action'] === 'delete' && !empty($_GET['resource_id'])) {
     $resourceId = (int)$_GET['resource_id'];
     $stmtRes = $pdo->prepare("SELECT * FROM resources WHERE id = ? AND teacher_id = ? LIMIT 1");
@@ -38,7 +33,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete' && !empty($_GET['reso
     $res = $stmtRes->fetch(PDO::FETCH_ASSOC);
 
     if ($res) {
-        // Delete physical file
+
         $filePath = BASE_PATH . '/' . $res['file_path'];
         if (file_exists($filePath)) {
             @unlink($filePath);
@@ -52,13 +47,11 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete' && !empty($_GET['reso
     redirect('teacher/resources.php' . ($courseFilter ? '?course_id=' . $courseFilter : ''));
 }
 
-// Handle PDF / Resource Upload
 if (is_post() && isset($_POST['upload_resource'])) {
     $title       = trim($_POST['title'] ?? '');
     $description = trim($_POST['description'] ?? '');
     $courseId    = (int)($_POST['course_id'] ?? 0);
 
-    // Verify course ownership
     $stmtCheck = $pdo->prepare("SELECT id FROM courses WHERE id = ? AND teacher_id = ? LIMIT 1");
     $stmtCheck->execute([$courseId, $tid]);
 
@@ -77,10 +70,9 @@ if (is_post() && isset($_POST['upload_resource'])) {
             $mimeType = finfo_file($finfo, $file['tmp_name']);
             finfo_close($finfo);
 
-            // STRICT PDF VALIDATION
             if ($ext !== 'pdf' || strpos($mimeType, 'pdf') === false) {
                 set_flash('error', 'SECURITY ERROR: Only authentic PDF documents (.pdf) can be uploaded.');
-            } elseif ($file['size'] > 25 * 1024 * 1024) { // 25MB Max
+            } elseif ($file['size'] > 25 * 1024 * 1024) {
                 set_flash('error', 'File size exceeds maximum limit of 25MB.');
             } else {
                 $uploadDir = BASE_PATH . '/uploads/documents';
@@ -115,7 +107,6 @@ if (is_post() && isset($_POST['upload_resource'])) {
     }
 }
 
-// Fetch resources
 $params = [$tid];
 $sql = "
     SELECT r.*, c.title AS course_title
@@ -144,7 +135,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
 </div>
 
 <div class="row g-4">
-    <!-- PDF Upload Card -->
+
     <div class="col-lg-5">
         <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top: 90px;">
             <h5 class="fw-bold mb-3"><i class="bi bi-cloud-arrow-up-fill text-primary me-2"></i>Upload PDF Resource</h5>
@@ -184,7 +175,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     </div>
 
-    <!-- Uploaded Resources List -->
     <div class="col-lg-7">
         <h5 class="fw-bold mb-3">Uploaded PDF Resources (<?= count($resources) ?>)</h5>
 
@@ -208,7 +198,7 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                                 <a href="<?= url($r['file_path']) ?>" class="btn btn-sm btn-outline-primary rounded-pill" target="_blank">
                                     <i class="bi bi-eye me-1"></i> View
                                 </a>
-                                <a href="<?= url('teacher/resources.php?action=delete&resource_id=' . $r['id'] . ($courseFilter ? '&course_id=' . $courseFilter : '')) ?>" 
+                                <a href="<?= url('teacher/resources.php?action=delete&resource_id=' . $r['id'] . ($courseFilter ? '&course_id=' . $courseFilter : '')) ?>"
                                    class="btn btn-sm btn-outline-danger rounded-circle p-2"
                                    onclick="return confirm('Delete this PDF resource?');">
                                     <i class="bi bi-trash"></i>

@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Payment & Enrollment Success Page
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/pricing.php';
 
@@ -27,7 +25,6 @@ if ($courseId > 0) {
     $stmt->execute([$courseId]);
     $course = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Get verified payment amount from payments table
     if (!empty($txRef)) {
         $stmtP = $pdo->prepare("SELECT amount FROM payments WHERE transaction_reference = ? AND user_id = ? LIMIT 1");
         $stmtP->execute([$txRef, $userId]);
@@ -50,10 +47,10 @@ include BASE_PATH . '/includes/layouts/header.php';
                     <div class="p-3 bg-success bg-opacity-10 text-success rounded-circle d-inline-flex mx-auto mb-3 fs-1 shadow-sm" style="width: 80px; height: 80px; align-items: center; justify-content: center;">
                         <i class="bi bi-check-circle-fill"></i>
                     </div>
-                    
+
                     <h2 class="fw-bold mb-2 text-success">🎉 Payment Successful!</h2>
                     <p class="text-muted mb-4 lead fs-6">Your StudyMe account/course has been activated.</p>
-                    
+
                     <?php if ($course): ?>
                     <div class="p-4 bg-light rounded-4 mb-4 border text-start">
                         <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">

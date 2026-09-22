@@ -1,14 +1,12 @@
 <?php
-/**
- * StudyMe AI Platform — Careers & Opportunities
- */
+
 require_once __DIR__ . '/config/main.php';
 include BASE_PATH . '/includes/layouts/header.php';
 ?>
 
 <div class="py-5 bg-light-subtle" style="min-height: calc(100vh - 120px);">
     <div class="container py-4">
-        <!-- Header -->
+
         <div class="text-center max-w-700 mx-auto mb-5 animate-fade-in">
             <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex mb-3">
                 <i class="bi bi-briefcase-fill fs-1"></i>
@@ -17,7 +15,6 @@ include BASE_PATH . '/includes/layouts/header.php';
             <p class="lead text-muted">Join our mission to empower millions of students and educators with cutting-edge AI learning tools.</p>
         </div>
 
-        <!-- Values Grid -->
         <div class="row g-4 mb-5">
             <div class="col-md-4">
                 <div class="card h-100 border-0 shadow-sm rounded-4 p-4 text-center">
@@ -48,12 +45,11 @@ include BASE_PATH . '/includes/layouts/header.php';
             </div>
         </div>
 
-        <!-- Open Roles List -->
         <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-5">
             <h3 class="fw-bold mb-4">Current Open Positions</h3>
-            
+
             <div class="list-group list-group-flush">
-                <!-- Role 1 -->
+
                 <div class="list-group-item px-0 py-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-1">
@@ -68,7 +64,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                     </a>
                 </div>
 
-                <!-- Role 2 -->
                 <div class="list-group-item px-0 py-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-1">
@@ -83,7 +78,6 @@ include BASE_PATH . '/includes/layouts/header.php';
                     </a>
                 </div>
 
-                <!-- Role 3 -->
                 <div class="list-group-item px-0 py-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-1">
@@ -100,7 +94,6 @@ include BASE_PATH . '/includes/layouts/header.php';
             </div>
         </div>
 
-        <!-- Instructor CTA -->
         <div class="card border-0 bg-primary text-white rounded-4 p-4 p-md-5 text-center shadow-lg">
             <h2 class="fw-bold mb-3">Want to Teach Your Own Courses?</h2>
             <p class="lead text-white-50 max-w-700 mx-auto mb-4">

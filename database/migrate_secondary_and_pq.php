@@ -1,13 +1,10 @@
 <?php
-/**
- * StudyMe AI Platform — Secondary Subjects & Past Questions Database Migration
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 $pdo = getDBConnection();
 echo "Migrating Secondary Subjects & Past Questions Schema...\n";
 
-// 1. Create past_questions table if not exists
 $pdo->exec("
     CREATE TABLE IF NOT EXISTS past_questions (
         id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -29,7 +26,6 @@ $pdo->exec("
 ");
 echo "✔ past_questions table created/verified\n";
 
-// 2. Ensure Secondary Category ID
 $stmtCat = $pdo->prepare("SELECT id FROM categories WHERE slug = 'secondary-waec-neco' LIMIT 1");
 $stmtCat->execute();
 $secCatId = (int)$stmtCat->fetchColumn();
@@ -41,7 +37,6 @@ if (!$secCatId) {
 $stmtT = $pdo->query("SELECT id FROM teachers LIMIT 1");
 $teacherId = (int)$stmtT->fetchColumn() ?: 1;
 
-// 3. Add complete secondary subjects (Price ₦3,000 each)
 $subjects = [
     ['Mathematics (WAEC/NECO/JAMB)', 'secondary-mathematics', 'Algebra, Geometry, Trigonometry, Statistics, Probability, and Calculus with step-by-step past questions.', '3000.00'],
     ['English Language & Oral English', 'secondary-english', 'Grammar, essay writing, summary techniques, comprehension passages, and phonetics.', '3000.00'],
@@ -68,7 +63,7 @@ foreach ($subjects as $sb) {
     $stmt = $pdo->prepare("
         INSERT INTO courses (teacher_id, category_id, title, slug, short_description, description, level, price, duration_minutes, thumbnail, status, featured, certificate_enabled, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, 'beginner', ?, 1800, 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=600&q=80', 'published', 1, 1, NOW(), NOW())
-        ON DUPLICATE KEY UPDATE 
+        ON DUPLICATE KEY UPDATE
             category_id = VALUES(category_id),
             title = VALUES(title),
             short_description = VALUES(short_description),
@@ -79,11 +74,10 @@ foreach ($subjects as $sb) {
 }
 echo "✔ " . count($subjects) . " Secondary Subjects synchronized in database (₦3,000 each)\n";
 
-// 4. Seed Rich Sample Past Questions for WAEC, NECO, JAMB
 $pdo->exec("TRUNCATE TABLE past_questions;");
 
 $pqData = [
-    // WAEC 2024 Mathematics
+
     [
         'exam_type' => 'waec', 'year' => 2024, 'subject_name' => 'Mathematics', 'subject_slug' => 'mathematics',
         'question_number' => 1,
@@ -109,7 +103,6 @@ $pqData = [
         'explanation' => 'Factoring: $(2x + 1)(x - 3) = 0 \implies x = 3$ or $x = -\frac{1}{2}$.'
     ],
 
-    // WAEC 2024 English Language
     [
         'exam_type' => 'waec', 'year' => 2024, 'subject_name' => 'English Language', 'subject_slug' => 'english',
         'question_number' => 1,
@@ -127,7 +120,6 @@ $pqData = [
         'explanation' => 'Both "cup" and "love" share the short central vowel sound /ʌ/.'
     ],
 
-    // WAEC 2024 Physics
     [
         'exam_type' => 'waec', 'year' => 2024, 'subject_name' => 'Physics', 'subject_slug' => 'physics',
         'question_number' => 1,
@@ -137,7 +129,6 @@ $pqData = [
         'explanation' => '$a = \frac{v - u}{t} = \frac{20 - 0}{5} = 4\text{ m/s}^2$.'
     ],
 
-    // JAMB 2024 Mathematics
     [
         'exam_type' => 'jamb', 'year' => 2024, 'subject_name' => 'Mathematics', 'subject_slug' => 'mathematics',
         'question_number' => 1,
@@ -155,7 +146,6 @@ $pqData = [
         'explanation' => 'Electric current (Ampere) is the fundamental quantity, while electric charge (Coulomb = Ampere × second) is a derived quantity.'
     ],
 
-    // NECO 2024 Chemistry
     [
         'exam_type' => 'neco', 'year' => 2024, 'subject_name' => 'Chemistry', 'subject_slug' => 'chemistry',
         'question_number' => 1,

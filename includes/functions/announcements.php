@@ -1,13 +1,6 @@
 <?php
-/**
- * StudyMe AI Platform — Announcement Engine & Notification Dispatcher
- * Manages targeted announcements, teacher-course authorization, read telemetry, and attachments.
- */
 
 if (!function_exists('get_target_recipient_user_ids')) {
-    /**
-     * Resolve list of recipient user IDs based on target audience strictly server-side
-     */
     function get_target_recipient_user_ids($targetType, $courseId = null, $targetUserId = null, $creatorUserId = null) {
         $pdo = getDBConnection();
         $recipientIds = [];
@@ -84,15 +77,11 @@ if (!function_exists('get_target_recipient_user_ids')) {
                 break;
         }
 
-        // Return unique array of integers
         return array_values(array_unique(array_map('intval', $recipientIds)));
     }
 }
 
 if (!function_exists('publish_announcement_notifications')) {
-    /**
-     * Dispatch notification inbox messages to all eligible recipient users
-     */
     function publish_announcement_notifications($announcementId) {
         $pdo = getDBConnection();
         
@@ -135,18 +124,13 @@ if (!function_exists('publish_announcement_notifications')) {
 }
 
 if (!function_exists('create_announcement_entry')) {
-    /**
-     * Create announcement with server-side authorization and optional file attachment
-     */
     function create_announcement_entry($title, $content, $creatorId, $creatorRole, $targetType = 'all', $courseId = null, $priority = 'normal', $status = 'published', $attachmentFile = null, $targetUserId = null) {
         $pdo = getDBConnection();
 
-        // 1. Authorization check: Students cannot create announcements
         if ($creatorRole === 'student') {
             return ['success' => false, 'error' => 'ACCESS DENIED: Students do not have permission to create announcements.'];
         }
 
-        // 2. Teacher Course Security Enforcement
         if ($creatorRole === 'teacher') {
             $stmtTch = $pdo->prepare("
                 SELECT t.id, t.assigned_course_id 
@@ -157,7 +141,6 @@ if (!function_exists('create_announcement_entry')) {
             $teacher = $stmtTch->fetch(PDO::FETCH_ASSOC);
             $teacherId = $teacher ? (int)$teacher['id'] : 0;
 
-            // Fetch all valid course IDs this teacher is assigned to or owns
             $stmtCourses = $pdo->prepare("SELECT id FROM courses WHERE teacher_id = ? OR id = ?");
             $stmtCourses->execute([$teacherId, (int)($teacher['assigned_course_id'] ?? 0)]);
             $validCourseIds = $stmtCourses->fetchAll(PDO::FETCH_COLUMN);
@@ -166,11 +149,9 @@ if (!function_exists('create_announcement_entry')) {
                 return ['success' => false, 'error' => 'REQUEST REJECTED BY SERVER: You can only publish announcements for courses you are authorized to teach.'];
             }
 
-            // Teacher announcements must strictly target their course
             $targetType = 'course';
         }
 
-        // 3. Attachment Upload Processing
         $attachmentPath = null;
         if (!empty($attachmentFile) && isset($attachmentFile['tmp_name']) && is_uploaded_file($attachmentFile['tmp_name'])) {
             $allowedExts = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'doc', 'docx', 'txt', 'zip'];
@@ -180,7 +161,7 @@ if (!function_exists('create_announcement_entry')) {
                 return ['success' => false, 'error' => 'Invalid attachment format. Allowed formats: PDF, Images (JPG, PNG, WEBP), Documents (DOC, DOCX, TXT, ZIP).'];
             }
 
-            if ($attachmentFile['size'] > 15 * 1024 * 1024) { // 15MB max
+            if ($attachmentFile['size'] > 15 * 1024 * 1024) {
                 return ['success' => false, 'error' => 'Attachment exceeds maximum allowed size of 15MB.'];
             }
 
@@ -197,7 +178,6 @@ if (!function_exists('create_announcement_entry')) {
             }
         }
 
-        // 4. Insert Announcement Record
         try {
             $publishedAt = ($status === 'published') ? date('Y-m-d H:i:s') : null;
             $stmt = $pdo->prepare("
@@ -232,30 +212,17 @@ if (!function_exists('create_announcement_entry')) {
 }
 
 if (!function_exists('get_user_announcements')) {
-    /**
-     * Retrieve announcements targeted specifically to the authenticated user
-     */
     function get_user_announcements($userId, $userRole, $limit = 50, $offset = 0) {
         $pdo = getDBConnection();
         $whereConditions = [];
         $params = [];
 
         if ($userRole === 'admin') {
-            // Admin sees all announcements
             $whereConditions[] = "1=1";
         } elseif ($userRole === 'teacher') {
-            // Teacher sees: created by self OR target_type IN ('all', 'teachers')
             $whereConditions[] = "(a.created_by = ? OR a.target_type IN ('all', 'teachers'))";
             $params[] = $userId;
         } else {
-            // Student sees published announcements:
-            // 1. target_type = 'all'
-            // 2. target_type = 'students'
-            // 3. target_type = 'course' AND user enrolled in that course
-            // 4. target_type = 'technology' AND user enrolled in tech course
-            // 5. target_type = 'university' AND user enrolled in uni course
-            // 6. target_type = 'secondary' AND user enrolled in secondary course
-            // 7. target_type = 'user' AND target_user_id = $userId
             $whereConditions[] = "a.status = 'published' AND (
                 a.target_type = 'all'
                 OR a.target_type = 'students'
@@ -309,43 +276,32 @@ if (!function_exists('get_user_announcements')) {
 }
 
 if (!function_exists('count_unread_announcements')) {
-    /**
-     * Count unread announcements for current user
-     */
-// Count unread announcements for current user using a direct COUNT query
-function count_unread_announcements($userId, $userRole) {
-    $pdo = getDBConnection();
-    $userId = (int)$userId;
-    if ($userId <= 0) return 0;
+    function count_unread_announcements($userId, $userRole) {
+        $pdo = getDBConnection();
+        $userId = (int)$userId;
+        if ($userId <= 0) return 0;
 
-    $where = '';
-    $params = [];
-    if ($userRole === 'admin') {
-        $where = "a.status = 'published' AND NOT EXISTS (SELECT 1 FROM announcement_reads ar WHERE ar.announcement_id = a.id AND ar.user_id = ?)";
-        $params = [$userId];
-    } elseif ($userRole === 'teacher') {
-        $where = "a.status = 'published' AND (a.created_by = ? OR a.target_type IN ('all', 'teachers')) AND NOT EXISTS (SELECT 1 FROM announcement_reads ar WHERE ar.announcement_id = a.id AND ar.user_id = ?)";
-        $params = [$userId, $userId];
-    } else {
-        // Student
-        $where = "a.status = 'published' AND (a.target_type = 'all' OR a.target_type = 'students' OR (a.target_type = 'course' AND a.course_id IN (SELECT e.course_id FROM enrollments e JOIN students s ON e.student_id = s.id WHERE s.user_id = ? AND e.status = 'active')) OR (a.target_type = 'user' AND a.target_user_id = ?)) AND NOT EXISTS (SELECT 1 FROM announcement_reads ar WHERE ar.announcement_id = a.id AND ar.user_id = ?)";
-        $params = [$userId, $userId, $userId];
+        $where = '';
+        $params = [];
+        if ($userRole === 'admin') {
+            $where = "a.status = 'published' AND NOT EXISTS (SELECT 1 FROM announcement_reads ar WHERE ar.announcement_id = a.id AND ar.user_id = ?)";
+            $params = [$userId];
+        } elseif ($userRole === 'teacher') {
+            $where = "a.status = 'published' AND (a.created_by = ? OR a.target_type IN ('all', 'teachers')) AND NOT EXISTS (SELECT 1 FROM announcement_reads ar WHERE ar.announcement_id = a.id AND ar.user_id = ?)";
+            $params = [$userId, $userId];
+        } else {
+            $where = "a.status = 'published' AND (a.target_type = 'all' OR a.target_type = 'students' OR (a.target_type = 'course' AND a.course_id IN (SELECT e.course_id FROM enrollments e JOIN students s ON e.student_id = s.id WHERE s.user_id = ? AND e.status = 'active')) OR (a.target_type = 'user' AND a.target_user_id = ?)) AND NOT EXISTS (SELECT 1 FROM announcement_reads ar WHERE ar.announcement_id = a.id AND ar.user_id = ?)";
+            $params = [$userId, $userId, $userId];
+        }
+        $sql = "SELECT COUNT(*) as cnt FROM announcements a WHERE $where";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)($row['cnt'] ?? 0);
     }
-    $sql = "SELECT COUNT(*) as cnt FROM announcements a WHERE $where";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    return (int)($row['cnt'] ?? 0);
 }
 
-
-} // close function_exists guard
-
-
 if (!function_exists('mark_announcement_as_read')) {
-    /**
-     * Mark an announcement as read by a user
-     */
     function mark_announcement_as_read($announcementId, $userId) {
         $pdo = getDBConnection();
         $stmt = $pdo->prepare("
@@ -357,9 +313,6 @@ if (!function_exists('mark_announcement_as_read')) {
 }
 
 if (!function_exists('mark_all_announcements_as_read')) {
-    /**
-     * Mark all accessible announcements as read for a user
-     */
     function mark_all_announcements_as_read($userId, $userRole) {
         $pdo = getDBConnection();
         $announcements = get_user_announcements($userId, $userRole, 100);
@@ -378,9 +331,6 @@ if (!function_exists('mark_all_announcements_as_read')) {
 }
 
 if (!function_exists('get_announcement_telemetry')) {
-    /**
-     * Compute analytics metrics for an announcement (Recipients, Read count, Unread count)
-     */
     function get_announcement_telemetry($announcementId) {
         $pdo = getDBConnection();
 

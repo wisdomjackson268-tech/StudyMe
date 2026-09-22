@@ -1,8 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Teacher Category & Instructor Suite Program
- * Details educator benefits, course creation, student telemetry, and registration workflow (@ ₦5,000).
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/pricing.php';
 
@@ -15,8 +12,7 @@ include BASE_PATH . '/includes/layouts/header.php';
 
 <div class="py-5 bg-light-subtle" style="min-height: calc(100vh - 120px);">
     <div class="container py-4">
-        
-        <!-- Breadcrumbs -->
+
         <nav aria-label="breadcrumb" class="mb-3">
             <ol class="breadcrumb small">
                 <li class="breadcrumb-item"><a href="<?= url('index.php') ?>" class="text-decoration-none">Home</a></li>
@@ -25,7 +21,6 @@ include BASE_PATH . '/includes/layouts/header.php';
             </ol>
         </nav>
 
-        <!-- Hero Section -->
         <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-5 position-relative overflow-hidden" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); color:#fff;">
             <div class="row align-items-center g-4 position-relative" style="z-index: 2;">
                 <div class="col-lg-8">
@@ -55,7 +50,6 @@ include BASE_PATH . '/includes/layouts/header.php';
             </div>
         </div>
 
-        <!-- Instructor Features Grid -->
         <div class="text-center max-w-700 mx-auto mb-5">
             <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1 fw-bold text-uppercase small mb-2">
                 What You Receive
@@ -126,7 +120,6 @@ include BASE_PATH . '/includes/layouts/header.php';
             </div>
         </div>
 
-        <!-- Call to Action Banner -->
         <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5 text-center bg-primary text-white">
             <h2 class="fw-bold mb-2 text-white">Ready to Start Teaching on StudyMe?</h2>
             <p class="text-white-50 lead fs-6 max-w-600 mx-auto mb-4">

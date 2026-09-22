@@ -9,7 +9,6 @@
         </div>
 
         <div class="row g-4">
-            <!-- Teacher 1 -->
             <div class="col-sm-6 col-lg-3">
                 <div class="teacher-card">
                     <div class="teacher-avatar-wrapper">
@@ -24,7 +23,6 @@
                 </div>
             </div>
 
-            <!-- Teacher 2 -->
             <div class="col-sm-6 col-lg-3">
                 <div class="teacher-card">
                     <div class="teacher-avatar-wrapper">
@@ -39,7 +37,6 @@
                 </div>
             </div>
 
-            <!-- Teacher 3 -->
             <div class="col-sm-6 col-lg-3">
                 <div class="teacher-card">
                     <div class="teacher-avatar-wrapper">
@@ -54,7 +51,6 @@
                 </div>
             </div>
 
-            <!-- Teacher 4 -->
             <div class="col-sm-6 col-lg-3">
                 <div class="teacher-card">
                     <div class="teacher-avatar-wrapper">

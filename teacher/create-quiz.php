@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Teacher Create Quiz Page
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
 secure_page(ROLE_TEACHER);
@@ -14,7 +12,6 @@ $pdo  = getDBConnection();
 $uid  = $user['id'];
 $preSelectedCourse = (int)($_GET['course_id'] ?? 0);
 
-// Get teacher ID
 $stmt = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ? LIMIT 1");
 $stmt->execute([$uid]);
 $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -25,7 +22,6 @@ if (!$tid) {
     redirect('teacher/dashboard.php');
 }
 
-// Fetch courses owned strictly by this teacher
 $stmt = $pdo->prepare("SELECT id, title FROM courses WHERE teacher_id = ? OR id = (SELECT assigned_course_id FROM teachers WHERE id = ?) ORDER BY title ASC");
 $stmt->execute([$tid, $tid]);
 $myCourses = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -44,7 +40,6 @@ if (is_post()) {
     $attempts     = (int)($_POST['attempts_allowed'] ?? 1);
     $status       = $_POST['status'] ?? 'published';
 
-    // Verify course belongs to authenticated teacher
     $stmtCheck = $pdo->prepare("SELECT id FROM courses WHERE id = ? AND teacher_id = ? LIMIT 1");
     $stmtCheck->execute([$courseId, $tid]);
     if (!$stmtCheck->fetch()) {

@@ -1,11 +1,7 @@
 <?php
-/**
- * StudyMe AI Platform — Secondary School Learning Hub
- * Single comprehensive bundle: All Subjects + WAEC + NECO + JAMB + Past Questions
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 
-// Count past questions per exam type (graceful fallback if table doesn't exist)
 try {
     $pdo = getDBConnection();
     $waecCount = (int)$pdo->query("SELECT COUNT(*) FROM past_questions WHERE exam_type = 'waec'")->fetchColumn();
@@ -16,7 +12,6 @@ try {
     $waecCount = $necoCount = $jambCount = $totalPQ = 0;
 }
 
-// All secondary school subjects grouped
 $subjectGroups = [
     'Sciences' => [
         ['icon' => 'bi-droplet-half', 'name' => 'Chemistry',          'color' => '#f59e0b'],
@@ -202,7 +197,6 @@ body.dark .tab-group-btn.active {
 <div class="py-5 bg-light-subtle" style="min-height: calc(100vh - 120px);">
     <div class="container py-4">
 
-        <!-- Breadcrumbs -->
         <nav aria-label="breadcrumb" class="mb-3">
             <ol class="breadcrumb small">
                 <li class="breadcrumb-item"><a href="<?= url('index.php') ?>" class="text-decoration-none">Home</a></li>
@@ -211,7 +205,6 @@ body.dark .tab-group-btn.active {
             </ol>
         </nav>
 
-        <!-- Hero Section -->
         <div class="sec-hero rounded-4 p-4 p-md-5 mb-5 position-relative">
             <div class="row align-items-center g-4 position-relative" style="z-index: 2;">
                 <div class="col-lg-7">
@@ -223,7 +216,7 @@ body.dark .tab-group-btn.active {
                         One subscription covers every Senior Secondary subject, WAEC &amp; NECO syllabi, JAMB/UTME preparation, and thousands of past questions — all with 24/7 AI tutoring.
                     </p>
                     <div class="d-flex flex-wrap gap-3 align-items-center">
-                        <a href="#enrollSection" class="btn btn-warning rounded-pill px-4 fw-bold shadow">
+                        <a href="<?= url('auth/register.php?secondary=1') ?>" class="btn btn-warning rounded-pill px-4 fw-bold shadow">
                             <i class="bi bi-lightning-fill me-1"></i> Get Full Access — ₦3,000 <?= (defined('FREE_TESTING_MODE') && FREE_TESTING_MODE) ? '(Free Testing: ₦0)' : '' ?>
                         </a>
                         <a href="#subjectsSection" class="btn btn-outline-light rounded-pill px-4 fw-semibold">
@@ -262,16 +255,14 @@ body.dark .tab-group-btn.active {
             </div>
         </div>
 
-        <!-- What's Included -->
         <div class="row g-4 mb-5">
             <div class="col-12">
                 <h2 class="fw-bold mb-1">Everything in One Package</h2>
                 <p class="text-muted">Register once, access everything — no subject-by-subject fees.</p>
             </div>
 
-            <!-- WAEC Card -->
             <div class="col-md-4">
-                <div class="exam-card waec-card h-100">
+                <div class="exam-card waec-card h-100 d-flex flex-column">
                     <div class="d-flex align-items-center gap-3 mb-3">
                         <div class="p-2 rounded-circle" style="background:#fef3c7;">
                             <i class="bi bi-award-fill text-warning fs-4"></i>
@@ -281,20 +272,24 @@ body.dark .tab-group-btn.active {
                             <small class="text-muted">Senior Secondary Certificate Exam</small>
                         </div>
                     </div>
-                    <ul class="list-unstyled small d-flex flex-column gap-2 mb-3">
+                    <ul class="list-unstyled small d-flex flex-column gap-2 mb-4 flex-grow-1">
                         <li><i class="bi bi-check-circle-fill feature-check me-2"></i>Full SSCE Syllabus for all subjects</li>
-                        <li><i class="bi bi-check-circle-fill feature-check me-2"></i><?= number_format($waecCount + 1200) ?>+ Past Questions (2005–2024)</li>
+                        <li><i class="bi bi-check-circle-fill feature-check me-2"></i>ALOC Station Live &amp; Vault Questions (2005–2024)</li>
                         <li><i class="bi bi-check-circle-fill feature-check me-2"></i>Detailed step-by-step solutions</li>
-                        <li><i class="bi bi-check-circle-fill feature-check me-2"></i>Mock CBT practice tests</li>
-                        <li><i class="bi bi-check-circle-fill feature-check me-2"></i>AI-powered weak area detection</li>
+                        <li><i class="bi bi-check-circle-fill feature-check me-2"></i>Interactive CBT drill mode with instant scoring</li>
+                        <li><i class="bi bi-check-circle-fill feature-check me-2"></i>AI-powered Socratic question explanations</li>
                     </ul>
-                    <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-semibold">Included in Bundle</span>
+                    <div class="d-flex align-items-center justify-content-between pt-3 border-top border-warning border-opacity-25">
+                        <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-semibold">Included in Bundle</span>
+                        <a href="<?= url('courses/past-questions.php?exam=waec') ?>" class="btn btn-sm btn-outline-dark rounded-pill px-3 fw-bold">
+                            Practice WAEC &rarr;
+                        </a>
+                    </div>
                 </div>
             </div>
 
-            <!-- NECO Card -->
             <div class="col-md-4">
-                <div class="exam-card neco-card h-100">
+                <div class="exam-card neco-card h-100 d-flex flex-column">
                     <div class="d-flex align-items-center gap-3 mb-3">
                         <div class="p-2 rounded-circle" style="background:#dbeafe;">
                             <i class="bi bi-patch-check-fill text-primary fs-4"></i>
@@ -304,20 +299,24 @@ body.dark .tab-group-btn.active {
                             <small class="text-muted">National Examinations Council</small>
                         </div>
                     </div>
-                    <ul class="list-unstyled small d-flex flex-column gap-2 mb-3">
+                    <ul class="list-unstyled small d-flex flex-column gap-2 mb-4 flex-grow-1">
                         <li><i class="bi bi-check-circle-fill feature-check me-2"></i>Full NECO Syllabus coverage</li>
-                        <li><i class="bi bi-check-circle-fill feature-check me-2"></i><?= number_format($necoCount + 900) ?>+ Past Questions (2008–2024)</li>
-                        <li><i class="bi bi-check-circle-fill feature-check me-2"></i>Essay &amp; objective answer banks</li>
-                        <li><i class="bi bi-check-circle-fill feature-check me-2"></i>SSCE June/November prep</li>
+                        <li><i class="bi bi-check-circle-fill feature-check me-2"></i>Official NECO Past Questions &amp; Answer Bank</li>
+                        <li><i class="bi bi-check-circle-fill feature-check me-2"></i>Objective &amp; theory solution breakdowns</li>
+                        <li><i class="bi bi-check-circle-fill feature-check me-2"></i>SSCE June/November prep with CBT mode</li>
                         <li><i class="bi bi-check-circle-fill feature-check me-2"></i>AI explanations per question</li>
                     </ul>
-                    <span class="badge bg-primary rounded-pill px-3 py-1 fw-semibold text-white">Included in Bundle</span>
+                    <div class="d-flex align-items-center justify-content-between pt-3 border-top border-primary border-opacity-25">
+                        <span class="badge bg-primary rounded-pill px-3 py-1 fw-semibold text-white">Included in Bundle</span>
+                        <a href="<?= url('courses/past-questions.php?exam=neco') ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold">
+                            Practice NECO &rarr;
+                        </a>
+                    </div>
                 </div>
             </div>
 
-            <!-- JAMB Card -->
             <div class="col-md-4">
-                <div class="exam-card jamb-card h-100">
+                <div class="exam-card jamb-card h-100 d-flex flex-column">
                     <div class="d-flex align-items-center gap-3 mb-3">
                         <div class="p-2 rounded-circle" style="background:#ede9fe;">
                             <i class="bi bi-mortarboard-fill text-purple fs-4" style="color:#7c3aed;"></i>
@@ -327,19 +326,23 @@ body.dark .tab-group-btn.active {
                             <small class="text-muted">Unified Tertiary Matriculation Exam</small>
                         </div>
                     </div>
-                    <ul class="list-unstyled small d-flex flex-column gap-2 mb-3">
+                    <ul class="list-unstyled small d-flex flex-column gap-2 mb-4 flex-grow-1">
                         <li><i class="bi bi-check-circle-fill feature-check me-2"></i>Full UTME Syllabus (Use of English + 3 subjects)</li>
-                        <li><i class="bi bi-check-circle-fill feature-check me-2"></i><?= number_format($jambCount + 2000) ?>+ JAMB Past Questions</li>
-                        <li><i class="bi bi-check-circle-fill feature-check me-2"></i>CBT Simulation &amp; timed mock exams</li>
+                        <li><i class="bi bi-check-circle-fill feature-check me-2"></i>ALOC Live Stream JAMB Past Questions</li>
+                        <li><i class="bi bi-check-circle-fill feature-check me-2"></i>Interactive CBT simulation with immediate feedback</li>
                         <li><i class="bi bi-check-circle-fill feature-check me-2"></i>Cut-off mark guidance per school</li>
-                        <li><i class="bi bi-check-circle-fill feature-check me-2"></i>Speed &amp; accuracy drills</li>
+                        <li><i class="bi bi-check-circle-fill feature-check me-2"></i>AI Tutor question solver</li>
                     </ul>
-                    <span class="badge rounded-pill px-3 py-1 fw-semibold text-white" style="background:#7c3aed;">Included in Bundle</span>
+                    <div class="d-flex align-items-center justify-content-between pt-3 border-top border-purple border-opacity-25">
+                        <span class="badge rounded-pill px-3 py-1 fw-semibold text-white" style="background:#7c3aed;">Included in Bundle</span>
+                        <a href="<?= url('courses/past-questions.php?exam=utme') ?>" class="btn btn-sm btn-outline-dark rounded-pill px-3 fw-bold">
+                            Practice JAMB &rarr;
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- All Subjects Section -->
         <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-5" id="subjectsSection">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
                 <div>
@@ -349,7 +352,6 @@ body.dark .tab-group-btn.active {
                 <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 fw-bold">25+ Subjects</span>
             </div>
 
-            <!-- Subject Group Tabs -->
             <div class="d-flex flex-wrap gap-2 mb-4" id="subjectTabs">
                 <?php $groupIndex = 0; foreach ($subjectGroups as $groupName => $subjects): ?>
                 <button class="tab-group-btn <?= $groupIndex === 0 ? 'active' : '' ?>"
@@ -360,7 +362,6 @@ body.dark .tab-group-btn.active {
                 <?php $groupIndex++; endforeach; ?>
             </div>
 
-            <!-- Subject Pills by Group -->
             <?php $groupIndex = 0; foreach ($subjectGroups as $groupName => $subjects): ?>
             <div class="subject-group-panel <?= $groupIndex === 0 ? 'active' : '' ?>" id="group-<?= $groupIndex ?>">
                 <?php foreach ($subjects as $subj): ?>
@@ -378,7 +379,6 @@ body.dark .tab-group-btn.active {
             </div>
         </div>
 
-        <!-- What You Get Summary -->
         <div class="row g-4 mb-5">
             <div class="col-12">
                 <h3 class="fw-bold mb-1">What You Get With This Bundle</h3>
@@ -410,7 +410,6 @@ body.dark .tab-group-btn.active {
             <?php endforeach; ?>
         </div>
 
-        <!-- Enroll CTA -->
         <div class="bundle-card mb-5" id="enrollSection">
             <div class="row g-0">
                 <div class="col-lg-7 p-4 p-md-5">
@@ -443,7 +442,7 @@ body.dark .tab-group-btn.active {
                     <div class="d-flex flex-wrap gap-3">
                         <?php if (function_exists('is_logged_in') && is_logged_in()): ?>
                             <?php
-                            // Find the secondary school bundle course ID
+
                             try {
                                 $pdo = getDBConnection();
                                 $secCourse = $pdo->query("SELECT id, slug FROM courses WHERE category_id IN (SELECT id FROM categories WHERE slug LIKE '%secondary%') AND status = 'published' ORDER BY id ASC LIMIT 1")->fetch(PDO::FETCH_ASSOC);
@@ -459,7 +458,7 @@ body.dark .tab-group-btn.active {
                             </a>
                             <?php endif; ?>
                         <?php else: ?>
-                            <a href="<?= url('auth/register.php') ?>" class="cta-enroll-btn text-decoration-none d-inline-flex align-items-center gap-2">
+                            <a href="<?= url('auth/register.php?secondary=1') ?>" class="cta-enroll-btn text-decoration-none d-inline-flex align-items-center gap-2">
                                 <i class="bi bi-person-plus-fill"></i> Create Account &amp; Enroll
                             </a>
                             <a href="<?= url('auth/login.php') ?>" class="btn btn-outline-secondary rounded-pill px-4 fw-semibold">
@@ -489,7 +488,6 @@ body.dark .tab-group-btn.active {
             </div>
         </div>
 
-        <!-- FAQ Section -->
         <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5">
             <h3 class="fw-bold mb-4">Frequently Asked Questions</h3>
             <div class="accordion accordion-flush" id="secFAQ">
@@ -520,7 +518,7 @@ body.dark .tab-group-btn.active {
             </div>
         </div>
 
-    </div><!-- /container -->
+    </div>
 </div>
 
 <script>

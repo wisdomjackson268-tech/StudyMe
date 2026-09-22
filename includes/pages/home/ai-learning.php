@@ -2,7 +2,6 @@
     <div class="container">
         <div class="ai-section">
             <div class="row align-items-center g-5">
-                <!-- Left: Copy & Highlights -->
                 <div class="col-lg-6">
                     <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold mb-3">
                         <i class="bi bi-cpu-fill me-1"></i> Next-Gen Education Technology
@@ -51,7 +50,6 @@
                     </a>
                 </div>
 
-                <!-- Right: Interactive Chat UI Mockup -->
                 <div class="col-lg-6">
                     <div class="ai-chat-card">
                         <div class="chat-header">
@@ -68,12 +66,10 @@
                         </div>
 
                         <div class="chat-body">
-                            <!-- Student Bubble -->
                             <div class="chat-bubble chat-bubble-user">
                                 Can you explain how JavaScript Async/Await works in simple terms?
                             </div>
 
-                            <!-- AI Reply Bubble -->
                             <div class="chat-bubble chat-bubble-ai">
                                 <div class="fw-bold mb-1 text-warning"><i class="bi bi-stars me-1"></i> AI Explanation:</div>
                                 Think of <code>async/await</code> like ordering coffee:
@@ -83,12 +79,10 @@
                                 </ul>
                             </div>
 
-                            <!-- Student Reply Bubble -->
                             <div class="chat-bubble chat-bubble-user">
                                 That makes total sense! Can you give me a code example?
                             </div>
 
-                            <!-- Typing Indicator Mockup -->
                             <div class="d-flex align-items-center gap-2 text-white-50 fs-7 pt-2">
                                 <div class="spinner-grow spinner-grow-sm text-warning" role="status"></div>
                                 <span>AI Tutor is generating example code...</span>

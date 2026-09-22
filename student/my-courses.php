@@ -1,7 +1,5 @@
 <?php
-/**
- * StudyMe AI Platform — Student's Enrolled Courses
- */
+
 require_once dirname(__DIR__) . '/config/main.php';
 require_once BASE_PATH . '/includes/functions/enrollments.php';
 
@@ -37,17 +35,16 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         <?php foreach ($enrollments as $e): ?>
             <div class="col-md-6 col-lg-4">
                 <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden d-flex flex-column hover-lift">
-                    <?php $myThumb = function_exists('get_course_thumbnail_url') ? get_course_thumbnail_url($e['thumbnail'] ?? '', 'technology') : ($e['thumbnail'] ?? 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=80'); ?>
-                    <img src="<?= e($myThumb) ?>" 
-                         class="card-img-top" style="height: 160px; object-fit: cover;" 
+                    <?php $myThumb = function_exists('get_course_thumbnail_url') ? get_course_thumbnail_url($e['thumbnail'] ?? '', $e['category_slug'] ?? 'technology', $e['slug'] ?? ($e['title'] ?? '')) : ($e['thumbnail'] ?? 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=80'); ?>
+                    <img src="<?= e($myThumb) ?>"
+                         class="card-img-top" style="height: 160px; object-fit: cover;"
                          alt="<?= e($e['title']) ?>"
                          onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&q=80';">
-                    
+
                     <div class="card-body p-4 d-flex flex-column">
                         <h5 class="fw-bold mb-2 line-clamp-2"><?= e($e['title']) ?></h5>
                         <p class="text-muted small mb-3">Instructor: <?= e($e['teacher_name']) ?></p>
-                        
-                        <!-- Progress bar -->
+
                         <div class="mt-auto">
                             <div class="d-flex justify-content-between align-items-center mb-1 small text-muted">
                                 <span>Progress</span>
@@ -56,9 +53,9 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                             <div class="progress-bar-custom mb-3">
                                 <div class="progress-bar-fill" style="width: <?= (int)$e['progress'] ?>%;"></div>
                             </div>
-                            
-                            <a href="<?= url('student/course.php?id=' . (int)$e['course_id']) ?>" 
-                               class="btn btn-primary rounded-pill w-100 fw-bold" 
+
+                            <a href="<?= url('student/course.php?id=' . (int)$e['course_id']) ?>"
+                               class="btn btn-primary rounded-pill w-100 fw-bold"
                                data-feedback="click">
                                 Resume Course <i class="bi bi-play-circle-fill ms-1"></i>
                             </a>

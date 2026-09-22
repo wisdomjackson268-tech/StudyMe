@@ -1,16 +1,6 @@
 <?php
-/**
- * StudyMe AI Platform — Comprehensive SEO Engine & Metadata Helper
- * 
- * Provides automated metadata generation, dynamic title/description resolution,
- * Schema.org JSON-LD structured data (EducationalOrganization, WebSite, Course, BreadcrumbList, FAQPage),
- * Open Graph, Twitter/X cards, canonical URLs, and robots directives.
- */
 
 if (!function_exists('get_base_url')) {
-    /**
-     * Retrieve the root base URL for StudyMe dynamically
-     */
     function get_base_url() {
         if (defined('APP_URL') && !empty(APP_URL)) {
             return rtrim(APP_URL, '/');
@@ -19,7 +9,6 @@ if (!function_exists('get_base_url')) {
         $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
         $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
         
-        // Find StudyMe base root
         $pos = strpos($scriptDir, '/StudyMe');
         if ($pos !== false) {
             $basePath = substr($scriptDir, 0, $pos + 8);
@@ -31,9 +20,6 @@ if (!function_exists('get_base_url')) {
 }
 
 if (!function_exists('get_canonical_url')) {
-    /**
-     * Generate a strict canonical URL
-     */
     function get_canonical_url($customPath = null) {
         $baseUrl = get_base_url();
         if ($customPath !== null) {
@@ -43,7 +29,6 @@ if (!function_exists('get_canonical_url')) {
         if (empty($reqUri) || $reqUri === '/' || strpos($reqUri, 'index.php') !== false) {
             return $baseUrl . '/index.php';
         }
-        // Normalize subpath
         $pos = strpos($reqUri, '/StudyMe');
         if ($pos !== false) {
             $reqUri = substr($reqUri, $pos + 8);
@@ -53,14 +38,10 @@ if (!function_exists('get_canonical_url')) {
 }
 
 if (!function_exists('get_default_page_seo')) {
-    /**
-     * Retrieve tailored default metadata based on the current executing script
-     */
     function get_default_page_seo() {
         $scriptName = str_replace('\\', '/', ($_SERVER['SCRIPT_NAME'] ?? '') . ' ' . ($_SERVER['REQUEST_URI'] ?? '') . ' ' . ($_SERVER['PHP_SELF'] ?? ''));
         $baseUrl    = get_base_url();
 
-        // 1. Private / Dashboard / Auth Areas
         if (
             strpos($scriptName, '/admin/') !== false ||
             strpos($scriptName, '/teacher/') !== false ||
@@ -80,7 +61,6 @@ if (!function_exists('get_default_page_seo')) {
             ];
         }
 
-        // 2. Public Hubs and Pages
         if (strpos($scriptName, 'ai-learning.php') !== false) {
             return [
                 'title'       => 'AI Learning & 24/7 AI Tutor | StudyMe',
@@ -359,7 +339,6 @@ if (!function_exists('get_default_page_seo')) {
             ];
         }
 
-        // Default Homepage Fallback
         return [
             'title'       => 'StudyMe — AI-Powered Learning Platform',
             'description' => 'StudyMe is an AI-powered learning platform that helps students learn, practice, prepare for exams (WAEC, NECO, JAMB), and develop in-demand technology skills with personalized 24/7 AI tutoring.',
@@ -371,15 +350,9 @@ if (!function_exists('get_default_page_seo')) {
 }
 
 if (!function_exists('render_seo_head')) {
-    /**
-     * Renders all SEO meta tags, Open Graph, Twitter Cards, and Structured Data
-     *
-     * @param array $options Configuration array for page SEO metadata
-     */
     function render_seo_head($options = []) {
         $defaults = get_default_page_seo();
         
-        // Merge explicit global helper variables if set in page scope
         global $pageTitle, $page_title, $page_desc, $page_description, $page_keywords, $course, $courseData, $breadcrumbs, $faqData, $is_private, $noindex, $canonical_url;
         
         $explicitTitle = $options['title'] ?? $pageTitle ?? $page_title ?? $defaults['title'];
@@ -394,7 +367,6 @@ if (!function_exists('render_seo_head')) {
         $fData         = !empty($options['faq']) ? $options['faq'] : (!empty($faqData) ? $faqData : ($defaults['faq'] ?? []));
         $extraSchema   = !empty($options['schema']) ? $options['schema'] : null;
 
-        // Clean & format title
         $title = trim($explicitTitle);
         if ($title !== 'StudyMe — AI-Powered Learning Platform' && strpos($title, 'StudyMe') === false) {
             $title .= ' | StudyMe';
@@ -407,7 +379,6 @@ if (!function_exists('render_seo_head')) {
         $baseUrl     = get_base_url();
 
         ?>
-    <!-- SEO Primary Metadata -->
     <title><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?></title>
     <meta name="description" content="<?= htmlspecialchars($description, ENT_QUOTES, 'UTF-8') ?>">
     <meta name="keywords" content="<?= htmlspecialchars($keywords, ENT_QUOTES, 'UTF-8') ?>">
@@ -415,16 +386,13 @@ if (!function_exists('render_seo_head')) {
     <link rel="canonical" href="<?= htmlspecialchars($canonical, ENT_QUOTES, 'UTF-8') ?>">
 
     <?php if ($isPrivate): ?>
-    <!-- Search Engine Indexing Directives (Private Area) -->
     <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
     <meta name="googlebot" content="noindex, nofollow">
     <?php else: ?>
-    <!-- Search Engine Indexing Directives (Public Area) -->
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <meta name="googlebot" content="index, follow">
     <?php endif; ?>
 
-    <!-- Open Graph / Facebook Protocol -->
     <meta property="og:locale" content="en_US">
     <meta property="og:type" content="<?= htmlspecialchars($explicitType, ENT_QUOTES, 'UTF-8') ?>">
     <meta property="og:site_name" content="StudyMe">
@@ -434,15 +402,13 @@ if (!function_exists('render_seo_head')) {
     <meta property="og:image" content="<?= htmlspecialchars($image, ENT_QUOTES, 'UTF-8') ?>">
     <meta property="og:image:alt" content="<?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?>">
 
-    <!-- Twitter / X Card Metadata -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:site" content="@studyme_ai">
-    <meta name="twitter:creator" content="@studyme_ai">
+    <meta name="twitter:site" content="@StudyMe910">
+    <meta name="twitter:creator" content="@StudyMe910">
     <meta name="twitter:title" content="<?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?>">
     <meta name="twitter:description" content="<?= htmlspecialchars($description, ENT_QUOTES, 'UTF-8') ?>">
     <meta name="twitter:image" content="<?= htmlspecialchars($image, ENT_QUOTES, 'UTF-8') ?>">
 
-    <!-- Schema.org JSON-LD Structured Data Graph -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -455,16 +421,18 @@ if (!function_exists('render_seo_head')) {
                 "logo": "<?= $baseUrl ?>/assets/img/logo.png",
                 "description": "StudyMe is an AI-powered learning platform offering practical technology bootcamps, university undergraduate courses, secondary school WAEC/NECO/JAMB exam prep, and 24/7 AI tutor guidance.",
                 "sameAs": [
-                    "https://facebook.com/studymehq",
-                    "https://twitter.com/studyme_ai",
-                    "https://linkedin.com/company/studyme-ai",
-                    "https://instagram.com/studymehq",
-                    "https://youtube.com/@studyme-ai"
+                    "https://x.com/StudyMe910",
+                    "https://youtube.com/@studyme910",
+                    "https://www.tiktok.com/@study.me32",
+                    "https://www.linkedin.com/in/wisdom-jackson-b19941345",
+                    "https://www.facebook.com/share/1BYXM81J2o/?mibextid=wwXIfr",
+                    "https://github.com/wisdomjackson268-tech"
                 ],
                 "contactPoint": {
                     "@type": "ContactPoint",
                     "contactType": "customer support",
-                    "email": "support@studyme.online",
+                    "telephone": "+2349026849170",
+                    "email": "studyme910@gmail.com",
                     "availableLanguage": ["English"]
                 }
             },
@@ -561,11 +529,6 @@ if (!function_exists('render_seo_head')) {
 }
 
 if (!function_exists('render_seo_breadcrumbs')) {
-    /**
-     * Render semantic, accessible HTML breadcrumbs
-     * 
-     * @param array $breadcrumbs Array of items: [['name' => 'Home', 'url' => '...'], ...]
-     */
     function render_seo_breadcrumbs($breadcrumbs = []) {
         if (empty($breadcrumbs)) {
             return;
