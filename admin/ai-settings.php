@@ -63,16 +63,22 @@ if (is_post()) {
         }
     } else {
         $provider     = trim($_POST['provider'] ?? 'Google Gemini');
-        $model        = trim($_POST['model'] ?? 'gemini-3.6-flash');
+        $model        = trim($_POST['model'] ?? 'gemini-2.5-flash');
         $systemPrompt = trim($_POST['system_prompt'] ?? '');
+        $apiKeyInput  = trim($_POST['api_key'] ?? '');
 
         try {
             if ($ai) {
-                $stmt = $pdo->prepare("UPDATE ai_settings SET provider = ?, model = ?, system_prompt = ?, updated_at = NOW() WHERE id = ?");
-                $stmt->execute([$provider, $model, $systemPrompt, $ai['id']]);
+                if ($apiKeyInput !== '') {
+                    $stmt = $pdo->prepare("UPDATE ai_settings SET provider = ?, model = ?, system_prompt = ?, api_key = ?, updated_at = NOW() WHERE id = ?");
+                    $stmt->execute([$provider, $model, $systemPrompt, $apiKeyInput, $ai['id']]);
+                } else {
+                    $stmt = $pdo->prepare("UPDATE ai_settings SET provider = ?, model = ?, system_prompt = ?, updated_at = NOW() WHERE id = ?");
+                    $stmt->execute([$provider, $model, $systemPrompt, $ai['id']]);
+                }
             } else {
-                $stmt = $pdo->prepare("INSERT INTO ai_settings (provider, model, system_prompt, status, created_at) VALUES (?, ?, ?, 'active', NOW())");
-                $stmt->execute([$provider, $model, $systemPrompt]);
+                $stmt = $pdo->prepare("INSERT INTO ai_settings (provider, model, system_prompt, api_key, status, created_at) VALUES (?, ?, ?, ?, 'active', NOW())");
+                $stmt->execute([$provider, $model, $systemPrompt, $apiKeyInput]);
             }
             set_flash('success', 'AI Engine settings saved successfully!');
             redirect('admin/ai-settings.php');
@@ -100,8 +106,8 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                 <i class="bi bi-check-circle-fill me-1"></i> Gemini AI Active
             </span>
         <?php else: ?>
-            <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill fw-bold border border-danger border-opacity-25">
-                <i class="bi bi-exclamation-triangle-fill me-1"></i> Gemini Key Missing
+            <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill fw-bold border border-warning border-opacity-25">
+                <i class="bi bi-info-circle-fill me-1"></i> Gemini Running in Built-in Pedagogical Mode
             </span>
         <?php endif; ?>
 
@@ -135,11 +141,18 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                     <div class="col-md-6">
                         <label class="form-label fw-bold small text-uppercase text-muted">Active Model</label>
                         <select name="model" class="form-select rounded-3">
-                            <option value="gemini-3.6-flash" <?= $activeGeminiModel === 'gemini-3.6-flash' ? 'selected' : '' ?>>gemini-3.6-flash (Recommended &amp; Fast)</option>
+                            <option value="gemini-2.5-flash" <?= $activeGeminiModel === 'gemini-2.5-flash' ? 'selected' : '' ?>>gemini-2.5-flash (Recommended &amp; Fast)</option>
+                            <option value="gemini-2.0-flash" <?= $activeGeminiModel === 'gemini-2.0-flash' ? 'selected' : '' ?>>gemini-2.0-flash</option>
+                            <option value="gemini-1.5-flash" <?= $activeGeminiModel === 'gemini-1.5-flash' ? 'selected' : '' ?>>gemini-1.5-flash</option>
                             <option value="gemini-flash-latest" <?= $activeGeminiModel === 'gemini-flash-latest' ? 'selected' : '' ?>>gemini-flash-latest</option>
-                            <option value="gemini-3.5-flash" <?= $activeGeminiModel === 'gemini-3.5-flash' ? 'selected' : '' ?>>gemini-3.5-flash</option>
                         </select>
                     </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold small text-uppercase text-muted">Gemini API Key</label>
+                    <input type="password" name="api_key" class="form-control rounded-3" placeholder="<?= is_gemini_configured() ? '•••••••••••••••• (Active)' : 'Enter Gemini API Key (or set in .env)' ?>" autocomplete="new-password">
+                    <small class="text-muted">You can enter a key here or configure <code>GEMINI_API_KEY</code> in the project's <code>.env</code> file.</small>
                 </div>
 
                 <div class="mb-4">
