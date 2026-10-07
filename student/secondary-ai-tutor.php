@@ -192,8 +192,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Render Typing Indicator
         const typingBubble = document.createElement("div");
-        typingBubble.className = "chat-bubble chat-bubble-ai p-3 rounded-4 bg-secondary bg-opacity-20 mb-3 text-white-50";
-        typingBubble.innerHTML = '<i class="bi bi-stars text-warning me-1"></i> AI Tutor is solving and formulating explanation...';
+        typingBubble.className = "chat-bubble chat-bubble-ai p-3 rounded-4 bg-secondary bg-opacity-20 mb-3 text-white-50 d-flex align-items-center gap-2";
+        typingBubble.innerHTML = '<span class="spinner-grow spinner-grow-sm text-warning" role="status"></span> <span>StudyMe AI is thinking...</span>';
         log.appendChild(typingBubble);
         log.scrollTop = log.scrollHeight;
 
@@ -218,7 +218,11 @@ document.addEventListener("DOMContentLoaded", () => {
             aiBubble.className = "chat-bubble chat-bubble-ai p-3 rounded-4 bg-secondary bg-opacity-20 mb-3 text-white";
             
             const replyText = data.reply || "I encountered an error processing your request. Please try again.";
-            aiBubble.innerHTML = `<div class="fw-bold text-warning mb-1"><i class="bi bi-robot me-1"></i> AI Tutor:</div><div>${replyText.replace(/\n/g, '<br>')}</div>`;
+            const formattedContent = typeof StudyMeAI !== 'undefined' && typeof StudyMeAI.formatMarkdown === 'function'
+                ? StudyMeAI.formatMarkdown(replyText)
+                : replyText.replace(/\n/g, '<br>');
+
+            aiBubble.innerHTML = `<div class="fw-bold text-warning mb-2 d-flex align-items-center gap-1"><i class="bi bi-robot me-1"></i> <span>AI Tutor</span></div><div>${formattedContent}</div>`;
             log.appendChild(aiBubble);
 
             chatHistory.push({ role: "user", parts: [{ text }] });
