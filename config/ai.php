@@ -90,7 +90,49 @@ function generate_educational_fallback_response(string $prompt, string $context 
         return "You're very welcome! 😊 Keep up the great learning. Whenever you have another question, just type it here!";
     }
 
-    // 4. Mathematics & Formulas
+    // 4. Portfolio, Landing Page & Web Project Requests
+    if (preg_match('/(portfolio|landing page|website|webpage|ui design|resume template)/i', $lower)) {
+        return "🎨 **Simple, Modern Portfolio Structure for StudyMe:**\n\n"
+            . "Here is a clean, responsive layout you can build right away:\n\n"
+            . "### 1. Essential Sections\n"
+            . "• **Hero Header:** Your name, tagline (*e.g., \"Full-Stack Developer & StudyMe Learner\"*), and a Call-to-Action button (*\"View My Work\"*).\n"
+            . "• **About Me:** 2–3 sentences highlighting your background, passions, and core skills.\n"
+            . "• **Skills Grid:** Badges for HTML, CSS, JavaScript, PHP, Python, UI/UX, etc.\n"
+            . "• **Featured Projects:** Cards showcasing 2–3 projects with live demo links and GitHub repositories.\n"
+            . "• **Contact & Socials:** Email link, LinkedIn, GitHub, and a quick contact form.\n\n"
+            . "### 2. Starter HTML / CSS Code Snippet\n"
+            . "```html\n"
+            . "<!DOCTYPE html>\n"
+            . "<html lang=\"en\">\n"
+            . "<head>\n"
+            . "  <meta charset=\"UTF-8\">\n"
+            . "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
+            . "  <title>My Portfolio | StudyMe</title>\n"
+            . "  <style>\n"
+            . "    body { font-family: system-ui, sans-serif; margin: 0; background: #0f172a; color: #fff; text-align: center; }\n"
+            . "    .hero { padding: 80px 20px; }\n"
+            . "    .btn { background: #6366f1; color: #fff; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-block; margin-top: 16px; font-weight: bold; }\n"
+            . "    .projects { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 40px 20px; }\n"
+            . "    .card { background: #1e293b; padding: 24px; border-radius: 12px; width: 280px; text-align: left; }\n"
+            . "  </style>\n"
+            . "</head>\n"
+            . "<body>\n"
+            . "  <section class=\"hero\">\n"
+            . "    <h1>Hi, I'm Alex 👋</h1>\n"
+            . "    <p>Software Developer & Student on StudyMe</p>\n"
+            . "    <a href=\"#projects\" class=\"btn\">Explore My Work</a>\n"
+            . "  </section>\n"
+            . "  <section id=\"projects\" class=\"projects\">\n"
+            . "    <div class=\"card\"><h3>Project One</h3><p>Built with PHP & JS.</p></div>\n"
+            . "    <div class=\"card\"><h3>Project Two</h3><p>StudyMe AI Assistant.</p></div>\n"
+            . "  </section>\n"
+            . "</body>\n"
+            . "</html>\n"
+            . "```\n\n"
+            . "💡 *Want to customize styling, add a contact form, or connect it with a database? Let me know!*";
+    }
+
+    // 5. Mathematics & Formulas
     if (preg_match('/(quadratic|pythagor|calculus|algebra|derivative|integral|geometry|fraction|circle area|trigonometr)/i', $lower)) {
         if (str_contains($lower, 'quadratic')) {
             return "📐 **Quadratic Equation Formula:**\n\n"
@@ -110,25 +152,28 @@ function generate_educational_fallback_response(string $prompt, string $context 
                 . "• c² = 3² + 4² = 9 + 16 = 25\n"
                 . "• c = √25 = **5**";
         }
-        if (str_contains($lower, 'circle') && (str_contains($lower, 'area') || str_contains($lower, 'radius'))) {
-            return "📐 **Area of a Circle:**\n\n"
-                . "**Area = πr²** (where *r* is the radius, and π ≈ 3.14159 / 22/7)\n\n"
-                . "**Example:** For a circle with radius r = 7 cm:\n"
-                . "• Area = (22/7) × 7 × 7 = **154 cm²**";
+        if (str_contains($lower, 'circle')) {
+            return "📐 **Circle Formulas:**\n\n"
+                . "• **Area:** Area = **πr²**\n"
+                . "• **Circumference:** C = **2πr**\n\n"
+                . "**Example:** For a circle with radius r = 7 cm (using π ≈ 22/7):\n"
+                . "• Area = (22/7) × 7 × 7 = **154 cm²**\n"
+                . "• Circumference = 2 × (22/7) × 7 = **44 cm**";
         }
     }
 
-    // 5. Programming & Coding
-    if (preg_match('/(python|javascript|php|html|css|sql|function|loop|variable|array|object|class|algorithm)/i', $lower)) {
+    // 6. Programming & Coding
+    if (preg_match('/(python|javascript|php|html|css|sql|function|loop|variable|array|object|class|algorithm|login|auth|api|database)/i', $lower)) {
         if (str_contains($lower, 'python') && str_contains($lower, 'function')) {
             return "💻 **Defining Functions in Python:**\n\n"
                 . "Use the `def` keyword followed by the function name and parameters:\n\n"
                 . "```python\n"
-                . "def greet_student(name):\n"
-                . "    return f\"Hello, {name}! Welcome to StudyMe.\"\n\n"
+                . "def calculate_discount(price, discount_percent=10):\n"
+                . "    savings = price * (discount_percent / 100)\n"
+                . "    return price - savings\n\n"
                 . "# Calling the function\n"
-                . "message = greet_student(\"Alex\")\n"
-                . "print(message)\n"
+                . "final_price = calculate_discount(100, 20)\n"
+                . "print(\"Final Price:\", final_price) # Output: Final Price: 80.0\n"
                 . "```\n\n"
                 . "• `def` initiates the function definition.\n"
                 . "• `return` passes the result back to the caller.";
@@ -149,10 +194,17 @@ function generate_educational_fallback_response(string $prompt, string $context 
                 . "    count += 1\n"
                 . "```";
         }
+        if (str_contains($lower, 'sql') || str_contains($lower, 'database')) {
+            return "🗄️ **Core SQL Database Operations:**\n\n"
+                . "• **SELECT:** `SELECT * FROM students WHERE grade >= 80;`\n"
+                . "• **INSERT:** `INSERT INTO courses (title, price) VALUES ('Python AI', 25000);`\n"
+                . "• **UPDATE:** `UPDATE users SET status = 'active' WHERE id = 1;`\n"
+                . "• **DELETE:** `DELETE FROM notifications WHERE is_read = 1;`";
+        }
     }
 
-    // 6. Science
-    if (preg_match('/(photosynthesis|newton|osmosis|cell|atom|gravity|velocity|respiration)/i', $lower)) {
+    // 7. Science
+    if (preg_match('/(photosynthesis|newton|osmosis|cell|atom|gravity|velocity|respiration|electron|dna|force)/i', $lower)) {
         if (str_contains($lower, 'photosynthesis')) {
             return "🌿 **Photosynthesis:**\n\n"
                 . "Photosynthesis is the process by which green plants convert light energy, carbon dioxide, and water into glucose and oxygen.\n\n"
@@ -169,7 +221,7 @@ function generate_educational_fallback_response(string $prompt, string $context 
         }
     }
 
-    // 7. Quizzes
+    // 8. Quizzes
     if (str_contains($lower, 'quiz') || str_contains($lower, 'test me')) {
         return "🎯 **Quick Practice Question**\n\n"
             . "**Topic:** " . htmlspecialchars($cleanPrompt, ENT_QUOTES) . "\n\n"
@@ -180,13 +232,13 @@ function generate_educational_fallback_response(string $prompt, string $context 
             . "💡 *Reply with your thoughts or a question, and I'll explain it simply!*";
     }
 
-    // 8. General question
+    // 9. Contextual Solution Generator for other topics
     return "💡 **" . htmlspecialchars($cleanPrompt, ENT_QUOTES) . "**\n\n"
-        . "Here is a simple, easy-to-understand explanation:\n\n"
-        . "• **Key Concept:** Focus on the main principle behind the question.\n"
-        . "• **Step-by-Step Approach:** Break it down into simple parts, solve systematically, and verify each step.\n"
-        . "• **Practical Tip:** Always review standard examples to strengthen your understanding.\n\n"
-        . "💬 *Do you have a specific example or problem you'd like us to solve together?*";
+        . "Here is a clean, practical breakdown:\n\n"
+        . "1. **Goal & Core Idea:** Clarify the main objective and the required tools or methods.\n"
+        . "2. **Step-by-Step Implementation:** Work methodically from the simplest part to the full solution.\n"
+        . "3. **Best Practice:** Test each part with a simple example or edge case to ensure accuracy.\n\n"
+        . "💬 *Tell me which specific part you'd like to code, calculate, or expand on!*";
 }
 
 function call_gemini_api(string $prompt, string $systemInstruction = '', array $history = [], ?string $modelOverride = null): array {
