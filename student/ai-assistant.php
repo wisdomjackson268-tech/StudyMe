@@ -132,13 +132,21 @@ document.addEventListener("DOMContentLoaded", () => {
                     loadingBubble.remove();
                     const aiBubble = document.createElement("div");
                     aiBubble.className = "chat-bubble p-3 rounded-4 bg-secondary bg-opacity-20 text-white me-auto mb-3 lh-base";
-                    const formattedHtml = typeof StudyMeAI !== 'undefined' && typeof StudyMeAI.formatMarkdown === 'function'
-                        ? StudyMeAI.formatMarkdown(replyText)
-                        : replyText.replace(/\n/g, '<br>');
-                    aiBubble.innerHTML = '<div class="fw-bold text-warning mb-2 d-flex align-items-center gap-1"><i class="bi bi-robot"></i> <span>AI Tutor</span></div>' + formattedHtml;
+                    aiBubble.innerHTML = '<div class="fw-bold text-warning mb-2 d-flex align-items-center gap-1"><i class="bi bi-robot"></i> <span>AI Tutor</span></div><div class="ai-stream-content"></div>';
                     pageLog.appendChild(aiBubble);
                     pageLog.scrollTop = pageLog.scrollHeight;
-                    restoreButton();
+
+                    const streamTarget = aiBubble.querySelector('.ai-stream-content');
+                    if (typeof StudyMeAI !== 'undefined' && typeof StudyMeAI.typeWriter === 'function') {
+                        StudyMeAI.typeWriter(streamTarget, replyText, pageLog, restoreButton);
+                    } else {
+                        const formattedHtml = typeof StudyMeAI !== 'undefined' && typeof StudyMeAI.formatMarkdown === 'function'
+                            ? StudyMeAI.formatMarkdown(replyText)
+                            : replyText.replace(/\n/g, '<br>');
+                        streamTarget.innerHTML = formattedHtml;
+                        pageLog.scrollTop = pageLog.scrollHeight;
+                        restoreButton();
+                    }
                 }, remainingTime);
             }
 

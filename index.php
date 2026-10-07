@@ -536,19 +536,49 @@ if ($isLoggedIn) {
     <?php include BASE_PATH . '/includes/layouts/footer.php'; ?>
 
     <script>
-    // Interactive AI Demo Chip Handler
+    // Interactive AI Demo Chip Handler with Loader & Typewriter Effect
     document.addEventListener('DOMContentLoaded', () => {
         const chips = document.querySelectorAll('.demo-query-chip');
         const userMsg = document.getElementById('demoUserMsg');
         const aiMsg = document.getElementById('demoAiMsg');
+        let currentDemoTimer = null;
 
         chips.forEach(chip => {
             chip.addEventListener('click', () => {
                 chips.forEach(c => c.classList.remove('btn-primary', 'text-white'));
                 chip.classList.add('btn-primary', 'text-white');
                 if (userMsg && aiMsg) {
+                    if (currentDemoTimer) clearInterval(currentDemoTimer);
                     userMsg.textContent = '"' + chip.getAttribute('data-user') + '"';
-                    aiMsg.innerHTML = chip.getAttribute('data-ai');
+                    const targetAiHtml = chip.getAttribute('data-ai');
+                    
+                    // Show animated thinking loader first
+                    aiMsg.innerHTML = '<span class="d-inline-flex align-items-center gap-2 text-warning small"><span class="spinner-grow spinner-grow-sm" role="status"></span> <span>StudyMe AI is thinking...</span></span>';
+                    
+                    setTimeout(() => {
+                        aiMsg.innerHTML = '';
+                        const contentSpan = document.createElement('span');
+                        const cursor = document.createElement('span');
+                        cursor.className = 'ai-typing-cursor';
+                        aiMsg.appendChild(contentSpan);
+                        aiMsg.appendChild(cursor);
+
+                        const tokens = targetAiHtml.split(/(\s+|<[^>]+>)/).filter(Boolean);
+                        let idx = 0;
+                        let accum = '';
+
+                        currentDemoTimer = setInterval(() => {
+                            if (idx < tokens.length) {
+                                accum += tokens[idx];
+                                idx++;
+                                contentSpan.innerHTML = accum;
+                            } else {
+                                clearInterval(currentDemoTimer);
+                                if (cursor.parentNode) cursor.remove();
+                                contentSpan.innerHTML = targetAiHtml;
+                            }
+                        }, 25);
+                    }, 400);
                 }
             });
         });

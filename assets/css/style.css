@@ -1398,3 +1398,21 @@ body.dark .btn-outline-secondary {
         transition: none !important;
     }
 }
+
+/* AI Typewriter Effect & Cursor */
+@keyframes aiBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+.ai-typing-cursor {
+    display: inline-block;
+    width: 6px;
+    height: 15px;
+    background-color: var(--accent, #fbbf24);
+    margin-left: 3px;
+    vertical-align: middle;
+    animation: aiBlink 0.7s infinite;
+    border-radius: 2px;
+}
+

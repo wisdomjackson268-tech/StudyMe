@@ -92,9 +92,53 @@ const StudyMeAI = (() => {
         }
     }
 
+    function typeWriter(container, rawText, scrollTarget, onComplete) {
+        if (!container) {
+            if (typeof onComplete === 'function') onComplete();
+            return;
+        }
+
+        container.innerHTML = '';
+        const contentSpan = document.createElement('span');
+        const cursor = document.createElement('span');
+        cursor.className = 'ai-typing-cursor';
+
+        container.appendChild(contentSpan);
+        container.appendChild(cursor);
+
+        // Break text into words/whitespace tokens for a smooth, natural streaming effect
+        const tokens = String(rawText || '').split(/(\s+)/);
+        let currentIndex = 0;
+        let accumulated = '';
+
+        const intervalMs = tokens.length > 120 ? 10 : (tokens.length > 50 ? 16 : 22);
+
+        const timer = setInterval(() => {
+            if (currentIndex < tokens.length) {
+                accumulated += tokens[currentIndex];
+                currentIndex++;
+                contentSpan.innerHTML = formatMarkdown(accumulated);
+                if (scrollTarget) {
+                    scrollTarget.scrollTop = scrollTarget.scrollHeight;
+                }
+            } else {
+                clearInterval(timer);
+                if (cursor.parentNode) cursor.remove();
+                contentSpan.innerHTML = formatMarkdown(rawText);
+                if (scrollTarget) {
+                    scrollTarget.scrollTop = scrollTarget.scrollHeight;
+                }
+                if (typeof onComplete === 'function') {
+                    onComplete();
+                }
+            }
+        }, intervalMs);
+    }
+
     return {
         ask: askGemini,
         formatMarkdown: formatMarkdown,
+        typeWriter: typeWriter,
         clearHistory: () => {
             chatHistory.length = 0;
         }
@@ -141,7 +185,7 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 loader = document.createElement("div");
                 loader.className = "d-flex align-items-center gap-2 text-white-50 small my-2 ai-loading";
-                loader.innerHTML = '<div class="spinner-grow spinner-grow-sm text-warning" role="status"></div><span>AI is thinking...</span>';
+                loader.innerHTML = '<div class="spinner-grow spinner-grow-sm text-warning" role="status"></div><span>StudyMe AI is thinking...</span>';
             }
             aiChatLog.appendChild(loader);
             aiChatLog.scrollTop = aiChatLog.scrollHeight;
@@ -155,7 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     loader.remove();
                 }
 
-                // Append AI Message
+                // Append AI Message Container
                 const aiMsg = document.createElement("div");
                 aiMsg.className = "chat-bubble p-3 rounded-4 bg-secondary bg-opacity-20 text-white me-auto mb-3";
                 aiMsg.style.maxWidth = "90%";
@@ -164,10 +208,20 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div class="fw-bold mb-2 text-warning d-flex align-items-center gap-1">
                         <i class="bi bi-robot"></i> <span>${res.title}</span>
                     </div>
-                    <div>${res.html}</div>
+                    <div class="ai-stream-target"></div>
                 `;
                 aiChatLog.appendChild(aiMsg);
                 aiChatLog.scrollTop = aiChatLog.scrollHeight;
+
+                const streamTarget = aiMsg.querySelector('.ai-stream-target');
+                StudyMeAI.typeWriter(streamTarget, res.text, aiChatLog, () => {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="bi bi-send-fill"></i>';
+                    }
+                    aiInput.disabled = false;
+                    aiInput.focus();
+                });
             } catch (err) {
                 if (loader && loader.parentNode) {
                     loader.remove();
@@ -177,8 +231,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 errMsg.textContent = "AI Tutor response error. Please try again.";
                 aiChatLog.appendChild(errMsg);
                 aiChatLog.scrollTop = aiChatLog.scrollHeight;
-            } finally {
-                // Always restore the submit button to ready state
+
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i class="bi bi-send-fill"></i>';

@@ -216,14 +216,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const aiBubble = document.createElement("div");
             aiBubble.className = "chat-bubble chat-bubble-ai p-3 rounded-4 bg-secondary bg-opacity-20 mb-3 text-white";
-            
-            const replyText = data.reply || "I encountered an error processing your request. Please try again.";
-            const formattedContent = typeof StudyMeAI !== 'undefined' && typeof StudyMeAI.formatMarkdown === 'function'
-                ? StudyMeAI.formatMarkdown(replyText)
-                : replyText.replace(/\n/g, '<br>');
-
-            aiBubble.innerHTML = `<div class="fw-bold text-warning mb-2 d-flex align-items-center gap-1"><i class="bi bi-robot me-1"></i> <span>AI Tutor</span></div><div>${formattedContent}</div>`;
+            aiBubble.innerHTML = `<div class="fw-bold text-warning mb-2 d-flex align-items-center gap-1"><i class="bi bi-robot me-1"></i> <span>AI Tutor</span></div><div class="ai-stream-box"></div>`;
             log.appendChild(aiBubble);
+            log.scrollTop = log.scrollHeight;
+
+            const replyText = data.reply || "I encountered an error processing your request. Please try again.";
+            const streamBox = aiBubble.querySelector('.ai-stream-box');
+
+            if (typeof StudyMeAI !== 'undefined' && typeof StudyMeAI.typeWriter === 'function') {
+                StudyMeAI.typeWriter(streamBox, replyText, log, () => {
+                    submitBtn.disabled = false;
+                    input.focus();
+                });
+            } else {
+                const formattedContent = typeof StudyMeAI !== 'undefined' && typeof StudyMeAI.formatMarkdown === 'function'
+                    ? StudyMeAI.formatMarkdown(replyText)
+                    : replyText.replace(/\n/g, '<br>');
+                streamBox.innerHTML = formattedContent;
+                submitBtn.disabled = false;
+                input.focus();
+            }
 
             chatHistory.push({ role: "user", parts: [{ text }] });
             chatHistory.push({ role: "model", parts: [{ text: replyText }] });
@@ -234,8 +246,8 @@ document.addEventListener("DOMContentLoaded", () => {
             errBubble.className = "chat-bubble p-3 rounded-4 bg-danger text-white mb-3";
             errBubble.textContent = "Network error communicating with AI engine. Please check your connection.";
             log.appendChild(errBubble);
-        } finally {
             submitBtn.disabled = false;
+        } finally {
             log.scrollTop = log.scrollHeight;
         }
     });
