@@ -21,7 +21,7 @@ if (!defined('SUB_UNPAID')) define('SUB_UNPAID', 'unpaid');
 if (!defined('PRICE_TECH')) define('PRICE_TECH', 10000.00);
 if (!defined('PRICE_SECONDARY')) define('PRICE_SECONDARY', 3000.00);
 if (!defined('PRICE_UNIVERSITY')) define('PRICE_UNIVERSITY', 4000.00);
-if (!defined('PRICE_TEACHER')) define('PRICE_TEACHER', 5000.00);
+if (!defined('PRICE_TEACHER')) define('PRICE_TEACHER', 3000.00);
 
 if (!defined('SESSION_USER_ID')) define('SESSION_USER_ID', 'user_id');
 if (!defined('SESSION_USER_ROLE')) define('SESSION_USER_ROLE', 'user_role');

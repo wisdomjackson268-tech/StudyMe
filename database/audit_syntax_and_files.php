@@ -1,7 +1,7 @@
 <?php
 
 $baseDir = dirname(__DIR__);
-$phpCli = 'C:\\xampp\\php\\php.exe';
+$phpCli = defined('PHP_BINARY') && file_exists(PHP_BINARY) ? PHP_BINARY : 'C:\\xampp\\php\\windowsXamppPhp\\php.exe';
 
 echo "=======================================================\n";
 echo "       STUDYME COMPREHENSIVE CODEBASE AUDIT           \n";

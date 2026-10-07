@@ -206,10 +206,13 @@ include BASE_PATH . '/includes/layouts/header.php';
                                 <div class="d-flex justify-content-between align-items-center pt-2 mb-3 border-top border-light">
                                     <div>
                                         <span class="text-muted small d-block" style="font-size:0.75rem;">Official Fee:</span>
-                                        <?php if (defined('FREE_TESTING_MODE') && FREE_TESTING_MODE): ?>
-                                            <span class="fw-bold text-success fs-6">₦0 <span class="text-muted small text-decoration-line-through fw-normal">₦5,000</span></span>
+                                        <?php 
+                                        $cPrice = function_exists('get_course_official_price') ? get_course_official_price($c['id']) : 4000.00;
+                                        if (defined('FREE_TESTING_MODE') && FREE_TESTING_MODE): 
+                                        ?>
+                                            <span class="fw-bold text-success fs-6">₦<?= number_format($cPrice, 0) ?></span>
                                         <?php else: ?>
-                                            <span class="fw-bold text-success fs-6">₦5,000</span>
+                                            <span class="fw-bold text-success fs-6">₦<?= number_format($cPrice, 0) ?></span>
                                         <?php endif; ?>
                                     </div>
                                     <div class="text-end">

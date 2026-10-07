@@ -52,11 +52,11 @@ if (is_post()) {
         $stmtCat->execute([$categoryId]);
         $cSlug = $stmtCat->fetchColumn();
         if ($cSlug === 'university') {
-            $price = 5000.00;
-        } elseif ($cSlug === 'secondary-waec-neco') {
+            $price = 4000.00;
+        } elseif ($cSlug === 'secondary-waec-neco' || $cSlug === 'secondary') {
             $price = 3000.00;
         } elseif ($cSlug === 'teacher-development') {
-            $price = 4000.00;
+            $price = 3000.00;
         }
     }
 

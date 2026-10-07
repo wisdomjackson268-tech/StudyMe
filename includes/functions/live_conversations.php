@@ -77,8 +77,9 @@ function get_live_typing_users(int $classId, int $userId): array {
 
 function get_live_conversation_access(int $classId, int $userId, string $role): ?array {
     $pdo = getDBConnection();
-    $stmt = $pdo->prepare("SELECT lc.id, lc.course_id, lc.teacher_id
+    $stmt = $pdo->prepare("SELECT lc.id, lc.course_id, lc.teacher_id, c.academic_level
         FROM live_classes lc
+        JOIN courses c ON c.id = lc.course_id
         WHERE lc.id = ? LIMIT 1");
     $stmt->execute([$classId]);
     $class = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -93,9 +94,27 @@ function get_live_conversation_access(int $classId, int $userId, string $role): 
     }
 
     if ($role === ROLE_STUDENT) {
-        $stmt = $pdo->prepare('SELECT 1 FROM students s JOIN enrollments e ON e.student_id = s.id WHERE s.user_id = ? AND e.course_id = ? AND e.status = \'active\' LIMIT 1');
+        // Check direct enrollment
+        $stmt = $pdo->prepare("SELECT 1 FROM students s JOIN enrollments e ON e.student_id = s.id WHERE s.user_id = ? AND e.course_id = ? AND e.status IN ('active', 'enrolled', 'completed') LIMIT 1");
         $stmt->execute([$userId, (int)$class['course_id']]);
-        return $stmt->fetchColumn() ? $class : null;
+        if ($stmt->fetchColumn()) {
+            return $class;
+        }
+
+        $stmtLevel = $pdo->prepare("SELECT 1 FROM students s WHERE s.user_id = ? AND s.academic_level <> '' AND s.academic_level = ? LIMIT 1");
+        $stmtLevel->execute([$userId, (string)$class['academic_level']]);
+        if ($stmtLevel->fetchColumn()) {
+            return $class;
+        }
+
+        // Check if student was notified for this live session
+        $stmtNotif = $pdo->prepare("SELECT 1 FROM notifications WHERE user_id = ? AND link LIKE ? LIMIT 1");
+        $stmtNotif->execute([$userId, "%class_id=" . $classId . "%"]);
+        if ($stmtNotif->fetchColumn()) {
+            return $class;
+        }
+
+        return null;
     }
 
     return $role === ROLE_ADMIN ? $class : null;

@@ -215,13 +215,18 @@ if (!function_exists('process_verified_payment_referral')) {
             } elseif ($normRefCat === 'technology' && $normCourseCat === 'technology') {
                 $bonusAmount = 1500.00;
                 $appliedRule = 'technology_teacher_bonus';
-            } else {
-                $bonusAmount = 1000.00;
-                $appliedRule = 'teacher_referral_bonus';
             }
         } elseif ($referrer['role'] === 'student') {
-            $bonusAmount = 1000.00;
-            $appliedRule = 'student_referral_bonus';
+            if ($normRefCat === 'university' && $normCourseCat === 'university') {
+                $bonusAmount = 1000.00;
+                $appliedRule = 'university_student_bonus';
+            } elseif ($normRefCat === 'secondary' && $normCourseCat === 'secondary') {
+                $bonusAmount = 1000.00;
+                $appliedRule = 'secondary_student_bonus';
+            } elseif ($normRefCat === 'technology' && $normCourseCat === 'technology') {
+                $bonusAmount = 1500.00;
+                $appliedRule = 'technology_student_bonus';
+            }
         }
 
         if ($bonusAmount <= 0 || empty($appliedRule)) {

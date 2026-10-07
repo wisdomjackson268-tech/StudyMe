@@ -40,7 +40,7 @@ if (!$studentRecord) {
 
 $studentId = (int)($studentRecord['id'] ?? 0);
 
-$activeCourse = $studentId ? get_student_active_course($studentId) : null;
+$enrolledCourses = $studentId ? get_student_enrollments($studentId) : [];
 $completedLessonsCount = 0;
 $quizAttemptsCount = 0;
 $certCount = 0;
@@ -229,9 +229,6 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                      style="width: 100px; height: 100px; object-fit: cover;"
                      onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=<?= urlencode($userRecord['first_name'] ?? 'Student') ?>&background=1e40af&color=ffffff&bold=true';">
                 <span class="status-pulse-dot position-absolute top-0 end-0 bg-success border border-2 border-white rounded-circle" style="width: 14px; height: 14px; z-index: 5;" title="Active Now"></span>
-                <label for="avatarInput" class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-2 shadow cursor-pointer d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="Change Profile Picture">
-                    <i class="bi bi-camera-fill small"></i>
-                </label>
             </div>
         </div>
 
@@ -279,6 +276,62 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     </div>
 </div>
+
+<section class="mb-4" aria-labelledby="enrolledCoursesHeading">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+        <div>
+            <h3 class="h5 fw-bold mb-1" id="enrolledCoursesHeading"><i class="bi bi-journal-bookmark-fill text-primary me-2"></i>My Enrolled Courses</h3>
+            <p class="text-muted small mb-0">Your active courses and learning progress.</p>
+        </div>
+        <a href="<?= url('student/my-courses.php') ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+            View all courses <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
+
+    <?php if (!empty($enrolledCourses)): ?>
+        <div class="row g-3">
+            <?php foreach ($enrolledCourses as $course): ?>
+                <?php $profileCourseThumb = function_exists('get_course_thumbnail_url') ? get_course_thumbnail_url($course['thumbnail'] ?? '', 'technology', $course['slug'] ?? $course['title']) : ($course['thumbnail'] ?? ''); ?>
+                <div class="col-md-6 col-xl-4">
+                    <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
+                        <?php if (!empty($profileCourseThumb)): ?>
+                            <img src="<?= e($profileCourseThumb) ?>" alt="<?= e($course['title']) ?>" class="w-100" style="height: 120px; object-fit: cover;" loading="lazy">
+                        <?php endif; ?>
+                        <div class="card-body p-3 d-flex flex-column">
+                            <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+                                <h4 class="h6 fw-bold mb-0"><?= e($course['title']) ?></h4>
+                                <span class="badge bg-success-subtle text-success flex-shrink-0">Active</span>
+                            </div>
+                            <p class="text-muted small mb-3">
+                                <?= e($course['academic_level'] ?? 'Course') ?>
+                                <?php if (!empty($course['teacher_name'])): ?>
+                                    <span class="d-block mt-1">Instructor: <?= e($course['teacher_name']) ?></span>
+                                <?php endif; ?>
+                            </p>
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between small text-muted mb-1">
+                                    <span>Progress</span>
+                                    <span><?= number_format((float)($course['progress'] ?? 0), 0) ?>%</span>
+                                </div>
+                                <div class="progress mb-3" role="progressbar" aria-label="Course progress" aria-valuenow="<?= (float)($course['progress'] ?? 0) ?>" aria-valuemin="0" aria-valuemax="100" style="height: 6px;">
+                                    <div class="progress-bar bg-success" style="width: <?= min(100, max(0, (float)($course['progress'] ?? 0))) ?>%"></div>
+                                </div>
+                                <a href="<?= url('student/course.php?id=' . (int)$course['course_id']) ?>" class="btn btn-sm btn-primary rounded-pill w-100">
+                                    Continue course <i class="bi bi-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php else: ?>
+        <div class="border rounded-3 p-4 text-center bg-body-tertiary">
+            <p class="text-muted small mb-3">You are not enrolled in any active courses yet.</p>
+            <a href="<?= url('courses/index.php') ?>" class="btn btn-sm btn-primary rounded-pill px-3">Browse courses</a>
+        </div>
+    <?php endif; ?>
+</section>
 
 <?php if (!empty($errors)): ?>
     <div class="alert alert-danger rounded-4 p-3 mb-4 shadow-sm">

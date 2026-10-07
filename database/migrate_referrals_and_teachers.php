@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS withdrawals (
 echo "✔ Verified withdrawals table\n";
 
 $defaultBonusSettings = [
-    'bonus_rate_teacher'    => '1000.00',
+    'bonus_rate_teacher'    => '1500.00',
     'bonus_rate_university' => '1000.00',
     'bonus_rate_secondary'  => '1000.00',
     'bonus_rate_technology' => '1500.00',

@@ -88,6 +88,24 @@ function current_user($field = null) {
     $key = defined('SESSION_USER_DATA') ? SESSION_USER_DATA : 'user';
     $user = $_SESSION[$key] ?? null;
 
+    $idKey = defined('SESSION_USER_ID') ? SESSION_USER_ID : 'user_id';
+    $userId = (int)($_SESSION[$idKey] ?? ($user['id'] ?? 0));
+
+    if ($userId > 0 && ($user === null || !isset($user['username']))) {
+        try {
+            $pdo = getDBConnection();
+            $stmt = $pdo->prepare("SELECT id, first_name, last_name, username, email, phone, role, status, avatar, referral_code FROM users WHERE id = ? LIMIT 1");
+            $stmt->execute([$userId]);
+            $dbUser = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($dbUser) {
+                $user = is_array($user) ? array_merge($user, $dbUser) : $dbUser;
+                $_SESSION[$key] = $user;
+            }
+        } catch (Exception $e) {
+            // Graceful fallback to cached session array
+        }
+    }
+
     if ($user === null) {
         return null;
     }

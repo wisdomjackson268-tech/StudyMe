@@ -130,3 +130,30 @@ function get_teacher_avatar_url($avatar = null, $name = 'Instructor', $id = 0) {
     $index = abs((int)$id ?: crc32($name)) % count($roster);
     return $roster[$index];
 }
+
+if (!function_exists('format_time_ago')) {
+    function format_time_ago($timestamp) {
+        $time = is_numeric($timestamp) ? (int)$timestamp : strtotime($timestamp);
+        if (!$time) return date('M j, Y');
+        $diff = time() - $time;
+        if ($diff < 60 && $diff > -300) {
+            return 'Just now';
+        } elseif ($diff < 0) {
+            return 'Just now';
+        } elseif ($diff < 3600) {
+            $mins = max(1, (int)floor($diff / 60));
+            return $mins . ' min' . ($mins > 1 ? 's' : '') . ' ago';
+        } elseif ($diff < 86400) {
+            $hours = (int)floor($diff / 3600);
+            return $hours . ' hr' . ($hours > 1 ? 's' : '') . ' ago';
+        } elseif ($diff < 172800) {
+            return 'Yesterday at ' . date('g:i a', $time);
+        } elseif ($diff < 604800) {
+            $days = (int)floor($diff / 86400);
+            return $days . ' day' . ($days > 1 ? 's' : '') . ' ago';
+        } else {
+            return date('M j, Y \a\t g:i a', $time);
+        }
+    }
+}
+

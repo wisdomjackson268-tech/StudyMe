@@ -1,6 +1,7 @@
 <?php
 
 require_once dirname(__DIR__) . '/config/main.php';
+require_once BASE_PATH . '/includes/functions/courses.php';
 
 secure_page(ROLE_TEACHER);
 if (current_user_role() !== ROLE_ADMIN) {
@@ -16,6 +17,17 @@ $stmt->execute([$uid]);
 $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
 $tid = $teacher ? (int)$teacher['id'] : 0;
 $assignedCourseId = (int)($teacher['assigned_course_id'] ?? 0);
+
+if (is_post() && isset($_POST['action']) && $_POST['action'] === 'delete_course') {
+    $courseId = (int)($_POST['course_id'] ?? 0);
+    $result = delete_course($courseId, $tid, current_user_role() === ROLE_ADMIN);
+    if ($result['success']) {
+        set_flash('success', $result['message']);
+    } else {
+        set_flash('error', $result['message']);
+    }
+    redirect('teacher/courses.php');
+}
 
 $courses = [];
 if ($tid) {
@@ -108,6 +120,9 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
                             <a href="<?= url('teacher/lessons.php?course_id=' . $c['id']) ?>" class="btn btn-sm btn-outline-info rounded-pill flex-grow-1">
                                 <i class="bi bi-play-btn me-1"></i> Lessons
                             </a>
+                            <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="confirmDeleteCourse(<?= (int)$c['id'] ?>, '<?= htmlspecialchars(addslashes($c['title']), ENT_QUOTES) ?>')">
+                                <i class="bi bi-trash3-fill me-1"></i> Delete
+                            </button>
                         </div>
                         <div class="d-flex flex-wrap gap-2 mt-2">
                             <a href="<?= url('teacher/tasks.php?course_id=' . $c['id']) ?>" class="btn btn-sm btn-light border rounded-pill flex-grow-1">
@@ -142,5 +157,51 @@ include BASE_PATH . '/includes/layouts/dashboard-header.php';
         </div>
     </div>
 <?php endif; ?>
+
+<!-- Delete Course Confirmation Modal -->
+<div class="modal fade" id="deleteCourseModal" tabindex="-1" aria-labelledby="deleteCourseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-danger text-white border-0 py-3">
+                <h5 class="modal-title fw-bold" id="deleteCourseModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> Delete Course Confirmation
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="<?= url('teacher/courses.php') ?>">
+                <input type="hidden" name="action" value="delete_course">
+                <input type="hidden" name="course_id" id="deleteModalCourseId" value="0">
+                
+                <div class="modal-body p-4">
+                    <p class="text-muted mb-3">
+                        Are you sure you want to permanently delete this course?
+                    </p>
+                    <div class="p-3 bg-light rounded-3 border mb-3">
+                        <strong class="text-dark d-block mb-1" id="deleteModalCourseTitle">Course Title</strong>
+                        <small class="text-muted">All associated lessons, tasks, quizzes, and materials will be deleted.</small>
+                    </div>
+                    <div class="alert alert-warning border-0 small mb-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-info-circle-fill text-warning fs-5 flex-shrink-0"></i>
+                        <span>This action cannot be undone. Please confirm to proceed.</span>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-light px-4 py-3">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">
+                        <i class="bi bi-trash3-fill me-1"></i> Delete Course
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDeleteCourse(courseId, courseTitle) {
+    document.getElementById('deleteModalCourseId').value = courseId;
+    document.getElementById('deleteModalCourseTitle').textContent = courseTitle;
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteCourseModal')).show();
+}
+</script>
 
 <?php include BASE_PATH . '/includes/layouts/dashboard-footer.php'; ?>

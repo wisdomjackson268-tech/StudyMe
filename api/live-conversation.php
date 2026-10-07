@@ -23,14 +23,17 @@ if (!$classId || !get_live_conversation_access($classId, $userId, $role)) {
 }
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
+    require_once BASE_PATH . '/includes/functions/live_classes.php';
     $messages = get_live_conversation_messages($classId, $userId, $role);
     $typingUsers = get_live_typing_users($classId, $userId);
+    $classDetails = get_live_class_by_id($classId);
     $students = [];
     if ($role === ROLE_TEACHER || $role === ROLE_ADMIN) {
         $students = get_live_class_enrolled_students($classId);
     }
     echo json_encode([
         'success' => true,
+        'live_class' => $classDetails,
         'messages' => $messages,
         'students' => $students,
         'total_students' => count($students),

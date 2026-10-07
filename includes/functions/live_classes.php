@@ -89,26 +89,31 @@ function get_course_live_classes($courseId) {
     }
 }
 
-function get_student_upcoming_live_classes($studentId) {
+function get_student_upcoming_live_classes($studentId, $targetClassId = 0, $inputIsUserId = false) {
     $pdo = getDBConnection();
     try {
-        $stmtCheck = $pdo->prepare("SELECT id FROM students WHERE id = ? LIMIT 1");
+        $lookupColumn = $inputIsUserId ? 'user_id' : 'id';
+        $fallbackColumn = $inputIsUserId ? 'id' : 'user_id';
+        $stmtCheck = $pdo->prepare("SELECT id, user_id, academic_level FROM students WHERE {$lookupColumn} = ? LIMIT 1");
         $stmtCheck->execute([(int)$studentId]);
-        $resolvedStudentId = (int)$stmtCheck->fetchColumn();
-        if (!$resolvedStudentId) {
-            $stmtUser = $pdo->prepare("SELECT id FROM students WHERE user_id = ? LIMIT 1");
-            $stmtUser->execute([(int)$studentId]);
-            $resolvedStudentId = (int)$stmtUser->fetchColumn();
+        $studentRow = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+        if (!$studentRow) {
+            $stmtCheck = $pdo->prepare("SELECT id, user_id, academic_level FROM students WHERE {$fallbackColumn} = ? LIMIT 1");
+            $stmtCheck->execute([(int)$studentId]);
+            $studentRow = $stmtCheck->fetch(PDO::FETCH_ASSOC);
         }
-        if (!$resolvedStudentId) {
+        if (!$studentRow) {
             return [];
         }
+        $resolvedStudentId = (int)$studentRow['id'];
+        $resolvedUserId    = (int)$studentRow['user_id'];
+        $academicLevel     = (string)($studentRow['academic_level'] ?? '');
 
-        $stmt = $pdo->prepare("
-                 SELECT lc.*, c.title AS course_title, c.thumbnail AS course_thumbnail,
-                     c.academic_level, c.academic_year,
-                     CONCAT(u.first_name, ' ', u.last_name) AS teacher_name,
-                     u.id AS teacher_user_id,
+        $sql = "
+            SELECT DISTINCT lc.*, c.title AS course_title, c.thumbnail AS course_thumbnail,
+                   c.academic_level, c.academic_year,
+                   CONCAT(u.first_name, ' ', u.last_name) AS teacher_name,
+                   u.id AS teacher_user_id,
                    u.avatar AS teacher_avatar,
                    t.qualification AS teacher_qualification,
                    lca.id AS attendance_id,
@@ -117,14 +122,34 @@ function get_student_upcoming_live_classes($studentId) {
                    (SELECT COUNT(*) FROM live_class_attendance WHERE live_class_id = lc.id) AS total_attendees
             FROM live_classes lc
             JOIN courses c ON lc.course_id = c.id
-            JOIN enrollments e ON e.course_id = c.id
             JOIN teachers t ON lc.teacher_id = t.id
             JOIN users u ON t.user_id = u.id
-            LEFT JOIN live_class_attendance lca ON lca.live_class_id = lc.id AND lca.student_id = ?
-            WHERE e.student_id = ? AND e.status = 'active' AND lc.status IN ('scheduled', 'live')
-            ORDER BY (lc.status = 'live') DESC, lc.scheduled_at ASC
-        ");
-        $stmt->execute([$resolvedStudentId, $resolvedStudentId]);
+            LEFT JOIN enrollments e ON e.course_id = c.id AND (e.student_id = :student_id) AND e.status IN ('active', 'enrolled', 'completed')
+            LEFT JOIN live_class_attendance lca ON lca.live_class_id = lc.id AND (lca.student_id = :attendance_student_id OR lca.user_id = :attendance_user_id)
+            WHERE lc.status IN ('scheduled', 'live')
+              AND (
+                  e.id IS NOT NULL
+                                    OR (:level_enabled != '' AND c.academic_level = :level_match)
+                                    OR EXISTS (
+                                            SELECT 1 FROM notifications n
+                                            WHERE n.user_id = :notification_user_id
+                                                AND n.link LIKE :notification_class_link
+                                    )
+              )
+                        ORDER BY (lc.id = :target_class_order) DESC, (lc.status = 'live') DESC, lc.scheduled_at ASC
+        ";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            ':student_id'                => $resolvedStudentId,
+            ':attendance_student_id'     => $resolvedStudentId,
+            ':attendance_user_id'        => $resolvedUserId,
+            ':level_enabled'             => $academicLevel,
+            ':level_match'               => $academicLevel,
+            ':notification_user_id'      => $resolvedUserId,
+            ':notification_class_link' => '%class_id=' . (int)$targetClassId . '%',
+            ':target_class_order'        => (int)$targetClassId
+        ]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
         error_log("Error in get_student_upcoming_live_classes: " . $e->getMessage());
@@ -132,23 +157,28 @@ function get_student_upcoming_live_classes($studentId) {
     }
 }
 
-function get_student_past_live_classes($studentId) {
+function get_student_past_live_classes($studentId, $inputIsUserId = false) {
     $pdo = getDBConnection();
     try {
-        $stmtCheck = $pdo->prepare("SELECT id FROM students WHERE id = ? LIMIT 1");
+        $lookupColumn = $inputIsUserId ? 'user_id' : 'id';
+        $fallbackColumn = $inputIsUserId ? 'id' : 'user_id';
+        $stmtCheck = $pdo->prepare("SELECT id, user_id, academic_level FROM students WHERE {$lookupColumn} = ? LIMIT 1");
         $stmtCheck->execute([(int)$studentId]);
-        $resolvedStudentId = (int)$stmtCheck->fetchColumn();
-        if (!$resolvedStudentId) {
-            $stmtUser = $pdo->prepare("SELECT id FROM students WHERE user_id = ? LIMIT 1");
-            $stmtUser->execute([(int)$studentId]);
-            $resolvedStudentId = (int)$stmtUser->fetchColumn();
+        $studentRow = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+        if (!$studentRow) {
+            $stmtCheck = $pdo->prepare("SELECT id, user_id, academic_level FROM students WHERE {$fallbackColumn} = ? LIMIT 1");
+            $stmtCheck->execute([(int)$studentId]);
+            $studentRow = $stmtCheck->fetch(PDO::FETCH_ASSOC);
         }
-        if (!$resolvedStudentId) {
+        if (!$studentRow) {
             return [];
         }
+        $resolvedStudentId = (int)$studentRow['id'];
+        $resolvedUserId    = (int)$studentRow['user_id'];
+        $academicLevel     = (string)($studentRow['academic_level'] ?? '');
 
-        $stmt = $pdo->prepare("
-            SELECT lc.*, c.title AS course_title, c.thumbnail AS course_thumbnail,
+        $sql = "
+            SELECT DISTINCT lc.*, c.title AS course_title, c.thumbnail AS course_thumbnail,
                    c.academic_level, c.academic_year,
                    CONCAT(u.first_name, ' ', u.last_name) AS teacher_name,
                    u.avatar AS teacher_avatar,
@@ -159,14 +189,26 @@ function get_student_past_live_classes($studentId) {
                    (SELECT COUNT(*) FROM live_class_attendance WHERE live_class_id = lc.id) AS total_attendees
             FROM live_classes lc
             JOIN courses c ON lc.course_id = c.id
-            JOIN enrollments e ON e.course_id = c.id
             JOIN teachers t ON lc.teacher_id = t.id
             JOIN users u ON t.user_id = u.id
-            LEFT JOIN live_class_attendance lca ON lca.live_class_id = lc.id AND lca.student_id = ?
-            WHERE e.student_id = ? AND e.status = 'active' AND lc.status = 'ended'
+            LEFT JOIN enrollments e ON e.course_id = c.id AND (e.student_id = :student_id) AND e.status IN ('active', 'enrolled', 'completed')
+            LEFT JOIN live_class_attendance lca ON lca.live_class_id = lc.id AND (lca.student_id = :attendance_student_id OR lca.user_id = :attendance_user_id)
+            WHERE lc.status = 'ended'
+              AND (
+                  e.id IS NOT NULL
+                  OR (:level_enabled != '' AND c.academic_level = :level_match)
+              )
             ORDER BY lc.scheduled_at DESC
-        ");
-        $stmt->execute([$resolvedStudentId, $resolvedStudentId]);
+        ";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            ':student_id'            => $resolvedStudentId,
+            ':attendance_student_id' => $resolvedStudentId,
+            ':attendance_user_id'    => $resolvedUserId,
+            ':level_enabled'         => $academicLevel,
+            ':level_match'           => $academicLevel,
+        ]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
         error_log("Error in get_student_past_live_classes: " . $e->getMessage());
@@ -221,19 +263,34 @@ function start_live_class_now($courseId, $teacherId, $subject, $topic, $duration
         $stmt->execute([(int)$courseId, (int)$teacherId, $title, $description, $meetingUrl, (int)$durationMinutes]);
         $classId = (int)$pdo->lastInsertId();
 
+        // Find students to notify (active enrollments, enrolled students, or category students)
         $notify = $pdo->prepare("SELECT DISTINCT s.user_id
             FROM students s
             JOIN enrollments e ON e.student_id = s.id
-            WHERE e.course_id = ? AND e.status = 'active'");
+            WHERE e.course_id = ? AND e.status IN ('active', 'enrolled', 'completed')");
         $notify->execute([(int)$courseId]);
-        $notification = $pdo->prepare("INSERT INTO notifications (user_id, title, message, type, link, created_at)
-            VALUES (?, ?, ?, 'live_class', ?, NOW())");
+        $studentUserIds = $notify->fetchAll(PDO::FETCH_COLUMN);
+
+        if (empty($studentUserIds)) {
+            $stmtCatStudents = $pdo->prepare("SELECT DISTINCT s.user_id
+                FROM students s
+                JOIN courses c ON c.id = ?
+                WHERE (s.category_id = c.category_id OR s.academic_level = c.academic_level OR s.target_exam = c.target_exam)");
+            $stmtCatStudents->execute([(int)$courseId]);
+            $studentUserIds = $stmtCatStudents->fetchAll(PDO::FETCH_COLUMN);
+        }
+
         $link = 'student/live-classes.php?class_id=' . $classId;
-        foreach ($notify->fetchAll(PDO::FETCH_COLUMN) as $studentUserId) {
-            $notification->execute([
+        $notificationTitle = '🔴 Live Class Started: ' . $title;
+        $notificationMessage = 'Your teacher is live now on ' . $title . '. Tap here to join the live session and chat in real-time!';
+
+        $notificationStmt = $pdo->prepare("INSERT INTO notifications (user_id, title, message, type, link, created_at)
+            VALUES (?, ?, ?, 'live_class', ?, NOW())");
+        foreach ($studentUserIds as $studentUserId) {
+            $notificationStmt->execute([
                 (int)$studentUserId,
-                'Your teacher is live now',
-                $title . ' has started. Join the live conversation now.',
+                $notificationTitle,
+                $notificationMessage,
                 $link
             ]);
         }
@@ -250,8 +307,10 @@ function get_live_class_by_id($classId) {
         $stmt = $pdo->prepare("
             SELECT lc.*, c.title AS course_title, c.academic_level, c.academic_year,
                    CONCAT(u.first_name, ' ', u.last_name) AS teacher_name,
+                   u.id AS teacher_user_id,
                    u.avatar AS teacher_avatar,
-                   (SELECT COUNT(DISTINCT e.student_id) FROM enrollments e WHERE e.course_id = lc.course_id AND e.status = 'active') AS enrolled_students,
+                   t.qualification AS teacher_qualification,
+                   (SELECT COUNT(DISTINCT e.student_id) FROM enrollments e WHERE e.course_id = lc.course_id AND e.status IN ('active', 'enrolled', 'completed')) AS enrolled_students,
                    (SELECT COUNT(DISTINCT lca.student_id) FROM live_class_attendance lca WHERE lca.live_class_id = lc.id) AS attended_students
             FROM live_classes lc
             JOIN courses c ON lc.course_id = c.id
@@ -289,7 +348,46 @@ function update_live_class_status($classId, $teacherId, $status, $recordingUrl =
         $params[] = (int)$teacherId;
 
         $stmt = $pdo->prepare($sql);
-        return $stmt->execute($params);
+        $executed = $stmt->execute($params);
+
+        if ($executed && $status === 'live') {
+            $class = get_live_class_by_id($classId);
+            if ($class) {
+                $courseId = (int)$class['course_id'];
+                $title = $class['title'];
+                $notify = $pdo->prepare("SELECT DISTINCT s.user_id
+                    FROM students s
+                    JOIN enrollments e ON e.student_id = s.id
+                    WHERE e.course_id = ? AND e.status IN ('active', 'enrolled', 'completed')");
+                $notify->execute([(int)$courseId]);
+                $studentUserIds = $notify->fetchAll(PDO::FETCH_COLUMN);
+
+                if (empty($studentUserIds)) {
+                    $stmtCatStudents = $pdo->prepare("SELECT DISTINCT s.user_id
+                        FROM students s
+                        JOIN courses c ON c.id = ?
+                        WHERE (s.category_id = c.category_id OR s.academic_level = c.academic_level OR s.target_exam = c.target_exam)");
+                    $stmtCatStudents->execute([(int)$courseId]);
+                    $studentUserIds = $stmtCatStudents->fetchAll(PDO::FETCH_COLUMN);
+                }
+
+                $link = 'student/live-classes.php?class_id=' . $classId;
+                $notificationTitle = '🔴 Live Class Started: ' . $title;
+                $notificationMessage = 'Your teacher is live now for ' . $title . '. Join the live classroom!';
+                $notificationStmt = $pdo->prepare("INSERT INTO notifications (user_id, title, message, type, link, created_at)
+                    VALUES (?, ?, ?, 'live_class', ?, NOW())");
+                foreach ($studentUserIds as $studentUserId) {
+                    $notificationStmt->execute([
+                        (int)$studentUserId,
+                        $notificationTitle,
+                        $notificationMessage,
+                        $link
+                    ]);
+                }
+            }
+        }
+
+        return $executed;
     } catch (Exception $e) {
         error_log("Error in update_live_class_status: " . $e->getMessage());
         return false;
@@ -336,14 +434,8 @@ function mark_live_class_attendance($classId, $studentId, $userId = null, $ip = 
 
         $courseId = (int)$liveClass['course_id'];
 
-        $stmtEnroll = $pdo->prepare("SELECT id FROM enrollments WHERE student_id = ? AND course_id = ? AND status = 'active' LIMIT 1");
-        $stmtEnroll->execute([$resolvedStudentId, $courseId]);
-        if (!$stmtEnroll->fetchColumn()) {
-            return ['success' => false, 'message' => 'You must be actively enrolled in this course to mark attendance.'];
-        }
-
-        $stmtCheck = $pdo->prepare("SELECT id, attended_at FROM live_class_attendance WHERE live_class_id = ? AND student_id = ? LIMIT 1");
-        $stmtCheck->execute([(int)$classId, $resolvedStudentId]);
+        $stmtCheck = $pdo->prepare("SELECT id, attended_at FROM live_class_attendance WHERE live_class_id = ? AND (student_id = ? OR user_id = ?) LIMIT 1");
+        $stmtCheck->execute([(int)$classId, $resolvedStudentId, $resolvedUserId]);
         $existing = $stmtCheck->fetch(PDO::FETCH_ASSOC);
         if ($existing) {
             return [

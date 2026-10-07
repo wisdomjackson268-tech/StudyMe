@@ -17,8 +17,8 @@ function get_official_pricing_rates() {
     return [
         'tech'       => get_pricing_setting('price_tech', defined('OFFICIAL_PRICE_TECH') ? OFFICIAL_PRICE_TECH : 10000.00),
         'secondary'  => get_pricing_setting('price_secondary', defined('OFFICIAL_PRICE_SECONDARY') ? OFFICIAL_PRICE_SECONDARY : 3000.00),
-        'university' => get_pricing_setting('price_university', defined('OFFICIAL_PRICE_UNIVERSITY') ? OFFICIAL_PRICE_UNIVERSITY : 5000.00),
-        'teacher'    => get_pricing_setting('price_teacher', defined('OFFICIAL_PRICE_TEACHER') ? OFFICIAL_PRICE_TEACHER : 4000.00),
+        'university' => get_pricing_setting('price_university', defined('OFFICIAL_PRICE_UNIVERSITY') ? OFFICIAL_PRICE_UNIVERSITY : 4000.00),
+        'teacher'    => get_pricing_setting('price_teacher', defined('OFFICIAL_PRICE_TEACHER') ? OFFICIAL_PRICE_TEACHER : 3000.00),
     ];
 }
 

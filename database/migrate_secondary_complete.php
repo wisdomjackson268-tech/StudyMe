@@ -488,7 +488,37 @@ $materialsList = [
         'slug' => 'math-high-yield-formula-sheet',
         'type' => 'formula_sheet',
         'duration' => 20,
-        'body' => "### Essential Secondary School Mathematics Formulas\n\n#### 1. Quadratic Equation\nFor equation $ax^2 + bx + c = 0$:\n$$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$\n* Discriminant $\\Delta = b^2 - 4ac$:\n  - $\\Delta > 0$: 2 real distinct roots\n  - $\\Delta = 0$: 1 real repeated root\n  - $\\Delta < 0$: Complex roots\n\n#### 2. Indices & Logarithms\n* $a^m \\times a^n = a^{m+n}$\n* $\\frac{a^m}{a^n} = a^{m-n}$\n* $(a^m)^n = a^{mn}$\n* $\\log_a(xy) = \\log_a x + \\log_a y$\n* $\\log_a(x/y) = \\log_a x - \\log_a y$\n* $\\log_a(x^k) = k \\log_a x$\n* Change of base: $\\log_a b = \\frac{\\log_c b}{\\log_c a}$\n\n#### 3. Trigonometry\n* $\\sin^2 \\theta + \\cos^2 \\theta = 1$\n* Sine Rule: $\\frac{a}{\\sin A} = \\frac{b}{\\sin B} = \\frac{c}{\\sin C} = 2R$\n* Cosine Rule: $a^2 = b^2 + c^2 - 2bc \\cos A$\n* Area of Triangle: $\\text{Area} = \\frac{1}{2}ab \\sin C$\n\n#### 4. Mensuration\n* Cylinder Volume: $V = \\pi r^2 h$, Surface Area: $A = 2\\pi r(r + h)$\n* Cone Volume: $V = \\frac{1}{3}\\pi r^2 h$, Curved Surface Area: $A = \\pi r l$\n* Sphere Volume: $V = \\frac{4}{3}\\pi r^3$, Surface Area: $A = 4\\pi r^2$"
+        'body' => <<<'EOT'
+### Essential Secondary School Mathematics Formulas
+
+#### 1. Quadratic Equation
+For equation $ax^2 + bx + c = 0$:
+$$x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$$
+* Discriminant $\Delta = b^2 - 4ac$:
+  - $\Delta > 0$: 2 real distinct roots
+  - $\Delta = 0$: 1 real repeated root
+  - $\Delta < 0$: Complex roots
+
+#### 2. Indices & Logarithms
+* $a^m \times a^n = a^{m+n}$
+* $\frac{a^m}{a^n} = a^{m-n}$
+* $(a^m)^n = a^{mn}$
+* $\log_a(xy) = \log_a x + \log_a y$
+* $\log_a(x/y) = \log_a x - \log_a y$
+* $\log_a(x^k) = k \log_a x$
+* Change of base: $\log_a b = \frac{\log_c b}{\log_c a}$
+
+#### 3. Trigonometry
+* $\sin^2 \theta + \cos^2 \theta = 1$
+* Sine Rule: $\frac{a}{\sin A} = \frac{b}{\sin B} = \frac{c}{\sin C} = 2R$
+* Cosine Rule: $a^2 = b^2 + c^2 - 2bc \cos A$
+* Area of Triangle: $\text{Area} = \frac{1}{2}ab \sin C$
+
+#### 4. Mensuration
+* Cylinder Volume: $V = \pi r^2 h$, Surface Area: $A = 2\pi r(r + h)$
+* Cone Volume: $V = \frac{1}{3}\pi r^2 h$, Curved Surface Area: $A = \pi r l$
+* Sphere Volume: $V = \frac{4}{3}\pi r^3$, Surface Area: $A = 4\pi r^2$
+EOT
     ],
     [
         'subject_slug' => 'english',
@@ -496,7 +526,24 @@ $materialsList = [
         'slug' => 'oral-english-mastery-guide',
         'type' => 'summary',
         'duration' => 25,
-        'body' => "### Oral English Master Summary\n\n#### 1. Monophthongs (Pure Vowels)\n* Short vowels: /ɪ/ (sit), /e/ (bed), /æ/ (cat), /ʌ/ (cup, love), /ɒ/ (pot), /ʊ/ (put), /ə/ (sofa - schwa)\n* Long vowels: /iː/ (seat), /ɑː/ (father, car), /ɔː/ (port, saw), /uː/ (food), /ɜː/ (bird, learn)\n\n#### 2. Common WAEC Traps\n* 'plumber' is pronounced /ˈplʌm.ər/ (silent b)\n* 'receipt' has silent p\n* 'sword' has silent w (/sɔːd/)\n* 'debt' and 'doubt' have silent b\n\n#### 3. Word Stress Rules\n* 2-Syllable Nouns/Adjectives: Stress on **First** syllable (PRE-sent, EX-port, TA-ble, CLEV-er)\n* 2-Syllable Verbs: Stress on **Second** syllable (pre-SENT, ex-PORT, re-LAX, de-CIDE)\n* Words ending in '-tion', '-sion', '-ic': Stress on the syllable immediately before the suffix (edu-CA-tion, spe-CI-fic, de-CI-sion)"
+        'body' => <<<'EOT'
+### Oral English Master Summary
+
+#### 1. Monophthongs (Pure Vowels)
+* Short vowels: /ɪ/ (sit), /e/ (bed), /æ/ (cat), /ʌ/ (cup, love), /ɒ/ (pot), /ʊ/ (put), /ə/ (sofa - schwa)
+* Long vowels: /iː/ (seat), /ɑː/ (father, car), /ɔː/ (port, saw), /uː/ (food), /ɜː/ (bird, learn)
+
+#### 2. Common WAEC Traps
+* 'plumber' is pronounced /ˈplʌm.ər/ (silent b)
+* 'receipt' has silent p
+* 'sword' has silent w (/sɔːd/)
+* 'debt' and 'doubt' have silent b
+
+#### 3. Word Stress Rules
+* 2-Syllable Nouns/Adjectives: Stress on **First** syllable (PRE-sent, EX-port, TA-ble, CLEV-er)
+* 2-Syllable Verbs: Stress on **Second** syllable (pre-SENT, ex-PORT, re-LAX, de-CIDE)
+* Words ending in '-tion', '-sion', '-ic': Stress on the syllable immediately before the suffix (edu-CA-tion, spe-CI-fic, de-CI-sion)
+EOT
     ],
     [
         'subject_slug' => 'physics',
@@ -504,7 +551,27 @@ $materialsList = [
         'slug' => 'physics-mechanics-electricity-summary',
         'type' => 'notes',
         'duration' => 30,
-        'body' => "### Physics Comprehensive Revision Notes\n\n#### 1. Equations of Uniformly Accelerated Motion\n1. $v = u + at$\n2. $s = ut + \\frac{1}{2}at^2$\n3. $v^2 = u^2 + 2as$\n4. $s = \\frac{(u + v)}{2}t$\n\n#### 2. Projectiles\n* Time of Flight: $T = \\frac{2u \\sin \\theta}{g}$\n* Maximum Height: $H = \\frac{u^2 \\sin^2 \\theta}{2g}$\n* Range: $R = \\frac{u^2 \\sin 2\\theta}{g}$ (Maximum range occurs at $\\theta = 45^\\circ$)\n\n#### 3. Electric Circuits\n* Ohm's Law: $V = IR$\n* Resistors in Series: $R_{\\text{eq}} = R_1 + R_2 + R_3$\n* Resistors in Parallel: $\\frac{1}{R_{\\text{eq}}} = \\frac{1}{R_1} + \\frac{1}{R_2}$\n* Electrical Power: $P = IV = I^2R = \\frac{V^2}{R}$\n* Electrical Energy: $E = Pt = IVt$"
+        'body' => <<<'EOT'
+### Physics Comprehensive Revision Notes
+
+#### 1. Equations of Uniformly Accelerated Motion
+1. $v = u + at$
+2. $s = ut + \frac{1}{2}at^2$
+3. $v^2 = u^2 + 2as$
+4. $s = \frac{(u + v)}{2}t$
+
+#### 2. Projectiles
+* Time of Flight: $T = \frac{2u \sin \theta}{g}$
+* Maximum Height: $H = \frac{u^2 \sin^2 \theta}{2g}$
+* Range: $R = \frac{u^2 \sin 2\theta}{g}$ (Maximum range occurs at $\theta = 45^\circ$)
+
+#### 3. Electric Circuits
+* Ohm's Law: $V = IR$
+* Resistors in Series: $R_{\text{eq}} = R_1 + R_2 + R_3$
+* Resistors in Parallel: $\frac{1}{R_{\text{eq}}} = \frac{1}{R_1} + \frac{1}{R_2}$
+* Electrical Power: $P = IV = I^2R = \frac{V^2}{R}$
+* Electrical Energy: $E = Pt = IVt$
+EOT
     ],
     [
         'subject_slug' => 'chemistry',
@@ -512,7 +579,24 @@ $materialsList = [
         'slug' => 'chemistry-fast-notes',
         'type' => 'notes',
         'duration' => 25,
-        'body' => "### Secondary Chemistry High-Yield Notes\n\n#### 1. Mole Concepts\n* Number of moles $n = \\frac{\\text{Mass (g)}}{\\text{Molar Mass (g/mol)}}$\n* Moles of gas at STP: $n = \\frac{\\text{Volume in dm}^3}{22.4\\text{ dm}^3}$\n* Molarity: $C = \\frac{n}{V(\\text{dm}^3)} = \\frac{\\text{mass}}{M \\times V}$\n* Dilution formula: $C_1 V_1 = C_2 V_2$\n\n#### 2. Acid-Base Titration\n$$\\frac{C_a V_a}{C_b V_b} = \\frac{n_a}{n_b}$$\nWhere $C_a, C_b$ are concentrations in $\\text{mol/dm}^3$, $V_a, V_b$ are volumes, and $n_a, n_b$ are mole ratios from balanced equation.\n\n#### 3. Hydrocarbons Summary\n* Alkanes: $C_n H_{2n+2}$ (Saturated, undergoes substitution reactions)\n* Alkenes: $C_n H_{2n}$ (Unsaturated with double bond, decolourizes bromine water)\n* Alkynes: $C_n H_{2n-2}$ (Unsaturated with triple bond)"
+        'body' => <<<'EOT'
+### Secondary Chemistry High-Yield Notes
+
+#### 1. Mole Concepts
+* Number of moles $n = \frac{\text{Mass (g)}}{\text{Molar Mass (g/mol)}}$
+* Moles of gas at STP: $n = \frac{\text{Volume in dm}^3}{22.4\text{ dm}^3}$
+* Molarity: $C = \frac{n}{V(\text{dm}^3)} = \frac{\text{mass}}{M \times V}$
+* Dilution formula: $C_1 V_1 = C_2 V_2$
+
+#### 2. Acid-Base Titration
+$$\frac{C_a V_a}{C_b V_b} = \frac{n_a}{n_b}$$
+Where $C_a, C_b$ are concentrations in $\text{mol/dm}^3$, $V_a, V_b$ are volumes, and $n_a, n_b$ are mole ratios from balanced equation.
+
+#### 3. Hydrocarbons Summary
+* Alkanes: $C_n H_{2n+2}$ (Saturated, undergoes substitution reactions)
+* Alkenes: $C_n H_{2n}$ (Unsaturated with double bond, decolourizes bromine water)
+* Alkynes: $C_n H_{2n-2}$ (Unsaturated with triple bond)
+EOT
     ],
     [
         'subject_slug' => 'biology',
@@ -520,7 +604,20 @@ $materialsList = [
         'slug' => 'biology-quick-revision',
         'type' => 'summary',
         'duration' => 20,
-        'body' => "### Biology High-Yield Revision\n\n#### 1. Cell Organelles & Functions\n* **Mitochondrion**: Site of cellular respiration (ATP synthesis) - Powerhouse.\n* **Ribosome**: Site of protein synthesis.\n* **Chloroplast**: Contains chlorophyll for photosynthesis.\n* **Cell Membrane**: Selectively permeable lipid bilayer controlling movement of substances.\n\n#### 2. Genetics & Mendelism\n* Phenotypic ratio in F2 generation for monohybrid cross: **3:1**\n* Genotypic ratio: **1:2:1** (1 BB : 2 Bb : 1 bb)\n* ABO Blood Groups: Genotypes $I^A I^A, I^A I^O$ (Type A), $I^B I^B, I^B I^O$ (Type B), $I^A I^B$ (Type AB - co-dominance), $I^O I^O$ (Type O - universal donor)."
+        'body' => <<<'EOT'
+### Biology High-Yield Revision
+
+#### 1. Cell Organelles & Functions
+* **Mitochondrion**: Site of cellular respiration (ATP synthesis) - Powerhouse.
+* **Ribosome**: Site of protein synthesis.
+* **Chloroplast**: Contains chlorophyll for photosynthesis.
+* **Cell Membrane**: Selectively permeable lipid bilayer controlling movement of substances.
+
+#### 2. Genetics & Mendelism
+* Phenotypic ratio in F2 generation for monohybrid cross: **3:1**
+* Genotypic ratio: **1:2:1** (1 BB : 2 Bb : 1 bb)
+* ABO Blood Groups: Genotypes $I^A I^A, I^A I^O$ (Type A), $I^B I^B, I^B I^O$ (Type B), $I^A I^B$ (Type AB - co-dominance), $I^O I^O$ (Type O - universal donor).
+EOT
     ]
 ];
 

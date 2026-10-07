@@ -821,55 +821,134 @@ function updateLiveTypingIndicator(typingUsers) {
     indicator.classList.add('is-visible');
 }
 
+let _teacherRenderedMessageMap = {};
+
+function isTeacherMediaPlaying(container) {
+    if (!container) return false;
+    const audios = container.querySelectorAll('audio');
+    const videos = container.querySelectorAll('video');
+    for (const a of audios) { if (!a.paused) return true; }
+    for (const v of videos) { if (!v.paused) return true; }
+    return false;
+}
+
+function buildTeacherMessageHtml(message) {
+    const mediaPath = String(message.media_url || '').toLowerCase();
+    const content = message.message_type === 'voice'
+        ? `<div class="live-audio-message"><audio controls preload="metadata" class="w-100" src="<?= rtrim(APP_URL, '/') ?>/` + escapeConversationText(message.media_url) + `"></audio><span class="live-audio-duration"><i class="bi bi-clock me-1"></i>${formatLiveDuration(message.duration_seconds)}</span></div>`
+        : (message.message_type === 'video' || /\.(mp4|webm|mov|ogv)(\?|$)/.test(mediaPath))
+            ? `<video controls playsinline preload="metadata" class="live-chat-video" src="<?= rtrim(APP_URL, '/') ?>/` + escapeConversationText(message.media_url) + `"></video>`
+        : message.message_type === 'image'
+            ? `<a href="<?= rtrim(APP_URL, '/') ?>/` + escapeConversationText(message.media_url) + `" target="_blank" rel="noopener noreferrer"><img src="<?= rtrim(APP_URL, '/') ?>/` + escapeConversationText(message.media_url) + `" class="live-chat-image" alt="Picture shared by ${escapeConversationText(message.sender_name)}"></a>`
+            : `<div>${escapeConversationText(message.message_text)}</div>`;
+    const roleLabel = message.role === 'teacher' 
+        ? '<span class="badge bg-primary text-white rounded-pill px-2 py-0.5 ms-1" style="font-size:0.65rem;"><i class="bi bi-patch-check-fill me-1"></i>Teacher</span>' 
+        : '<span class="conversation-role">Student</span>';
+    const mentionBadge = message.mention_user_name 
+        ? `<div class="mb-1"><span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1" style="font-size:0.72rem;"><i class="bi bi-at me-0.5"></i>Mentioned <button type="button" class="mention-profile-trigger" data-profile-user-id="${Number(message.mention_user_id)}" data-profile-class-id="${conversationClassId}">${escapeConversationText(message.mention_user_name)}</button></span></div>` 
+        : '';
+    const ownMessage = Number(message.user_id) === conversationUserId;
+    const actions = `<div class="conversation-actions"><button type="button" class="conversation-actions-trigger" aria-label="Message options" data-message-menu="${message.id}"><i class="bi bi-three-dots-vertical"></i></button><div class="conversation-actions-menu" id="message-menu-${message.id}"><button type="button" data-message-action="reply" data-message-id="${message.id}" data-message-text="${escapeConversationText(message.message_text || '')}" data-sender-name="${escapeConversationText(message.sender_name)}"><i class="bi bi-reply-fill"></i> Reply</button>${ownMessage && message.message_type === 'text' ? `<button type="button" data-message-action="edit" data-message-id="${message.id}" data-message-text="${escapeConversationText(message.message_text || '')}"><i class="bi bi-pencil-fill"></i> Edit</button>` : ''}<button type="button" class="text-danger" data-message-action="delete" data-message-id="${message.id}"><i class="bi bi-trash-fill"></i> Delete</button></div></div>`;
+    return `<div class="conversation-message ${message.role === 'teacher' ? 'conversation-message-teacher' : 'conversation-message-student'}" data-message-id="${message.id}"><div class="conversation-avatar-wrap">${conversationAvatar(message)}</div><div class="conversation-message-body"><div class="conversation-sender"><button type="button" class="live-profile-trigger" data-profile-user-id="${Number(message.user_id)}" data-profile-class-id="${conversationClassId}">${escapeConversationText(message.sender_name)}</button> ${roleLabel}<span class="conversation-time">${escapeConversationText(message.created_at)}</span></div><div class="conversation-bubble">${mentionBadge}${content}</div></div>${actions}</div>`;
+}
+
 async function loadConversation() {
     if (!conversationClassId) return;
-    const response = await fetch('<?= url('api/live-conversation.php') ?>?class_id=' + conversationClassId);
-    const data = await response.json();
-    updateLiveTypingIndicator(data.typing_users || []);
-    const box = document.getElementById('conversationMessages');
-    
-    // Update mention count and enrolled students dropdown
-    const studentCountEl = document.getElementById('mentionStudentCount');
-    const enrolledStudents = data.students || [];
-    if (studentCountEl) {
-        studentCountEl.textContent = enrolledStudents.length || (data.total_students || 0);
-    }
-    const studentSelect = document.getElementById('mentionStudentSelect');
-    if (studentSelect) {
-        const currentVal = studentSelect.value;
-        const msgStudents = data.messages ? [...new Map(data.messages.filter(m => m.role === 'student').map(m => [m.user_id, { user_id: m.user_id, name: m.sender_name }])).values()] : [];
-        const studentList = enrolledStudents.length ? enrolledStudents : msgStudents;
-        studentSelect.innerHTML = `<option value="">Select a student to mention (${studentList.length} enrolled)</option>` + 
-            studentList.map(st => `<option value="${st.user_id}" data-name="${escapeConversationText(st.name)}">${escapeConversationText(st.name)}${st.student_number ? ' (' + escapeConversationText(st.student_number) + ')' : ''}</option>`).join('');
-        if (currentVal) studentSelect.value = currentVal;
-    }
+    try {
+        const response = await fetch('<?= url('api/live-conversation.php') ?>?class_id=' + encodeURIComponent(conversationClassId), {cache: 'no-store'});
+        const data = await response.json();
+        updateLiveTypingIndicator(data.typing_users || []);
+        const box = document.getElementById('conversationMessages');
+        if (!box) return;
+        
+        // Update mention count and enrolled students dropdown
+        const studentCountEl = document.getElementById('mentionStudentCount');
+        const enrolledStudents = data.students || [];
+        if (studentCountEl) {
+            studentCountEl.textContent = enrolledStudents.length || (data.total_students || 0);
+        }
+        const studentSelect = document.getElementById('mentionStudentSelect');
+        if (studentSelect) {
+            const currentVal = studentSelect.value;
+            const msgStudents = data.messages ? [...new Map(data.messages.filter(m => m.role === 'student').map(m => [m.user_id, { user_id: m.user_id, name: m.sender_name }])).values()] : [];
+            const studentList = enrolledStudents.length ? enrolledStudents : msgStudents;
+            studentSelect.innerHTML = `<option value="">Select a student to mention (${studentList.length} enrolled)</option>` + 
+                studentList.map(st => `<option value="${st.user_id}" data-name="${escapeConversationText(st.name)}">${escapeConversationText(st.name)}${st.student_number ? ' (' + escapeConversationText(st.student_number) + ')' : ''}</option>`).join('');
+            if (currentVal) studentSelect.value = currentVal;
+        }
 
-    if (!data.success || !data.messages || !data.messages.length) {
-        box.innerHTML = '<div class="text-center text-muted small py-5">No messages yet. Start the conversation with your students.</div>';
-        return;
-    }
+        if (!data.success || !data.messages || !data.messages.length) {
+            box.innerHTML = '<div class="text-center text-muted small py-5">No messages yet. Start the conversation with your students.</div>';
+            _teacherRenderedMessageMap = {};
+            return;
+        }
 
-    box.innerHTML = data.messages.map(message => {
-        const mediaPath = String(message.media_url || '').toLowerCase();
-        const content = message.message_type === 'voice'
-            ? `<div class="live-audio-message"><audio controls class="w-100" src="<?= rtrim(APP_URL, '/') ?>/` + escapeConversationText(message.media_url) + `"></audio><span class="live-audio-duration"><i class="bi bi-clock me-1"></i>${formatLiveDuration(message.duration_seconds)}</span></div>`
-            : (message.message_type === 'video' || /\.(mp4|webm|mov|ogv)(\?|$)/.test(mediaPath))
-                ? `<video controls playsinline class="live-chat-video" src="<?= rtrim(APP_URL, '/') ?>/` + escapeConversationText(message.media_url) + `"></video>`
-            : message.message_type === 'image'
-                ? `<a href="<?= rtrim(APP_URL, '/') ?>/` + escapeConversationText(message.media_url) + `" target="_blank" rel="noopener noreferrer"><img src="<?= rtrim(APP_URL, '/') ?>/` + escapeConversationText(message.media_url) + `" class="live-chat-image" alt="Picture shared by ${escapeConversationText(message.sender_name)}"></a>`
-                : `<div>${escapeConversationText(message.message_text)}</div>`;
-        const roleLabel = message.role === 'teacher' 
-            ? '<span class="badge bg-primary text-white rounded-pill px-2 py-0.5 ms-1" style="font-size:0.65rem;"><i class="bi bi-patch-check-fill me-1"></i>Teacher</span>' 
-            : '<span class="conversation-role">Student</span>';
-        const mentionBadge = message.mention_user_name 
-            ? `<div class="mb-1"><span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1" style="font-size:0.72rem;"><i class="bi bi-at me-0.5"></i>Mentioned <button type="button" class="mention-profile-trigger" data-profile-user-id="${Number(message.mention_user_id)}" data-profile-class-id="${conversationClassId}">${escapeConversationText(message.mention_user_name)}</button></span></div>` 
-            : '';
-        const ownMessage = Number(message.user_id) === conversationUserId;
-        const actions = `<div class="conversation-actions"><button type="button" class="conversation-actions-trigger" aria-label="Message options" data-message-menu="${message.id}"><i class="bi bi-three-dots-vertical"></i></button><div class="conversation-actions-menu" id="message-menu-${message.id}"><button type="button" data-message-action="reply" data-message-id="${message.id}" data-message-text="${escapeConversationText(message.message_text || '')}" data-sender-name="${escapeConversationText(message.sender_name)}"><i class="bi bi-reply-fill"></i> Reply</button>${ownMessage && message.message_type === 'text' ? `<button type="button" data-message-action="edit" data-message-id="${message.id}" data-message-text="${escapeConversationText(message.message_text || '')}"><i class="bi bi-pencil-fill"></i> Edit</button>` : ''}<button type="button" class="text-danger" data-message-action="delete" data-message-id="${message.id}"><i class="bi bi-trash-fill"></i> Delete</button></div></div>`;
-        return `<div class="conversation-message ${message.role === 'teacher' ? 'conversation-message-teacher' : 'conversation-message-student'}" data-message-id="${message.id}"><div class="conversation-avatar-wrap">${conversationAvatar(message)}</div><div class="conversation-message-body"><div class="conversation-sender"><button type="button" class="live-profile-trigger" data-profile-user-id="${Number(message.user_id)}" data-profile-class-id="${conversationClassId}">${escapeConversationText(message.sender_name)}</button> ${roleLabel}<span class="conversation-time">${escapeConversationText(message.created_at)}</span></div><div class="conversation-bubble">${mentionBadge}${content}</div></div>${actions}</div>`;
-    }).join('');
-    box.scrollTop = box.scrollHeight;
-    bindConversationMessageActions(box);
+        // Incremental DOM update to preserve playing voice and video notes
+        const wasAtBottom = (box.scrollHeight - box.scrollTop - box.clientHeight) < 60;
+        const incomingIds = new Set(data.messages.map(m => String(m.id)));
+        const existingIds = new Set(Object.keys(_teacherRenderedMessageMap));
+
+        // 1. Remove deleted messages (only if their media isn't playing)
+        for (const id of existingIds) {
+            if (!incomingIds.has(id)) {
+                const el = box.querySelector(`[data-message-id="${id}"]`);
+                if (el && !isTeacherMediaPlaying(el)) {
+                    el.remove();
+                }
+                delete _teacherRenderedMessageMap[id];
+            }
+        }
+
+        // 2. Update existing or append new messages
+        let needsRebind = false;
+        data.messages.forEach((message, index) => {
+            const msgId = String(message.id);
+            const existingEl = box.querySelector(`[data-message-id="${msgId}"]`);
+            const fingerprint = `${message.message_text || ''}|${message.media_url || ''}|${message.message_type}`;
+
+            if (existingEl) {
+                if (message.message_type === 'text' && _teacherRenderedMessageMap[msgId] !== fingerprint) {
+                    const bubble = existingEl.querySelector('.conversation-bubble');
+                    if (bubble) {
+                        const textDiv = bubble.querySelector(':scope > div:last-child') || bubble.querySelector(':scope > div');
+                        if (textDiv && !textDiv.classList.contains('mb-1')) {
+                            textDiv.textContent = message.message_text || '';
+                        }
+                    }
+                    _teacherRenderedMessageMap[msgId] = fingerprint;
+                }
+            } else {
+                const html = buildTeacherMessageHtml(message);
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                const newNode = tempDiv.firstElementChild;
+
+                let insertBefore = null;
+                for (let j = index + 1; j < data.messages.length; j++) {
+                    const nextEl = box.querySelector(`[data-message-id="${data.messages[j].id}"]`);
+                    if (nextEl) { insertBefore = nextEl; break; }
+                }
+
+                if (insertBefore) {
+                    box.insertBefore(newNode, insertBefore);
+                } else {
+                    box.appendChild(newNode);
+                }
+
+                _teacherRenderedMessageMap[msgId] = fingerprint;
+                needsRebind = true;
+            }
+        });
+
+        if (wasAtBottom) {
+            box.scrollTop = box.scrollHeight;
+        }
+        if (needsRebind) {
+            bindConversationMessageActions(box);
+        }
+    } catch (err) {
+        console.warn('Teacher loadConversation error:', err);
+    }
 }
 
 function formatLiveDuration(seconds) {

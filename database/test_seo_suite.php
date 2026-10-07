@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/config/main.php';
+require_once dirname(__DIR__) . '/config/main.php';
 
 echo "========================================================\n";
 echo "      STUDYME SEO SUITE VERIFICATION REPORT\n";

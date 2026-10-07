@@ -20,6 +20,7 @@ function getDBConnection() {
 
         try {
             $pdo = new PDO($dsn, $username, $password, $options);
+            $pdo->exec("SET time_zone = '+01:00'");
         } catch (PDOException $e) {
             if ($e->getCode() === 1049 || strpos($e->getMessage(), 'Unknown database') !== false) {
                 try {
@@ -27,6 +28,7 @@ function getDBConnection() {
                     $initPdo = new PDO($initDsn, $username, $password, $options);
                     $initPdo->exec("CREATE DATABASE IF NOT EXISTS `$dbname` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
                     $pdo = new PDO($dsn, $username, $password, $options);
+                    $pdo->exec("SET time_zone = '+01:00'");
                 } catch (PDOException $ex) {
                     error_log("StudyMe DB Auto-Create Error: " . $ex->getMessage());
                 }

@@ -44,7 +44,7 @@ try {
         'price_tech'       => '10000.00',
         'price_university' => '4000.00',
         'price_secondary'  => '3000.00',
-        'price_teacher'    => '5000.00',
+        'price_teacher'    => '3000.00',
     ];
 
     $stmtPrice = $pdo->prepare("

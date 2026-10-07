@@ -387,3 +387,119 @@ function course_has_active_teacher($courseId) {
         ];
     }
 }
+
+if (!function_exists('delete_course')) {
+    function delete_course($courseId, $teacherId = null, $isAdmin = false) {
+        $pdo = getDBConnection();
+        try {
+            $courseId = (int)$courseId;
+            if ($courseId <= 0) {
+                return ['success' => false, 'message' => 'Invalid course ID.'];
+            }
+
+            $stmt = $pdo->prepare("SELECT * FROM courses WHERE id = ? LIMIT 1");
+            $stmt->execute([$courseId]);
+            $course = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$course) {
+                return ['success' => false, 'message' => 'Course not found.'];
+            }
+
+            if (!$isAdmin) {
+                if (!$teacherId || ((int)$course['teacher_id'] !== (int)$teacherId)) {
+                    $stmtCheck = $pdo->prepare("SELECT 1 FROM teachers WHERE id = ? AND assigned_course_id = ? LIMIT 1");
+                    $stmtCheck->execute([(int)$teacherId, $courseId]);
+                    if (!$stmtCheck->fetchColumn()) {
+                        return ['success' => false, 'message' => 'You are not authorized to delete this course.'];
+                    }
+                }
+            }
+
+            $pdo->beginTransaction();
+
+            // 1. Delete Live classes & messages & attendance
+            try {
+                $pdo->prepare("DELETE FROM live_class_messages WHERE live_class_id IN (SELECT id FROM live_classes WHERE course_id = ?)")->execute([$courseId]);
+            } catch (Exception $e) {}
+            try {
+                $pdo->prepare("DELETE FROM live_class_attendance WHERE course_id = ? OR live_class_id IN (SELECT id FROM live_classes WHERE course_id = ?)")->execute([$courseId, $courseId]);
+            } catch (Exception $e) {}
+            try {
+                $pdo->prepare("DELETE FROM live_classes WHERE course_id = ?")->execute([$courseId]);
+            } catch (Exception $e) {}
+
+            // 2. Delete Quizzes, questions & attempts
+            try {
+                $pdo->prepare("DELETE FROM quiz_attempts WHERE quiz_id IN (SELECT id FROM quizzes WHERE course_id = ?)")->execute([$courseId]);
+            } catch (Exception $e) {}
+            try {
+                $pdo->prepare("DELETE FROM quiz_questions WHERE quiz_id IN (SELECT id FROM quizzes WHERE course_id = ?)")->execute([$courseId]);
+            } catch (Exception $e) {}
+            try {
+                $pdo->prepare("DELETE FROM quizzes WHERE course_id = ?")->execute([$courseId]);
+            } catch (Exception $e) {}
+
+            // 3. Delete Assignments & submissions
+            try {
+                $pdo->prepare("DELETE FROM assignment_submissions WHERE assignment_id IN (SELECT id FROM assignments WHERE course_id = ?)")->execute([$courseId]);
+            } catch (Exception $e) {}
+            try {
+                $pdo->prepare("DELETE FROM assignments WHERE course_id = ?")->execute([$courseId]);
+            } catch (Exception $e) {}
+
+            // 4. Delete Lessons & lesson progress & sections
+            try {
+                $pdo->prepare("DELETE FROM lesson_progress WHERE lesson_id IN (SELECT l.id FROM lessons l JOIN course_sections cs ON l.section_id = cs.id WHERE cs.course_id = ?)")->execute([$courseId]);
+            } catch (Exception $e) {}
+            try {
+                $pdo->prepare("DELETE FROM lessons WHERE section_id IN (SELECT id FROM course_sections WHERE course_id = ?)")->execute([$courseId]);
+            } catch (Exception $e) {}
+            try {
+                $pdo->prepare("DELETE FROM course_sections WHERE course_id = ?")->execute([$courseId]);
+            } catch (Exception $e) {}
+
+            // 5. Delete Resources, reviews, notes, wishlist, enrollments
+            try {
+                $pdo->prepare("DELETE FROM resources WHERE course_id = ?")->execute([$courseId]);
+            } catch (Exception $e) {}
+            try {
+                $pdo->prepare("DELETE FROM reviews WHERE course_id = ?")->execute([$courseId]);
+            } catch (Exception $e) {}
+            try {
+                $pdo->prepare("DELETE FROM notes WHERE course_id = ?")->execute([$courseId]);
+            } catch (Exception $e) {}
+            try {
+                $pdo->prepare("DELETE FROM wishlist WHERE course_id = ?")->execute([$courseId]);
+            } catch (Exception $e) {}
+            try {
+                $pdo->prepare("DELETE FROM enrollments WHERE course_id = ?")->execute([$courseId]);
+            } catch (Exception $e) {}
+
+            // 6. Unassign from teachers table
+            try {
+                $pdo->prepare("UPDATE teachers SET assigned_course_id = NULL WHERE assigned_course_id = ?")->execute([$courseId]);
+            } catch (Exception $e) {}
+
+            // 7. Delete Course
+            $stmtDel = $pdo->prepare("DELETE FROM courses WHERE id = ?");
+            $stmtDel->execute([$courseId]);
+
+            $pdo->commit();
+
+            if (function_exists('log_user_activity')) {
+                $uid = function_exists('current_user') ? (current_user('id') ?: 0) : 0;
+                if ($uid) {
+                    log_user_activity($uid, 'delete_course', "Deleted course: {$course['title']}", $courseId);
+                }
+            }
+
+            return ['success' => true, 'message' => "Course '{$course['title']}' has been permanently deleted."];
+        } catch (Exception $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            error_log("Error deleting course: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Failed to delete course: ' . $e->getMessage()];
+        }
+    }
+}
+

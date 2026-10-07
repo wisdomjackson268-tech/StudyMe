@@ -14,7 +14,9 @@ if (!function_exists('studyme_format_time_ago')) {
         $time = is_numeric($timestamp) ? (int)$timestamp : strtotime($timestamp);
         if (!$time) return date('M j, Y');
         $diff = time() - $time;
-        if ($diff < 45) {
+        if ($diff < 60 && $diff > -300) {
+            return 'Just now';
+        } elseif ($diff < 0) {
             return 'Just now';
         } elseif ($diff < 3600) {
             $mins = max(1, (int)floor($diff / 60));

@@ -167,8 +167,8 @@ if (is_post()) {
 
                     $stmtCatSlug = $pdo->prepare("SELECT slug FROM categories WHERE id = ? LIMIT 1");
                     $stmtCatSlug->execute([$selectedCategoryId]);
-                    $catSlug = $stmtCatSlug->fetchColumn();
-                    $coursePrice = ($catSlug === 'university') ? 5000.00 : 10000.00;
+                    $rates = function_exists('get_official_pricing_rates') ? get_official_pricing_rates() : ['university' => 4000.00, 'tech' => 10000.00];
+                    $coursePrice = ($catSlug === 'university') ? (float)$rates['university'] : (float)$rates['tech'];
                     $thumb = function_exists('get_course_thumbnail_url')
                         ? get_course_thumbnail_url('', $catSlug ?: 'technology', $slug)
                         : 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=500&q=80';
